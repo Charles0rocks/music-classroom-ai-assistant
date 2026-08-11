@@ -149,7 +149,7 @@ export default function StudentSchedulePage() {
           <CalendarIcon className="w-4 h-4" />
           Student Portal (P3)
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表矩陣與智慧調課 (7x3 Grid)</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表</h1>
         <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
           點擊「張老師開放時段」即可直接調課 · 預防上課前 24 小時急迫調課保護
         </p>
