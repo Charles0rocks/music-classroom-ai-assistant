@@ -44,18 +44,15 @@ type ScheduleMode = 'recurring' | 'openSlot';
 
 // Unique Color Assignment Per Student (No bullet points)
 const getStudentCardStyle = (studentName: string, status: string) => {
-  if (status === 'confirmed' || status === 'rescheduled') {
-    if (studentName.includes('小明')) {
-      return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs'; // Ocean Light Blue
-    } else if (studentName.includes('小華')) {
-      return 'bg-[#EDE7F6] border-[#D1C4E9] text-[#4527A0] shadow-xs'; // Elegant Indigo/Purple
-    } else if (studentName.includes('小美')) {
-      return 'bg-[#FCE4EC] border-[#F8BBD0] text-[#C2185B] shadow-xs'; // Soft Pink
-    } else {
-      return 'bg-[#2E7D32] border-[#1B5E20] text-white shadow-xs font-extrabold'; // Confirmed Deep Green
-    }
+  if (studentName.includes('小明')) {
+    return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs'; // Ocean Light Blue
+  } else if (studentName.includes('小華')) {
+    return 'bg-[#EDE7F6] border-[#D1C4E9] text-[#4527A0] shadow-xs'; // Elegant Indigo/Purple
+  } else if (studentName.includes('小美')) {
+    return 'bg-[#FCE4EC] border-[#F8BBD0] text-[#C2185B] shadow-xs'; // Soft Pink
+  } else {
+    return 'bg-[#E8EAF6] border-[#C5CAE9] text-[#283593] shadow-xs'; // Classic Blue
   }
-  return 'bg-[#2E7D32] border-[#1B5E20] text-white shadow-xs font-extrabold'; // Deep Green for Confirmed
 };
 
 export default function TeacherSchedulePage() {
@@ -447,9 +444,9 @@ export default function TeacherSchedulePage() {
             <div>
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-full bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#2E7D32]/20 transition-all"
+                className="w-full py-2.5 rounded-full bg-[#E8F5E9] hover:bg-[#C8E6C9] border border-[#C8E6C9] text-[#2E7D32] font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
                 開放此時段 (粉綠卡片)
               </button>
             </div>
