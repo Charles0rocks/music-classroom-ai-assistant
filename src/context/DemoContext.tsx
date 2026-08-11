@@ -235,8 +235,9 @@ interface DemoContextType {
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // Logged in by default for quick demo
-  const [currentRole, setCurrentRole] = useState<Role>('teacher');
+  // Set default unauthenticated so users land on the Greeting & Identity Selector Login Screen
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [currentRole, setCurrentRole] = useState<Role>('student');
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>(INITIAL_SLOTS);
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
   const [rescheduleRequests, setRescheduleRequests] = useState<RescheduleRequest[]>([]);
@@ -247,7 +248,6 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const currentUser = currentRole === 'teacher' ? MOCK_TEACHER_USER : MOCK_STUDENT_USER;
 
   const login = (email: string, pass: string, role: Role) => {
-    // Check credentials for Teacher or Student
     if (role === 'teacher') {
       if (email.trim() === 'chang.teacher@harmony.edu' && pass === 'teacher123') {
         setCurrentRole('teacher');
