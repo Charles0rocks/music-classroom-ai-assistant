@@ -619,10 +619,10 @@ export default function TeacherSchedulePage() {
                         )}
                       </div>
 
-                      {/* Quick Add Button in Soft Pastel Mint Green */}
+                      {/* Quick Add Button in Soft Pale Warm Yellow */}
                       <button
                         onClick={() => handleOpenAddModal(d.key, block.key)}
-                        className="w-full py-1.5 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border border-[#C8E6C9] text-xs font-bold text-[#2E7D32] flex items-center justify-center gap-1 shadow-sm transition-all"
+                        className="w-full py-1.5 rounded-xl bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-xs font-bold text-[#8C6D53] flex items-center justify-center gap-1 shadow-sm transition-all"
                       >
                         <Plus className="w-3.5 h-3.5" /> 開設此時段
                       </button>
