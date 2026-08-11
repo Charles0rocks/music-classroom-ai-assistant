@@ -112,7 +112,7 @@ export default function RoleSelectorPage() {
               <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 課堂紀錄與筆記
             </span>
             <span className="flex items-center gap-1.5 bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-[#EFECE6]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> AI 雙影音逐影格比對
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 課後作業驗收與專家建議
             </span>
           </div>
         </div>
