@@ -612,11 +612,7 @@ export default function TeacherSchedulePage() {
                           </div>
                         ))}
 
-                        {daySlots.length === 0 && dayApps.length === 0 && (
-                          <div className="text-xs text-[#7A736E] text-center py-4 italic font-medium">
-                            無設定時段
-                          </div>
-                        )}
+
                       </div>
 
                       {/* Quick Add Button in Soft Pale Warm Yellow */}

@@ -304,11 +304,7 @@ export default function StudentSchedulePage() {
                           </div>
                         ))}
 
-                        {cellAppointments.length === 0 && cellAvailableSlots.length === 0 && (
-                          <div className="text-xs text-[#7A736E] text-center py-4 italic font-medium">
-                            無排課 / 無空檔
-                          </div>
-                        )}
+
                       </div>
                     </div>
                   );
