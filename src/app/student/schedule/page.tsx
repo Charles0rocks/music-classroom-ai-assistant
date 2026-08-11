@@ -149,7 +149,7 @@ export default function StudentSchedulePage() {
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表矩陣與智慧調課 (7x3 Grid)</h1>
         <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-          一週 (週一～週日) × 3大時段 (上午/下午/晚間) 放大矩陣課表 · 精準日期標示與淡黃色開放時段
+          一週 (週一～週日) × 3大時段 放大矩陣課表 · 深綠色已確定課程與粉綠色開放時段
         </p>
       </div>
 
@@ -196,19 +196,19 @@ export default function StudentSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED 7x3 Grid Schedule Matrix Table for Student */}
+      {/* ENLARGED 7x3 Grid Schedule Matrix Table for Student (No Bulletpoints) */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>小明同學 7x3 上課週課表矩陣</span>
-            <span className="text-xs text-[#7A736E] font-normal">（月日在上 · 週幾在下 · 授課指導：張老師）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（深綠色: 確定課程 · 粉綠色: 老師開放時段）</span>
           </h2>
           <div className="flex items-center gap-4 text-xs font-bold">
-            <span className="flex items-center gap-1.5 text-[#B85536]">
-              <span className="w-3 h-3 rounded-full bg-[#FCEADE] border border-[#F6D0B8]" /> 我的上課時間
+            <span className="flex items-center gap-1.5 text-white">
+              <span className="w-3 h-3 rounded-full bg-[#2E7D32]" /> 確定課程 (深綠)
             </span>
-            <span className="flex items-center gap-1.5 text-[#8C6D53]">
-              <span className="w-3 h-3 rounded-full bg-[#FFF9E6] border border-[#F0E2BF]" /> 老師開放時段
+            <span className="flex items-center gap-1.5 text-[#2E7D32]">
+              <span className="w-3 h-3 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]" /> 開放時段 (粉綠)
             </span>
           </div>
         </div>
@@ -270,34 +270,34 @@ export default function StudentSchedulePage() {
                       className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#E88D67]/40 transition-all"
                     >
                       <div className="space-y-2">
-                        {/* Student's Confirmed Appointments */}
+                        {/* Confirmed Student Appointments (Deep Rich Green Cards - 深綠色, No Bulletpoint) */}
                         {cellAppointments.map((app) => (
                           <div
                             key={app.id}
-                            className="p-2 rounded-xl bg-[#FCEADE] border border-[#F6D0B8] space-y-1 shadow-xs"
+                            className="p-2 rounded-xl bg-[#2E7D32] text-white border border-[#1B5E20] space-y-1 shadow-xs"
                           >
-                            <div className="flex items-center justify-between text-xs font-bold text-[#B85536]">
-                              <span>🎵 我的課程</span>
-                              <span className="font-mono text-[10px]">
+                            <div className="flex items-center justify-between text-xs font-extrabold">
+                              <span>我的確定課程</span>
+                              <span className="font-mono text-[10px] opacity-90">
                                 {formatTimeRange(app.start_time, app.end_time)}
                               </span>
                             </div>
                             <button
                               onClick={() => handleOpenRescheduleModal(app.id)}
-                              className="w-full py-1 rounded-lg bg-[#E88D67] hover:bg-[#D67A53] text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
+                              className="w-full py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
                             >
                               <ArrowRightLeft className="w-3 h-3" /> 申請調課
                             </button>
                           </div>
                         ))}
 
-                        {/* Teacher's Open Slots (Soft Pale Yellow Cards) */}
+                        {/* Teacher's Open Slots (Pastel Mint Green Cards - 粉綠色, No Bulletpoint) */}
                         {cellAvailableSlots.map((slot) => (
                           <div
                             key={slot.id}
-                            className="p-2 rounded-xl bg-[#FFF9E6] border border-[#F0E2BF] text-xs font-bold text-[#8C6D53] flex items-center justify-between shadow-xs"
+                            className="p-2 rounded-xl bg-[#E8F5E9] border border-[#C8E6C9] text-xs font-extrabold text-[#2E7D32] flex items-center justify-between shadow-xs"
                           >
-                            <span>🟡 開放時段</span>
+                            <span>開放時段</span>
                             <span className="font-mono text-[10px]">
                               {formatTimeRange(slot.start_time, slot.end_time)}
                             </span>
@@ -345,7 +345,7 @@ export default function StudentSchedulePage() {
               <div
                 className={`p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 ${
                   feedbackMsg.success
-                    ? 'bg-[#E3E8E1] text-[#3D5240] border border-[#C5D2C2]'
+                    ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]'
                     : 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8]'
                 }`}
               >
@@ -379,17 +379,17 @@ export default function StudentSchedulePage() {
                           onClick={() => setSelectedSlotId(slot.slot_id)}
                           className={`p-3.5 rounded-2xl cursor-pointer transition-all border flex items-center justify-between ${
                             isSelected
-                              ? 'bg-[#FFF9E6] border-[#F0E2BF] text-[#332C27] shadow-sm font-bold'
+                              ? 'bg-[#E8F5E9] border-[#C8E6C9] text-[#2E7D32] shadow-sm font-bold'
                               : 'bg-[#FAF7F2] border-[#EFECE6] text-[#7A736E] hover:border-[#D3C9BE]'
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <Clock className={`w-4 h-4 ${isSelected ? 'text-[#8C6D53]' : 'text-[#7A736E]'}`} />
+                            <Clock className={`w-4 h-4 ${isSelected ? 'text-[#2E7D32]' : 'text-[#7A736E]'}`} />
                             <span className="text-xs font-bold font-mono">
                               {start}
                             </span>
                           </div>
-                          <span className="text-[10px] text-[#8C6D53] bg-[#FFF9E6] px-2.5 py-0.5 rounded-full font-bold border border-[#F0E2BF]">
+                          <span className="text-[10px] text-[#2E7D32] bg-[#E8F5E9] px-2.5 py-0.5 rounded-full font-bold border border-[#C8E6C9]">
                             可預約 (Available)
                           </span>
                         </div>

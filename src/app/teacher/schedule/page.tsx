@@ -42,6 +42,22 @@ const TIME_BLOCKS = [
 
 type ScheduleMode = 'recurring' | 'openSlot';
 
+// Unique Color Assignment Per Student (No bullet points)
+const getStudentCardStyle = (studentName: string, status: string) => {
+  if (status === 'confirmed' || status === 'rescheduled') {
+    if (studentName.includes('小明')) {
+      return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs'; // Ocean Light Blue
+    } else if (studentName.includes('小華')) {
+      return 'bg-[#EDE7F6] border-[#D1C4E9] text-[#4527A0] shadow-xs'; // Elegant Indigo/Purple
+    } else if (studentName.includes('小美')) {
+      return 'bg-[#FCE4EC] border-[#F8BBD0] text-[#C2185B] shadow-xs'; // Soft Pink
+    } else {
+      return 'bg-[#2E7D32] border-[#1B5E20] text-white shadow-xs font-extrabold'; // Confirmed Deep Green
+    }
+  }
+  return 'bg-[#2E7D32] border-[#1B5E20] text-white shadow-xs font-extrabold'; // Deep Green for Confirmed
+};
+
 export default function TeacherSchedulePage() {
   const {
     scheduleSlots,
@@ -56,13 +72,13 @@ export default function TeacherSchedulePage() {
 
   // Form State for Mode 1: 1. 常態課表
   const [recurringStudent, setRecurringStudent] = useState('小明');
-  const [recurringDayKey, setRecurringDayKey] = useState<number>(3); // Wednesday
+  const [recurringDayKey, setRecurringDayKey] = useState<number>(3);
   const [recurringBlockKey, setRecurringBlockKey] = useState<string>('morning');
   const [recurringStartTime, setRecurringStartTime] = useState('10:00');
   const [recurringEndTime, setRecurringEndTime] = useState('11:00');
 
   // Form State for Mode 2: 2. 開放時段
-  const [openDayKey, setOpenDayKey] = useState<number>(4); // Thursday
+  const [openDayKey, setOpenDayKey] = useState<number>(4);
   const [openBlockKey, setOpenBlockKey] = useState<string>('afternoon');
   const [openStartTime, setOpenStartTime] = useState('14:00');
   const [openEndTime, setOpenEndTime] = useState('15:00');
@@ -153,7 +169,6 @@ export default function TeacherSchedulePage() {
     e.preventDefault();
 
     if (scheduleMode === 'recurring') {
-      // 1. 常態課表 Mode
       const targetDayObj = weekDates.find((w) => w.key === recurringDayKey);
       const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
 
@@ -163,7 +178,6 @@ export default function TeacherSchedulePage() {
       addScheduleSlot(startIso, endIso);
       setSettingNotice(`已成功新增「1. 常態課表」：${recurringStudent} · ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
     } else {
-      // 2. 開放時段 Mode
       const targetDayObj = weekDates.find((w) => w.key === openDayKey);
       const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
 
@@ -171,7 +185,7 @@ export default function TeacherSchedulePage() {
       const endIso = new Date(`${datePrefix}T${openEndTime}`).toISOString();
 
       addScheduleSlot(startIso, endIso);
-      setSettingNotice(`已成功新增「2. 開放時段」：${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${openStartTime}-${openEndTime}，下方週曆已即時呈現淡黃色卡片！`);
+      setSettingNotice(`已成功新增粉綠色「2. 開放時段」：${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${openStartTime}-${openEndTime}！`);
     }
 
     setTimeout(() => {
@@ -196,7 +210,7 @@ export default function TeacherSchedulePage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表矩陣與開放時段 (7x3 Grid)</h1>
           <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-            一週 (週一～週日) × 3大時段 (上午/下午/晚間) 放大矩陣視圖 · 雙模式設定與淡黃色開放時段
+            一週 (週一～週日) × 3大時段 矩陣視圖 · 學生專屬色系與粉綠開放/深綠確定狀態
           </p>
         </div>
 
@@ -239,19 +253,19 @@ export default function TeacherSchedulePage() {
               onClick={() => setScheduleMode('openSlot')}
               className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                 scheduleMode === 'openSlot'
-                  ? 'bg-[#FFF9E6] text-[#8C6D53] border border-[#F0E2BF] shadow-sm font-extrabold'
+                  ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] shadow-sm font-extrabold'
                   : 'text-[#7A736E] hover:text-[#332C27]'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#B87A36]" />
+              <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
               2. 開放時段
             </button>
           </div>
         </div>
 
         {settingNotice && (
-          <div className="p-3.5 rounded-2xl bg-[#FFF9E6] border border-[#F0E2BF] text-xs font-bold text-[#8C6D53] flex items-center gap-2 animate-in fade-in">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-[#B87A36]" />
+          <div className="p-3.5 rounded-2xl bg-[#E8F5E9] border border-[#C8E6C9] text-xs font-bold text-[#2E7D32] flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2E7D32]" />
             {settingNotice}
           </div>
         )}
@@ -269,9 +283,9 @@ export default function TeacherSchedulePage() {
                 onChange={(e) => setRecurringStudent(e.target.value)}
                 className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
               >
-                <option value="小明">小明 (Student Ming)</option>
-                <option value="小華">小華 (Student Hua)</option>
-                <option value="小美">小美 (Student Mei)</option>
+                <option value="小明">小明 (Ocean Blue)</option>
+                <option value="小華">小華 (Indigo Purple)</option>
+                <option value="小美">小美 (Soft Pink)</option>
                 <option value="常態班學生">常態班學生對象</option>
               </select>
             </div>
@@ -348,7 +362,7 @@ export default function TeacherSchedulePage() {
                 className="w-full py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#8C6D53]/20 transition-all"
               >
                 <Plus className="w-3.5 h-3.5" />
-                ➕ 排入常態課表
+                排入常態課表
               </button>
             </div>
           </form>
@@ -356,12 +370,11 @@ export default function TeacherSchedulePage() {
           /* Mode 2: 2. 開放時段 Form */
           <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
             <div>
-              <label className="block text-xs font-bold text-[#8C6D53] mb-1">
+              <label className="block text-xs font-bold text-[#2E7D32] mb-1">
                 2. 時段屬性 (Slot Type)
               </label>
-              <div className="w-full bg-[#FFF9E6] border border-[#F0E2BF] rounded-2xl px-3.5 py-2 text-xs font-extrabold text-[#8C6D53] flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#B87A36]" />
-                🟡 開放時段 (開放學生預約/調課)
+              <div className="w-full bg-[#E8F5E9] border border-[#C8E6C9] rounded-2xl px-3.5 py-2 text-xs font-extrabold text-[#2E7D32] flex items-center gap-1.5">
+                開放時段 (粉綠色標籤)
               </div>
             </div>
 
@@ -372,7 +385,7 @@ export default function TeacherSchedulePage() {
               <select
                 value={openDayKey}
                 onChange={(e) => setOpenDayKey(parseInt(e.target.value, 10))}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
               >
                 {DAYS.map((d) => (
                   <option key={d.key} value={d.key}>
@@ -402,7 +415,7 @@ export default function TeacherSchedulePage() {
                     setOpenEndTime('20:00');
                   }
                 }}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
               >
                 <option value="morning">☀️ 上午空檔 (11:00 - 12:00)</option>
                 <option value="afternoon">🌤️ 下午空檔 (14:00 - 15:00)</option>
@@ -434,10 +447,10 @@ export default function TeacherSchedulePage() {
             <div>
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-full bg-[#B87A36] hover:bg-[#A16729] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#B87A36]/20 transition-all"
+                className="w-full py-2.5 rounded-full bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#2E7D32]/20 transition-all"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                ➕ 開放此時段
+                開放此時段 (粉綠卡片)
               </button>
             </div>
           </form>
@@ -487,19 +500,25 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED 7x3 Grid Schedule Matrix Table */}
+      {/* ENLARGED 7x3 Grid Schedule Matrix Table (No Bulletpoints) */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>張老師 7x3 課表總覽</span>
-            <span className="text-xs text-[#7A736E] font-normal">（淡黃色: 2.開放時段 · 藍色: 1.常態與約定課表）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（一學生一專屬顏色 · 粉綠: 開放時段 · 深綠: 確定課程）</span>
           </h2>
-          <div className="flex items-center gap-4 text-xs font-bold">
-            <span className="flex items-center gap-1.5 text-[#8C6D53]">
-              <span className="w-3 h-3 rounded-full bg-[#FFF9E6] border border-[#F0E2BF]" /> 2. 開放時段
+          <div className="flex items-center gap-3 text-xs font-bold">
+            <span className="flex items-center gap-1 text-[#2E7D32]">
+              <span className="w-3 h-3 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]" /> 開放時段 (粉綠)
             </span>
-            <span className="flex items-center gap-1.5 text-[#8C6D53]">
-              <span className="w-3 h-3 rounded-full bg-[#FAF2EC] border border-[#E8D4C5]" /> 1. 常態與約定課表
+            <span className="flex items-center gap-1 text-[#1565C0]">
+              <span className="w-3 h-3 rounded-full bg-[#E3F2FD] border border-[#BBDEFB]" /> 小明 (天藍)
+            </span>
+            <span className="flex items-center gap-1 text-[#4527A0]">
+              <span className="w-3 h-3 rounded-full bg-[#EDE7F6] border border-[#D1C4E9]" /> 小華 (靛紫)
+            </span>
+            <span className="flex items-center gap-1 text-white">
+              <span className="w-3 h-3 rounded-full bg-[#2E7D32]" /> 確定課程 (深綠)
             </span>
           </div>
         </div>
@@ -542,14 +561,14 @@ export default function TeacherSchedulePage() {
 
                 {/* 7 Day Cells for this block (Min Height 140px) */}
                 {weekDates.map((d) => {
-                  // Booked Appointments (Mode 1: 1.常態課表 & 學生預約)
+                  // Booked Appointments (No Bullet Points, Student Unique Colors or Deep Green Confirmed)
                   const dayApps = appointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
                     return appDay === d.key && isTimeInBlock(appHour, block.key);
                   });
 
-                  // Available Open Slots (Mode 2: 2.開放時段 - 淡黃色)
+                  // Available Open Slots (Pastel Mint Green Cards - 粉綠色)
                   const daySlots = scheduleSlots.filter((slot) => {
                     if (!slot.is_available) return false;
                     const slotDay = getSlotDayOfWeek(slot.start_time);
@@ -563,27 +582,30 @@ export default function TeacherSchedulePage() {
                       className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#D3C9BE] transition-all"
                     >
                       <div className="space-y-2">
-                        {/* 1. 常態與約定學生課表 (Blue Cards) */}
-                        {dayApps.map((app) => (
-                          <div
-                            key={app.id}
-                            className="p-2 rounded-xl bg-[#FAF2EC] border border-[#E8D4C5] text-xs font-bold text-[#8C6D53] flex items-center justify-between shadow-xs"
-                          >
-                            <span className="truncate">🔵 {app.student_name || '學生'}</span>
-                            <span className="font-mono text-[10px] text-[#7A736E]">
-                              {new Date(app.start_time).getHours()}:00
-                            </span>
-                          </div>
-                        ))}
+                        {/* Student Appointment Cards (Unique colors per student, no bulletpoints) */}
+                        {dayApps.map((app) => {
+                          const cardStyle = getStudentCardStyle(app.student_name || '', app.status);
+                          return (
+                            <div
+                              key={app.id}
+                              className={`p-2 rounded-xl border text-xs font-bold flex items-center justify-between ${cardStyle}`}
+                            >
+                              <span className="truncate">{app.student_name || '學生'}</span>
+                              <span className="font-mono text-[10px] opacity-90">
+                                {new Date(app.start_time).getHours()}:00
+                              </span>
+                            </div>
+                          );
+                        })}
 
-                        {/* 2. 開放時段 (Soft Pale Yellow Cards) */}
+                        {/* 2. 開放時段 (Pastel Mint Green Cards - 粉綠色, no bulletpoints) */}
                         {daySlots.map((slot) => (
                           <div
                             key={slot.id}
                             onClick={() => toggleSlotAvailability(slot.id)}
-                            className="p-2 rounded-xl cursor-pointer text-xs font-bold flex items-center justify-between border bg-[#FFF9E6] text-[#8C6D53] border-[#F0E2BF] hover:bg-[#FFF2C8] shadow-xs transition-all"
+                            className="p-2 rounded-xl cursor-pointer text-xs font-extrabold flex items-center justify-between border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-all"
                           >
-                            <span className="truncate">🟡 開放時段</span>
+                            <span className="truncate">開放時段</span>
                             <span className="font-mono text-[10px]">
                               {formatTimeRange(slot.start_time, slot.end_time)}
                             </span>
@@ -597,10 +619,10 @@ export default function TeacherSchedulePage() {
                         )}
                       </div>
 
-                      {/* Quick Add Button in Pale Yellow Accent */}
+                      {/* Quick Add Button in Soft Pastel Mint Green */}
                       <button
                         onClick={() => handleOpenAddModal(d.key, block.key)}
-                        className="w-full py-1.5 rounded-xl bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-xs font-bold text-[#8C6D53] flex items-center justify-center gap-1 shadow-sm transition-all"
+                        className="w-full py-1.5 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border border-[#C8E6C9] text-xs font-bold text-[#2E7D32] flex items-center justify-center gap-1 shadow-sm transition-all"
                       >
                         <Plus className="w-3.5 h-3.5" /> 開設此時段
                       </button>
