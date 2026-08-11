@@ -70,25 +70,21 @@ export const Navbar: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Brand Logo, Today Date Badge & Role Identity Controls */}
           <div className="flex items-center justify-between md:justify-start gap-4">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform">
+            <Link href="/" className="flex items-center gap-3 group shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform shrink-0">
                 <Music className="w-5 h-5 text-white" />
               </div>
               <div>
-                <span className="font-bold text-lg text-[#332C27] tracking-tight">
+                <span className="font-bold text-lg text-[#332C27] tracking-tight whitespace-nowrap block">
                   Harmonix AI Studio
                 </span>
-                <span className="text-xs text-[#7A736E] block -mt-1 font-medium">
-                  音樂教室 AI 小幫手
-                </span>
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-[#7A736E] -mt-0.5 font-medium whitespace-nowrap">
+                  <span>音樂教室 AI 小幫手</span>
+                  <span className="text-[#E8D4C5]">·</span>
+                  <span className="font-mono text-[11px] font-bold text-[#8C6D53]">{todayStr}</span>
+                </div>
               </div>
             </Link>
-
-            {/* Global Today Date Badge: YYYY/MM/DD(時區) */}
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#E8D4C5] text-xs font-mono font-bold text-[#8C6D53] shadow-xs">
-              <Clock className="w-3.5 h-3.5 text-[#E88D67]" />
-              <span>{todayStr}</span>
-            </div>
 
             {/* Authenticated Role Badge & Logout / Switch Account Control */}
             {isAuthenticated ? (
