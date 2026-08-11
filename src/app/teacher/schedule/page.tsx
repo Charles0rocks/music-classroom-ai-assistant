@@ -210,7 +210,7 @@ export default function TeacherSchedulePage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表矩陣與開放時段 (7x3 Grid)</h1>
           <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-            一週 (週一～週日) × 3大時段 矩陣視圖 · 上午/下午/晚間開放時段與課表即時強連動
+            一週 (週一～週日) × 3大時段 矩陣視圖 · 開放日期月日星期幾呈現與課表即時連動
           </p>
         </div>
 
@@ -292,16 +292,16 @@ export default function TeacherSchedulePage() {
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                固定星期
+                固定日期
               </label>
               <select
                 value={recurringDayKey}
                 onChange={(e) => setRecurringDayKey(parseInt(e.target.value, 10))}
                 className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
               >
-                {DAYS.map((d) => (
+                {weekDates.map((d) => (
                   <option key={d.key} value={d.key}>
-                    {d.label} ({d.short})
+                    {d.monthDay} {d.dayLabel}
                   </option>
                 ))}
               </select>
@@ -380,16 +380,16 @@ export default function TeacherSchedulePage() {
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放星期
+                開放日期
               </label>
               <select
                 value={openDayKey}
                 onChange={(e) => setOpenDayKey(parseInt(e.target.value, 10))}
                 className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
               >
-                {DAYS.map((d) => (
+                {weekDates.map((d) => (
                   <option key={d.key} value={d.key}>
-                    {d.label} ({d.short})
+                    {d.monthDay} {d.dayLabel}
                   </option>
                 ))}
               </select>
