@@ -16,6 +16,8 @@ import {
   Sun,
   Sunset,
   Moon,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { AvailableSlotResponse } from '@/types';
 
@@ -38,6 +40,7 @@ const TIME_BLOCKS = [
 export default function StudentSchedulePage() {
   const { appointments, studentProfile, teacherProfile, scheduleSlots, requestReschedule } = useDemoContext();
 
+  const [weekOffset, setWeekOffset] = useState<number>(0);
   const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlotResponse[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
@@ -45,7 +48,42 @@ export default function StudentSchedulePage() {
   const [rescheduleReason, setRescheduleReason] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<{ success: boolean; text: string } | null>(null);
 
-  // Filter student's own appointments (Privacy protection)
+  // Compute Current Week Dates relative to Monday
+  const getWeekDates = (offset: number) => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
+
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distanceToMon + offset * 7);
+    monday.setHours(0, 0, 0, 0);
+
+    const weekDates = DAYS.map((d, idx) => {
+      const dayDate = new Date(monday);
+      dayDate.setDate(monday.getDate() + idx);
+      const year = dayDate.getFullYear();
+      const month = String(dayDate.getMonth() + 1).padStart(2, '0');
+      const date = String(dayDate.getDate()).padStart(2, '0');
+      return {
+        key: d.key,
+        dayLabel: d.label,
+        short: d.short,
+        monthDay: `${month}/${date}`,
+        fullDateStr: `${year}-${month}-${date}`,
+        year: year,
+        dateObj: dayDate,
+      };
+    });
+
+    const sundayDate = weekDates[6].dateObj;
+    const yearBanner = `${monday.getFullYear()} 年 · ${String(monday.getMonth() + 1).padStart(2, '0')}月${String(monday.getDate()).padStart(2, '0')}日 至 ${String(sundayDate.getMonth() + 1).padStart(2, '0')}月${String(sundayDate.getDate()).padStart(2, '0')}日`;
+
+    return { weekDates, yearBanner };
+  };
+
+  const { weekDates, yearBanner } = getWeekDates(weekOffset);
+
+  // Filter student's own appointments
   const myAppointments = appointments.filter((app) => app.student_id === studentProfile.id);
 
   const getSlotDayOfWeek = (isoString: string) => new Date(isoString).getDay();
@@ -69,7 +107,6 @@ export default function StudentSchedulePage() {
     setFeedbackMsg(null);
 
     try {
-      // Call API 1: Smart Rescheduling Conflict Checking Endpoint
       const res = await fetch(
         `/api/schedule/available-slots?teacherId=${teacherProfile.id}&studentId=${studentProfile.id}`
       );
@@ -112,16 +149,59 @@ export default function StudentSchedulePage() {
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表矩陣與智慧調課 (7x3 Grid)</h1>
         <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-          一週 (週一～週日) × 3大時段 (上午/下午/晚間) 矩陣課表 · 精準展現個人預約與老師開放空檔
+          一週 (週一～週日) × 3大時段 (上午/下午/晚間) 矩陣課表 · 精準日期標示與個人上課空檔
         </p>
       </div>
 
+      {/* Global Year & Week Navigation Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FAF7F2] p-4 rounded-3xl border border-[#EFECE6]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67]">
+            <CalendarIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-xs font-extrabold text-[#E88D67] uppercase tracking-wider block">
+              全域年份與週別區間 (Year & Week Banner)
+            </span>
+            <span className="text-lg font-black text-[#332C27] font-mono">
+              {yearBanner}
+            </span>
+          </div>
+        </div>
+
+        {/* Week Switcher Controls */}
+        <div className="flex items-center gap-2 bg-white p-1 rounded-full border border-[#EFECE6] shadow-xs">
+          <button
+            onClick={() => setWeekOffset((prev) => prev - 1)}
+            className="px-3 py-1.5 rounded-full hover:bg-[#FAF7F2] text-xs font-bold text-[#7A736E] hover:text-[#332C27] flex items-center gap-1 transition-all"
+          >
+            <ChevronLeft className="w-4 h-4" /> 上一週
+          </button>
+          <button
+            onClick={() => setWeekOffset(0)}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+              weekOffset === 0
+                ? 'bg-[#E88D67] text-white shadow-xs'
+                : 'text-[#7A736E] hover:bg-[#FAF7F2]'
+            }`}
+          >
+            本週 (Current)
+          </button>
+          <button
+            onClick={() => setWeekOffset((prev) => prev + 1)}
+            className="px-3 py-1.5 rounded-full hover:bg-[#FAF7F2] text-xs font-bold text-[#7A736E] hover:text-[#332C27] flex items-center gap-1 transition-all"
+          >
+            下一週 <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* 7x3 Grid Schedule Matrix Table for Student */}
-      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto">
-        <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4">
+      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[750px] overflow-y-auto scrollbar-thin">
+        <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>小明同學 7x3 上課週課表矩陣</span>
-            <span className="text-xs text-[#7A736E] font-normal">（授課指導：張老師）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（月日在上 · 週幾在下 · 授課指導：張老師）</span>
           </h2>
           <div className="flex items-center gap-3 text-xs font-bold">
             <span className="flex items-center gap-1.5 text-[#B85536]">
@@ -135,18 +215,24 @@ export default function StudentSchedulePage() {
 
         {/* 7x3 Matrix Grid Container */}
         <div className="min-w-[900px]">
-          {/* Header Row: 7 Days */}
-          <div className="grid grid-cols-8 gap-3 mb-3">
+          {/* Header Row: Month/Day on Top, Day-of-Week Underneath */}
+          <div className="grid grid-cols-8 gap-3 mb-3 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1">
             <div className="p-3 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
               時段 / 日期
             </div>
-            {DAYS.map((day) => (
+            {weekDates.map((d) => (
               <div
-                key={day.key}
-                className="p-3 text-center bg-[#FCEADE]/40 rounded-2xl border border-[#F6D0B8] space-y-0.5"
+                key={d.key}
+                className="p-3 text-center bg-[#FCEADE]/40 rounded-2xl border border-[#F6D0B8] space-y-0.5 shadow-xs"
               >
-                <div className="font-extrabold text-sm text-[#B85536]">{day.label}</div>
-                <div className="text-[10px] text-[#7A736E] font-mono">{day.short}</div>
+                {/* Top Line: Month/Day */}
+                <div className="font-mono font-black text-sm text-[#B85536] tracking-wide">
+                  {d.monthDay}
+                </div>
+                {/* Bottom Line: Day of Week */}
+                <div className="font-extrabold text-xs text-[#332C27]">
+                  {d.dayLabel} ({d.short})
+                </div>
               </div>
             ))}
           </div>
@@ -164,29 +250,26 @@ export default function StudentSchedulePage() {
                 </div>
 
                 {/* 7 Day Cells */}
-                {DAYS.map((day) => {
-                  // Student's appointments in this cell
+                {weekDates.map((d) => {
                   const cellAppointments = myAppointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
-                    return appDay === day.key && isTimeInBlock(appHour, block.key);
+                    return appDay === d.key && isTimeInBlock(appHour, block.key);
                   });
 
-                  // Teacher's available slots in this cell
                   const cellAvailableSlots = scheduleSlots.filter((slot) => {
                     if (!slot.is_available) return false;
                     const slotDay = getSlotDayOfWeek(slot.start_time);
                     const slotHour = getSlotHour(slot.start_time);
-                    return slotDay === day.key && isTimeInBlock(slotHour, block.key);
+                    return slotDay === d.key && isTimeInBlock(slotHour, block.key);
                   });
 
                   return (
                     <div
-                      key={day.key}
+                      key={d.key}
                       className="min-h-[115px] p-2.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2 hover:border-[#E88D67]/40 transition-all"
                     >
                       <div className="space-y-1.5">
-                        {/* Student's Confirmed Appointments */}
                         {cellAppointments.map((app) => (
                           <div
                             key={app.id}
@@ -207,7 +290,6 @@ export default function StudentSchedulePage() {
                           </div>
                         ))}
 
-                        {/* Teacher's Available Slots */}
                         {cellAvailableSlots.map((slot) => (
                           <div
                             key={slot.id}
@@ -235,7 +317,7 @@ export default function StudentSchedulePage() {
         </div>
       </div>
 
-      {/* Reschedule Modal (Popup strictly hiding other students' privacy) */}
+      {/* Reschedule Modal */}
       {rescheduleAppointmentId && (
         <div className="fixed inset-0 z-50 bg-[#332C27]/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg p-6 sm:p-8 rounded-3xl border border-[#EFECE6] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
@@ -252,7 +334,6 @@ export default function StudentSchedulePage() {
               </button>
             </div>
 
-            {/* Privacy Guarantee Alert Banner */}
             <div className="p-3.5 rounded-2xl bg-[#E3E8E1]/60 border border-[#C5D2C2] flex items-center gap-2.5 text-xs text-[#3D5240] font-bold">
               <ShieldCheck className="w-5 h-5 text-[#3D5240] shrink-0" />
               <span>隱私保護已啟用：僅呈現張老師開放且無衝突之空檔，保護他人隱私。</span>
