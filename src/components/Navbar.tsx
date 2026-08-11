@@ -18,6 +18,7 @@ import {
   Sliders,
   LogOut,
   LogIn,
+  Clock,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -49,11 +50,25 @@ export const Navbar: React.FC = () => {
 
   const currentNavs = isTeacher ? teacherNavs : studentNavs;
 
+  const getTodayDateStr = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    const offsetMinutes = -now.getTimezoneOffset();
+    const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+    const timeZoneStr = `UTC${offsetSign}${offsetHours}`;
+    return `${year}/${month}/${date} (${timeZoneStr})`;
+  };
+
+  const todayStr = getTodayDateStr();
+
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#EFECE6] px-4 lg:px-8 py-3.5 shadow-[0_2px_15px_rgba(140,109,83,0.04)]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Brand Logo & Role Identity Controls */}
+          {/* Brand Logo, Today Date Badge & Role Identity Controls */}
           <div className="flex items-center justify-between md:justify-start gap-4">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform">
@@ -68,6 +83,12 @@ export const Navbar: React.FC = () => {
                 </span>
               </div>
             </Link>
+
+            {/* Global Today Date Badge: YYYY/MM/DD(時區) */}
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#E8D4C5] text-xs font-mono font-bold text-[#8C6D53] shadow-xs">
+              <Clock className="w-3.5 h-3.5 text-[#E88D67]" />
+              <span>{todayStr}</span>
+            </div>
 
             {/* Authenticated Role Badge & Logout / Switch Account Control */}
             {isAuthenticated ? (
