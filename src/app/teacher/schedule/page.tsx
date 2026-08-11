@@ -222,7 +222,7 @@ export default function TeacherSchedulePage() {
             <CalendarIcon className="w-4 h-4" />
             Teacher Portal (P1)
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表矩陣與開放時段 (7x3 Grid)</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表與開放時段</h1>
           <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
             一週 (週一～週日) × 3大時段 矩陣視圖 · 開放日期月日星期幾呈現與課表即時連動
           </p>
