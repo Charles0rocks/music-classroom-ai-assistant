@@ -13,10 +13,12 @@ import {
   UserCheck,
   Sparkles,
   ArrowLeftRight,
+  FileText,
+  Sliders,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { currentRole, switchRole, currentUser } = useDemoContext();
+  const { currentRole, currentUser } = useDemoContext();
   const pathname = usePathname();
 
   const isTeacher = currentRole === 'teacher';
@@ -28,8 +30,10 @@ export const Navbar: React.FC = () => {
   ];
 
   const studentNavs = [
-    { href: '/student/schedule', label: '個人課表 (P3)', icon: Calendar },
+    { href: '/student/schedule', label: '個人課表與調課 (P3)', icon: Calendar },
     { href: '/student/practice', label: '作業學習中心 (P4)', icon: BookOpen },
+    { href: '/student/summary/lesson-1', label: 'P5 AI筆記', icon: FileText },
+    { href: '/student/compare/practice-1', label: 'P6 雙圖比對', icon: Sliders },
   ];
 
   const currentNavs = isTeacher ? teacherNavs : studentNavs;
@@ -37,7 +41,7 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#EFECE6] px-4 lg:px-8 py-3.5 shadow-[0_2px_15px_rgba(140,109,83,0.04)]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Brand Logo & Role Selector Quick Action */}
+        {/* Brand Logo & Role Identity Badge (Hides other role button to prevent confusion) */}
         <div className="flex items-center justify-between md:justify-start gap-4">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform">
@@ -53,40 +57,29 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Quick Role Switcher Button Pill Container */}
+          {/* Role Badge Display - Role Isolation Rule Applied */}
           <div className="flex items-center bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6]">
-            <button
-              onClick={() => switchRole('teacher')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all ${
-                isTeacher
-                  ? 'bg-[#8C6D53] text-white shadow-sm'
-                  : 'text-[#7A736E] hover:text-[#332C27]'
-              }`}
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              張老師 (Teacher)
-            </button>
-            <button
-              onClick={() => switchRole('student')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all ${
-                !isTeacher
-                  ? 'bg-[#E88D67] text-white shadow-sm'
-                  : 'text-[#7A736E] hover:text-[#332C27]'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              小明 (Student)
-            </button>
+            {isTeacher ? (
+              <span className="px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-[#8C6D53] text-white shadow-sm">
+                <UserCheck className="w-3.5 h-3.5" />
+                張老師 (Teacher 視角)
+              </span>
+            ) : (
+              <span className="px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-[#E88D67] text-white shadow-sm">
+                <Sparkles className="w-3.5 h-3.5" />
+                小明 (Student 視角)
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Dynamic Route Nav Navigation */}
+        {/* Navigation Menu - Role Isolated Links */}
         <nav className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           <Link
             href="/"
             className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
               pathname === '/'
-                ? 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8]'
+                ? 'bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5]'
                 : 'text-[#7A736E] hover:text-[#332C27] hover:bg-[#FAF7F2]'
             }`}
           >
