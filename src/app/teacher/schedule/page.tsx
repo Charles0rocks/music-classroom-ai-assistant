@@ -185,7 +185,7 @@ export default function TeacherSchedulePage() {
       const endIso = new Date(`${datePrefix}T${openEndTime}`).toISOString();
 
       addScheduleSlot(startIso, endIso);
-      setSettingNotice(`已成功新增粉綠色「2. 開放時段」：${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${openStartTime}-${openEndTime}！`);
+      setSettingNotice(`已成功新增「2. 開放時段」：${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${openStartTime}-${openEndTime}！`);
     }
 
     setTimeout(() => {
@@ -210,7 +210,7 @@ export default function TeacherSchedulePage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表矩陣與開放時段 (7x3 Grid)</h1>
           <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-            一週 (週一～週日) × 3大時段 矩陣視圖 · 學生專屬色系與完整上下課時間全顯
+            一週 (週一～週日) × 3大時段 矩陣視圖 · 上午/下午/晚間開放時段與課表即時強連動
           </p>
         </div>
 
@@ -276,23 +276,23 @@ export default function TeacherSchedulePage() {
           <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                1. 學生對象 (Student Target)
+                1. 學生對象
               </label>
               <select
                 value={recurringStudent}
                 onChange={(e) => setRecurringStudent(e.target.value)}
                 className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
               >
-                <option value="小明">小明 (Ocean Blue)</option>
-                <option value="小華">小華 (Indigo Purple)</option>
-                <option value="小美">小美 (Soft Pink)</option>
-                <option value="常態班學生">常態班學生對象</option>
+                <option value="小明">小明</option>
+                <option value="小華">小華</option>
+                <option value="小美">小美</option>
+                <option value="常態班學生">常態班學生</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                固定星期 (Fixed Day)
+                固定星期
               </label>
               <select
                 value={recurringDayKey}
@@ -309,7 +309,7 @@ export default function TeacherSchedulePage() {
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                固定時段 (Fixed Period)
+                固定時段
               </label>
               <select
                 value={recurringBlockKey}
@@ -329,15 +329,15 @@ export default function TeacherSchedulePage() {
                 }}
                 className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
               >
-                <option value="morning">☀️ 上午 (10:00 - 11:00)</option>
-                <option value="afternoon">🌤️ 下午 (14:00 - 15:00)</option>
-                <option value="evening">🌙 晚間 (19:00 - 20:00)</option>
+                <option value="morning">☀️ 上午</option>
+                <option value="afternoon">🌤️ 下午</option>
+                <option value="evening">🌙 晚間</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                上課時間 (Class Hours)
+                上課時間
               </label>
               <div className="flex items-center gap-1">
                 <input
@@ -371,16 +371,16 @@ export default function TeacherSchedulePage() {
           <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
             <div>
               <label className="block text-xs font-bold text-[#2E7D32] mb-1">
-                2. 時段屬性 (Slot Type)
+                2. 時段屬性
               </label>
               <div className="w-full bg-[#E8F5E9] border border-[#C8E6C9] rounded-2xl px-3.5 py-2 text-xs font-extrabold text-[#2E7D32] flex items-center gap-1.5">
-                開放時段 (粉綠色標籤)
+                開放時段
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放星期 (Open Day)
+                開放星期
               </label>
               <select
                 value={openDayKey}
@@ -397,7 +397,7 @@ export default function TeacherSchedulePage() {
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放時段 (Open Period)
+                開放時段
               </label>
               <select
                 value={openBlockKey}
@@ -417,15 +417,15 @@ export default function TeacherSchedulePage() {
                 }}
                 className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
               >
-                <option value="morning">☀️ 上午空檔 (11:00 - 12:00)</option>
-                <option value="afternoon">🌤️ 下午空檔 (14:00 - 15:00)</option>
-                <option value="evening">🌙 晚間空檔 (19:00 - 20:00)</option>
+                <option value="morning">☀️ 上午</option>
+                <option value="afternoon">🌤️ 下午</option>
+                <option value="evening">🌙 晚間</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放時間 (Open Hours)
+                開放時間
               </label>
               <div className="flex items-center gap-1">
                 <input
@@ -450,7 +450,7 @@ export default function TeacherSchedulePage() {
                 className="w-full py-2.5 rounded-full bg-[#E8F5E9] hover:bg-[#C8E6C9] border border-[#C8E6C9] text-[#2E7D32] font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
-                開放此時段 (粉綠卡片)
+                開放此時段
               </button>
             </div>
           </form>
@@ -505,7 +505,7 @@ export default function TeacherSchedulePage() {
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>張老師 7x3 課表總覽</span>
-            <span className="text-xs text-[#7A736E] font-normal">（學生姓名與上下課時間100%完全顯示 · 無省略符號）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（學生姓名與上下課時間100%完全顯示 · 課表設定實時連動）</span>
           </h2>
           <div className="flex items-center gap-3 text-xs font-bold">
             <span className="flex items-center gap-1 text-[#2E7D32]">

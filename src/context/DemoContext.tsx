@@ -117,7 +117,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
   {
     id: 'app-2',
     student_id: 's0000000-other-student',
-    student_name: '小華 (其他學生)',
+    student_name: '小華',
     teacher_id: MOCK_TEACHER.id,
     start_time: getDynamicDate(2, 15),
     end_time: getDynamicDate(2, 16),
