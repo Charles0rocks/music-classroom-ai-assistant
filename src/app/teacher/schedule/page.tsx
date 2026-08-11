@@ -18,6 +18,9 @@ import {
   RotateCcw,
   CheckCircle2,
   Repeat,
+  Sliders,
+  Layers,
+  BookOpen,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 
@@ -37,6 +40,8 @@ const TIME_BLOCKS = [
   { key: 'evening', label: '晚間', sub: '19:00 - 22:00', icon: Moon, startHour: 19, endHour: 22 },
 ];
 
+type ScheduleMode = 'recurring' | 'flexible';
+
 export default function TeacherSchedulePage() {
   const {
     scheduleSlots,
@@ -46,17 +51,25 @@ export default function TeacherSchedulePage() {
     teacherProfile,
   } = useDemoContext();
 
-  const [weekOffset, setWeekOffset] = useState<number>(0); // 0 = current week, +1 = next week, -1 = prev week
+  const [weekOffset, setWeekOffset] = useState<number>(0);
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>('recurring');
 
-  // Recurring Fixed Schedule Block State
+  // Form State for Mode 1: 1. 常態課表
   const [recurringStudent, setRecurringStudent] = useState('小明');
   const [recurringDayKey, setRecurringDayKey] = useState<number>(3); // Wednesday
-  const [recurringBlockKey, setRecurringBlockKey] = useState<string>('morning'); // Morning
+  const [recurringBlockKey, setRecurringBlockKey] = useState<string>('morning');
   const [recurringStartTime, setRecurringStartTime] = useState('10:00');
   const [recurringEndTime, setRecurringEndTime] = useState('11:00');
-  const [recurringNotice, setRecurringNotice] = useState<string | null>(null);
 
-  // Single Add Slot Modal State
+  // Form State for Mode 2: 2. 彈性課表 (開放時段)
+  const [flexibleDayKey, setFlexibleDayKey] = useState<number>(4); // Thursday
+  const [flexibleBlockKey, setFlexibleBlockKey] = useState<string>('afternoon');
+  const [flexibleStartTime, setFlexibleStartTime] = useState('14:00');
+  const [flexibleEndTime, setFlexibleEndTime] = useState('15:00');
+
+  const [settingNotice, setSettingNotice] = useState<string | null>(null);
+
+  // Modal State for Single Quick Add
   const [selectedDayKey, setSelectedDayKey] = useState<number>(3);
   const [selectedBlockKey, setSelectedBlockKey] = useState<string>('afternoon');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -66,7 +79,7 @@ export default function TeacherSchedulePage() {
   // Compute Current Week Dates relative to Monday
   const getWeekDates = (offset: number) => {
     const now = new Date();
-    const currentDay = now.getDay(); // 0 is Sun, 1 is Mon
+    const currentDay = now.getDay();
     const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
 
     const monday = new Date(now);
@@ -135,20 +148,35 @@ export default function TeacherSchedulePage() {
     setShowAddModal(false);
   };
 
-  const handleBatchInsertRecurring = (e: React.FormEvent) => {
+  // Submit Handler for Top "課表設定" Block
+  const handleSettingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const targetDayObj = weekDates.find((w) => w.key === recurringDayKey);
-    const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
 
-    const startIso = new Date(`${datePrefix}T${recurringStartTime}`).toISOString();
-    const endIso = new Date(`${datePrefix}T${recurringEndTime}`).toISOString();
+    if (scheduleMode === 'recurring') {
+      // 1. 常態課表 Mode
+      const targetDayObj = weekDates.find((w) => w.key === recurringDayKey);
+      const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
 
-    addScheduleSlot(startIso, endIso);
-    setRecurringNotice(`已成功將「${recurringStudent}」之常態課程批次排入 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
+      const startIso = new Date(`${datePrefix}T${recurringStartTime}`).toISOString();
+      const endIso = new Date(`${datePrefix}T${recurringEndTime}`).toISOString();
+
+      addScheduleSlot(startIso, endIso);
+      setSettingNotice(`已成功新增「1. 常態課表」：${recurringStudent} · ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
+    } else {
+      // 2. 彈性課表 (開放時段) Mode
+      const targetDayObj = weekDates.find((w) => w.key === flexibleDayKey);
+      const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
+
+      const startIso = new Date(`${datePrefix}T${flexibleStartTime}`).toISOString();
+      const endIso = new Date(`${datePrefix}T${flexibleEndTime}`).toISOString();
+
+      addScheduleSlot(startIso, endIso);
+      setSettingNotice(`已成功開放「2. 彈性課表 (開放時段)」：${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${flexibleStartTime}-${flexibleEndTime}，下方週曆已即時亮起綠色！`);
+    }
 
     setTimeout(() => {
-      setRecurringNotice(null);
-    }, 3500);
+      setSettingNotice(null);
+    }, 4000);
   };
 
   const formatTimeRange = (startIso: string, endIso: string) => {
@@ -168,7 +196,7 @@ export default function TeacherSchedulePage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表矩陣與開放時段 (7x3 Grid)</h1>
           <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-            一週 (週一～週日) × 3大時段 (上午/下午/晚間) 矩陣視圖 · 年月日標示與常態課程設定
+            一週 (週一～週日) × 3大時段 (上午/下午/晚間) 矩陣視圖 · 年月日標籤與課表雙模式設定
           </p>
         </div>
 
@@ -181,120 +209,239 @@ export default function TeacherSchedulePage() {
         </button>
       </div>
 
-      {/* NEW BLOCK: 常態固定上課時間與學生對象設定區塊 (Fixed Recurring Schedule Block) */}
-      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-4 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EADFC9]/80 pb-3">
+      {/* TOP BLOCK: 課表設定 (1. 常態課表  2. 彈性課表 - 開放時段) */}
+      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-5 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EADFC9]/80 pb-4">
           <div className="flex items-center gap-2">
-            <Repeat className="w-5 h-5 text-[#8C6D53]" />
-            <h2 className="text-lg font-extrabold text-[#332C27]">
-              常態固定上課時間與學生對象設定 (Recurring Fixed Schedule Block)
+            <Sliders className="w-5 h-5 text-[#8C6D53]" />
+            <h2 className="text-xl font-extrabold text-[#332C27]">
+              課表設定
             </h2>
           </div>
-          <span className="text-xs text-[#7A736E] font-medium">
-            設定學生每週固定上課時間，可一鍵批次填入 7x3 週課表
-          </span>
+
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#EADFC9]">
+            <button
+              type="button"
+              onClick={() => setScheduleMode('recurring')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                scheduleMode === 'recurring'
+                  ? 'bg-[#8C6D53] text-white shadow-sm'
+                  : 'text-[#7A736E] hover:text-[#332C27]'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              1. 常態課表
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setScheduleMode('flexible')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                scheduleMode === 'flexible'
+                  ? 'bg-[#3D5240] text-white shadow-sm'
+                  : 'text-[#7A736E] hover:text-[#332C27]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#E3E8E1]" />
+              2. 彈性課表 (開放時段)
+            </button>
+          </div>
         </div>
 
-        {recurringNotice && (
-          <div className="p-3.5 rounded-2xl bg-[#E3E8E1] border border-[#C5D2C2] text-xs font-bold text-[#3D5240] flex items-center gap-2">
+        {settingNotice && (
+          <div className="p-3.5 rounded-2xl bg-[#E3E8E1] border border-[#C5D2C2] text-xs font-bold text-[#3D5240] flex items-center gap-2 animate-in fade-in">
             <CheckCircle2 className="w-4 h-4 shrink-0 text-[#3D5240]" />
-            {recurringNotice}
+            {settingNotice}
           </div>
         )}
 
-        <form onSubmit={handleBatchInsertRecurring} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
-          <div>
-            <label className="block text-xs font-bold text-[#332C27] mb-1">
-              學生對象 (Student Target)
-            </label>
-            <select
-              value={recurringStudent}
-              onChange={(e) => setRecurringStudent(e.target.value)}
-              className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-            >
-              <option value="小明">小明 (Student Ming)</option>
-              <option value="小華">小華 (Student Hua)</option>
-              <option value="小美">小美 (Student Mei)</option>
-              <option value="常態班全體">常態班學生對象</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#332C27] mb-1">
-              固定星期 (Fixed Day)
-            </label>
-            <select
-              value={recurringDayKey}
-              onChange={(e) => setRecurringDayKey(parseInt(e.target.value, 10))}
-              className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-            >
-              {DAYS.map((d) => (
-                <option key={d.key} value={d.key}>
-                  {d.label} ({d.short})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#332C27] mb-1">
-              固定時段 (Fixed Period)
-            </label>
-            <select
-              value={recurringBlockKey}
-              onChange={(e) => {
-                const bKey = e.target.value;
-                setRecurringBlockKey(bKey);
-                if (bKey === 'morning') {
-                  setRecurringStartTime('10:00');
-                  setRecurringEndTime('11:00');
-                } else if (bKey === 'afternoon') {
-                  setRecurringStartTime('14:00');
-                  setRecurringEndTime('15:00');
-                } else {
-                  setRecurringStartTime('19:00');
-                  setRecurringEndTime('20:00');
-                }
-              }}
-              className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-            >
-              <option value="morning">☀️ 上午 (10:00 - 11:00)</option>
-              <option value="afternoon">🌤️ 下午 (14:00 - 15:00)</option>
-              <option value="evening">🌙 晚間 (19:00 - 20:00)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#332C27] mb-1">
-              上課時間 (Class Hours)
-            </label>
-            <div className="flex items-center gap-1">
-              <input
-                type="time"
-                value={recurringStartTime}
-                onChange={(e) => setRecurringStartTime(e.target.value)}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-              />
-              <span className="text-xs text-[#7A736E] font-bold">-</span>
-              <input
-                type="time"
-                value={recurringEndTime}
-                onChange={(e) => setRecurringEndTime(e.target.value)}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-              />
+        {/* Dynamic Form according to Mode */}
+        {scheduleMode === 'recurring' ? (
+          /* Mode 1: 1. 常態課表 Form */
+          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                1. 學生對象 (Student Target)
+              </label>
+              <select
+                value={recurringStudent}
+                onChange={(e) => setRecurringStudent(e.target.value)}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+              >
+                <option value="小明">小明 (Student Ming)</option>
+                <option value="小華">小華 (Student Hua)</option>
+                <option value="小美">小美 (Student Mei)</option>
+                <option value="常態班學生">常態班學生對象</option>
+              </select>
             </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              className="w-full py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#8C6D53]/20 transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              ➕ 一鍵批次排入週課表
-            </button>
-          </div>
-        </form>
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                固定星期 (Fixed Day)
+              </label>
+              <select
+                value={recurringDayKey}
+                onChange={(e) => setRecurringDayKey(parseInt(e.target.value, 10))}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+              >
+                {DAYS.map((d) => (
+                  <option key={d.key} value={d.key}>
+                    {d.label} ({d.short})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                固定時段 (Fixed Period)
+              </label>
+              <select
+                value={recurringBlockKey}
+                onChange={(e) => {
+                  const bKey = e.target.value;
+                  setRecurringBlockKey(bKey);
+                  if (bKey === 'morning') {
+                    setRecurringStartTime('10:00');
+                    setRecurringEndTime('11:00');
+                  } else if (bKey === 'afternoon') {
+                    setRecurringStartTime('14:00');
+                    setRecurringEndTime('15:00');
+                  } else {
+                    setRecurringStartTime('19:00');
+                    setRecurringEndTime('20:00');
+                  }
+                }}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+              >
+                <option value="morning">☀️ 上午 (10:00 - 11:00)</option>
+                <option value="afternoon">🌤️ 下午 (14:00 - 15:00)</option>
+                <option value="evening">🌙 晚間 (19:00 - 20:00)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                上課時間 (Class Hours)
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="time"
+                  value={recurringStartTime}
+                  onChange={(e) => setRecurringStartTime(e.target.value)}
+                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                />
+                <span className="text-xs text-[#7A736E] font-bold">-</span>
+                <input
+                  type="time"
+                  value={recurringEndTime}
+                  onChange={(e) => setRecurringEndTime(e.target.value)}
+                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#8C6D53]/20 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                ➕ 排入常態課表
+              </button>
+            </div>
+          </form>
+        ) : (
+          /* Mode 2: 2. 彈性課表 (開放時段) Form */
+          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
+            <div>
+              <label className="block text-xs font-bold text-[#3D5240] mb-1">
+                2. 時段屬性 (Slot Type)
+              </label>
+              <div className="w-full bg-[#E3E8E1] border border-[#C5D2C2] rounded-2xl px-3.5 py-2 text-xs font-bold text-[#3D5240] flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#3D5240]" />
+                🟢 彈性開放時段 (開放預約/調課)
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                開放星期 (Open Day)
+              </label>
+              <select
+                value={flexibleDayKey}
+                onChange={(e) => setFlexibleDayKey(parseInt(e.target.value, 10))}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#3D5240]"
+              >
+                {DAYS.map((d) => (
+                  <option key={d.key} value={d.key}>
+                    {d.label} ({d.short})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                開放時段 (Open Period)
+              </label>
+              <select
+                value={flexibleBlockKey}
+                onChange={(e) => {
+                  const bKey = e.target.value;
+                  setFlexibleBlockKey(bKey);
+                  if (bKey === 'morning') {
+                    setFlexibleStartTime('11:00');
+                    setFlexibleEndTime('12:00');
+                  } else if (bKey === 'afternoon') {
+                    setFlexibleStartTime('14:00');
+                    setFlexibleEndTime('15:00');
+                  } else {
+                    setFlexibleStartTime('19:00');
+                    setFlexibleEndTime('20:00');
+                  }
+                }}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#3D5240]"
+              >
+                <option value="morning">☀️ 上公空檔 (11:00 - 12:00)</option>
+                <option value="afternoon">🌤️ 下午空檔 (14:00 - 15:00)</option>
+                <option value="evening">🌙 晚間空檔 (19:00 - 20:00)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                開放時間 (Open Hours)
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="time"
+                  value={flexibleStartTime}
+                  onChange={(e) => setFlexibleStartTime(e.target.value)}
+                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                />
+                <span className="text-xs text-[#7A736E] font-bold">-</span>
+                <input
+                  type="time"
+                  value={flexibleEndTime}
+                  onChange={(e) => setFlexibleEndTime(e.target.value)}
+                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-full bg-[#3D5240] hover:bg-[#2C3B2E] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#3D5240]/20 transition-all"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                ➕ 開放彈性時段
+              </button>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Global Year & Week Navigation Header Bar */}
@@ -345,14 +492,14 @@ export default function TeacherSchedulePage() {
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>張老師 7x3 課表總覽</span>
-            <span className="text-xs text-[#7A736E] font-normal">（月日在上 · 週幾在下 · 可垂直 Y 軸捲動預排多週）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（藍色: 1.常態與約定課表 · 綠色: 2.彈性開放時段）</span>
           </h2>
           <div className="flex items-center gap-3 text-xs font-bold">
             <span className="flex items-center gap-1.5 text-[#3D5240]">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E3E8E1] border border-[#C5D2C2]" /> 開放空檔
+              <span className="w-2.5 h-2.5 rounded-full bg-[#E3E8E1] border border-[#C5D2C2]" /> 2. 彈性開放時段
             </span>
             <span className="flex items-center gap-1.5 text-[#8C6D53]">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FAF2EC] border border-[#E8D4C5]" /> 已約課程
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FAF2EC] border border-[#E8D4C5]" /> 1. 常態與約定課表
             </span>
           </div>
         </div>
@@ -395,16 +542,19 @@ export default function TeacherSchedulePage() {
 
                 {/* 7 Day Cells for this block */}
                 {weekDates.map((d) => {
-                  const daySlots = scheduleSlots.filter((slot) => {
-                    const slotDay = getSlotDayOfWeek(slot.start_time);
-                    const slotHour = getSlotHour(slot.start_time);
-                    return slotDay === d.key && isTimeInBlock(slotHour, block.key);
-                  });
-
+                  // Booked Appointments (Mode 1: 1.常態課表 & 學生預約)
                   const dayApps = appointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
                     return appDay === d.key && isTimeInBlock(appHour, block.key);
+                  });
+
+                  // Available Flexible Slots (Mode 2: 2.彈性課表 - 開放時段)
+                  const daySlots = scheduleSlots.filter((slot) => {
+                    if (!slot.is_available) return false;
+                    const slotDay = getSlotDayOfWeek(slot.start_time);
+                    const slotHour = getSlotHour(slot.start_time);
+                    return slotDay === d.key && isTimeInBlock(slotHour, block.key);
                   });
 
                   return (
@@ -413,11 +563,11 @@ export default function TeacherSchedulePage() {
                       className="min-h-[110px] p-2.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2 hover:border-[#D3C9BE] transition-all"
                     >
                       <div className="space-y-1.5">
-                        {/* Booked Appointments */}
+                        {/* 1. 常態與約定學生課表 (Blue Cards) */}
                         {dayApps.map((app) => (
                           <div
                             key={app.id}
-                            className="p-1.5 rounded-xl bg-[#FAF2EC] border border-[#E8D4C5] text-[11px] font-bold text-[#8C6D53] flex items-center justify-between"
+                            className="p-1.5 rounded-xl bg-[#FAF2EC] border border-[#E8D4C5] text-[11px] font-bold text-[#8C6D53] flex items-center justify-between shadow-xs"
                           >
                             <span className="truncate">🔵 {app.student_name || '學生'}</span>
                             <span className="font-mono text-[9px] text-[#7A736E]">
@@ -426,20 +576,14 @@ export default function TeacherSchedulePage() {
                           </div>
                         ))}
 
-                        {/* Available Slots */}
+                        {/* 2. 彈性開放時段 (Soft Green Cards) */}
                         {daySlots.map((slot) => (
                           <div
                             key={slot.id}
                             onClick={() => toggleSlotAvailability(slot.id)}
-                            className={`p-1.5 rounded-xl cursor-pointer text-[10px] font-bold flex items-center justify-between border transition-all ${
-                              slot.is_available
-                                ? 'bg-[#E3E8E1] text-[#3D5240] border-[#C5D2C2] hover:bg-[#C5D2C2]'
-                                : 'bg-[#FCEADE] text-[#B85536] border-[#F6D0B8] hover:bg-[#F6D0B8]'
-                            }`}
+                            className="p-1.5 rounded-xl cursor-pointer text-[10px] font-bold flex items-center justify-between border bg-[#E3E8E1] text-[#3D5240] border-[#C5D2C2] hover:bg-[#C5D2C2] shadow-xs transition-all"
                           >
-                            <span className="truncate">
-                              {slot.is_available ? '🟢 開放中' : '⚪ 已約滿'}
-                            </span>
+                            <span className="truncate">🟢 彈性開放</span>
                             <span className="font-mono text-[9px]">
                               {formatTimeRange(slot.start_time, slot.end_time)}
                             </span>
