@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import {
   Calendar as CalendarIcon,
@@ -59,13 +60,22 @@ const getStudentCardStyle = (studentName: string) => {
 };
 
 export default function TeacherSchedulePage() {
+  const router = useRouter();
   const {
+    currentRole,
     scheduleSlots,
     toggleSlotAvailability,
     addScheduleSlot,
     appointments,
     teacherProfile,
   } = useDemoContext();
+
+  // Strict Role Guard: Students trying to access Teacher Schedule MUST be redirected to Student Schedule immediately
+  useEffect(() => {
+    if (currentRole === 'student') {
+      router.replace('/student/schedule');
+    }
+  }, [currentRole, router]);
 
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>('recurring');
@@ -126,6 +136,10 @@ export default function TeacherSchedulePage() {
   };
 
   const { weekDates, yearBanner } = getWeekDates(weekOffset);
+
+  if (currentRole === 'student') {
+    return null; // Return null while redirecting
+  }
 
   const getSlotDayOfWeek = (isoString: string) => new Date(isoString).getDay();
   const getSlotHour = (isoString: string) => new Date(isoString).getHours();

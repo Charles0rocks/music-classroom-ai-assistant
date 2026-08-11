@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import {
   Mic,
@@ -21,7 +22,14 @@ import { CleanSummaryJSON } from '@/types';
 const SAMPLE_TRANSCRIPT = `小明今天來練習巴哈 E 大調小提琴協奏曲。整體音高表現不錯，但是到了第 24 小節換弓的地方右手姿勢太緊繃了，導致聲音有點乾硬！昨天我養的貓生病帶去看獸醫搞到半夜超累的... 總之你按弦第一關節要站立起來，不要塌下去！還有樂理部分要特別注意十六分音符的拍子，不要搶拍！回家作業請把第 16 到 32 小節用 BPM 72 慢練 10 遍，把音準跟弓法拉平順。加油！你這周進步很多！`;
 
 export default function TeacherRecorderPage() {
-  const { addLessonRecord } = useDemoContext();
+  const router = useRouter();
+  const { currentRole, addLessonRecord } = useDemoContext();
+
+  useEffect(() => {
+    if (currentRole === 'student') {
+      router.replace('/student/schedule');
+    }
+  }, [currentRole, router]);
 
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState(SAMPLE_TRANSCRIPT);
@@ -29,6 +37,10 @@ export default function TeacherRecorderPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cleanSummary, setCleanSummary] = useState<CleanSummaryJSON | null>(null);
   const [savedRecordId, setSavedRecordId] = useState<string | null>(null);
+
+  if (currentRole === 'student') {
+    return null;
+  }
 
   const handleStartRecording = () => {
     setIsRecording(true);

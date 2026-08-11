@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import { DemoGuideModal } from '@/components/DemoGuideModal';
 import { Role } from '@/types';
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react';
 
 export default function RoleSelectorPage() {
+  const router = useRouter();
   const { currentRole, isAuthenticated, login, logout, teacherProfile, currentUser } = useDemoContext();
 
   const [activeTab, setActiveTab] = useState<Role>('student'); // Default student login selection
@@ -59,6 +61,13 @@ export default function RoleSelectorPage() {
     const res = login(email, password, activeTab);
     if (res.success) {
       setSuccessMsg(res.message);
+      setTimeout(() => {
+        if (activeTab === 'student') {
+          router.push('/student/schedule');
+        } else {
+          router.push('/teacher/schedule');
+        }
+      }, 600);
     } else {
       setErrorMsg(res.message);
     }

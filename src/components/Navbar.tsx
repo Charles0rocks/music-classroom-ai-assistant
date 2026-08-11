@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import { LoginModal } from '@/components/LoginModal';
 import {
@@ -21,7 +21,13 @@ import {
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
+  const router = useRouter();
   const { currentRole, currentUser, isAuthenticated, logout } = useDemoContext();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
   const pathname = usePathname();
 
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -79,12 +85,9 @@ export const Navbar: React.FC = () => {
                 )}
 
                 <button
-                  onClick={() => {
-                    logout();
-                    setShowLoginModal(true);
-                  }}
+                  onClick={handleLogout}
                   className="px-3 py-1 rounded-full text-[11px] font-bold text-[#7A736E] hover:text-[#332C27] hover:bg-[#EFECE6] transition-all flex items-center gap-1"
-                  title="登出並重新輸入帳密登入"
+                  title="登出並重定向至首頁"
                 >
                   <LogOut className="w-3 h-3 text-[#8C6D53]" />
                   登出 / 切換帳號

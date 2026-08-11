@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import {
   Video,
@@ -15,7 +16,14 @@ import {
 } from 'lucide-react';
 
 export default function TeacherDemosPage() {
-  const { demoVideos, updateDemoVideo } = useDemoContext();
+  const router = useRouter();
+  const { currentRole, demoVideos, updateDemoVideo } = useDemoContext();
+
+  useEffect(() => {
+    if (currentRole === 'student') {
+      router.replace('/student/schedule');
+    }
+  }, [currentRole, router]);
 
   const [selectedVideoId, setSelectedVideoId] = useState<string>(demoVideos[0]?.id || '');
 
@@ -25,6 +33,10 @@ export default function TeacherDemosPage() {
   const [tempoTol, setTempoTol] = useState(activeVideo?.tempo_tolerance || 8);
   const [tagInput, setTagInput] = useState('');
   const [savedMessage, setSavedMessage] = useState(false);
+
+  if (currentRole === 'student') {
+    return null;
+  }
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
