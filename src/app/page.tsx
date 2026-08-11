@@ -101,12 +101,12 @@ export default function RoleSelectorPage() {
           </h1>
 
           <p className="text-[#7A736E] text-sm sm:text-base leading-relaxed font-medium">
-            專為溫暖現代音樂教室打造的雙端 AI 助手。整合「7x3 智慧無衝突排課與調課」、「 Whisper 課堂錄音 STT + LLM 溫暖情緒過濾筆記」與「學生 vs 老師 AI 雙影片逐影格姿態/音高比對」。請選擇您的身份並輸入帳號密碼登入，探索全方位的 AI 音樂教學體驗！
+            專為溫暖現代音樂教室打造的雙端 AI 助手。整合「師生排課系統與智慧調課」、「 Whisper 課堂錄音 STT + LLM 溫暖情緒過濾筆記」與「學生 vs 老師 AI 雙影片逐影格姿態/音高比對」。請選擇您的身份並輸入帳號密碼登入，探索全方位的 AI 音樂教學體驗！
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-semibold text-[#7A736E]">
             <span className="flex items-center gap-1.5 bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-[#EFECE6]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 7x3 矩陣無衝突排課
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 師生排課系統
             </span>
             <span className="flex items-center gap-1.5 bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-[#EFECE6]">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 課堂 STT 溫暖過濾筆記
