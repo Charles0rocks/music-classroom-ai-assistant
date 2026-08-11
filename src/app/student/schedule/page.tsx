@@ -205,7 +205,7 @@ export default function StudentSchedulePage() {
           </h2>
           <div className="flex items-center gap-4 text-xs font-bold">
             <span className="flex items-center gap-1.5 text-[#1565C0]">
-              <span className="w-3 h-3 rounded-full bg-[#E3F2FD] border border-[#BBDEFB]" /> 小明 (海洋天藍)
+              <span className="w-3 h-3 rounded-full bg-[#E3F2FD] border border-[#BBDEFB]" /> 我的課程 (海洋天藍)
             </span>
             <span className="flex items-center gap-1.5 text-[#2E7D32]">
               <span className="w-3 h-3 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]" /> 開放時段 (清新粉綠)
@@ -277,7 +277,7 @@ export default function StudentSchedulePage() {
                             className="p-2.5 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] text-[#1565C0] flex flex-col gap-1 shadow-xs"
                           >
                             <div className="flex items-center justify-between text-xs font-black">
-                              <span>小明 (我的課程)</span>
+                              <span>我的課程</span>
                             </div>
                             <div className="font-mono text-[11px] font-bold tracking-tight">
                               {formatTimeRange(app.start_time, app.end_time)}
