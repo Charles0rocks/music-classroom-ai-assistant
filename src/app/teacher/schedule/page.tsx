@@ -42,11 +42,11 @@ const TIME_BLOCKS = [
 
 type ScheduleMode = 'recurring' | 'openSlot';
 
-// Unique Color Assignment Per Student (Deep Green for Confirmed Booking)
-const getStudentCardStyle = (studentName: string, status: string) => {
-  if (status === 'confirmed' || status === 'rescheduled') {
-    return 'bg-[#2E7D32] border-[#1B5E20] text-white shadow-xs font-extrabold'; // Deep Green for Confirmed Booking
-  }
+// Student Color Mapping Rules:
+// 🎓 小明 (Ming)：海洋天藍色 (bg-[#E3F2FD] text-[#1565C0])
+// 🎓 小華 (Hua)：優雅靛紫色 (bg-[#EDE7F6] text-[#4527A0])
+// 🎓 小美 (Mei)：柔粉紅色 (bg-[#FCE4EC] text-[#C2185B])
+const getStudentCardStyle = (studentName: string) => {
   if (studentName.includes('小明')) {
     return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs'; // Ocean Light Blue
   } else if (studentName.includes('小華')) {
@@ -54,7 +54,7 @@ const getStudentCardStyle = (studentName: string, status: string) => {
   } else if (studentName.includes('小美')) {
     return 'bg-[#FCE4EC] border-[#F8BBD0] text-[#C2185B] shadow-xs'; // Soft Pink
   } else {
-    return 'bg-[#E8EAF6] border-[#C5CAE9] text-[#283593] shadow-xs'; // Classic Blue
+    return 'bg-[#E8EAF6] border-[#C5CAE9] text-[#283593] shadow-xs'; // Classic Powder Blue
   }
 };
 
@@ -210,7 +210,7 @@ export default function TeacherSchedulePage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表矩陣與開放時段 (7x3 Grid)</h1>
           <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-            一週 (週一～週日) × 3大時段 矩陣視圖 · 學生專屬色系與粉綠開放/深綠確定狀態
+            一週 (週一～週日) × 3大時段 矩陣視圖 · 學生專屬色系與完整上下課時間全顯
           </p>
         </div>
 
@@ -500,12 +500,12 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED 7x3 Grid Schedule Matrix Table (No Bulletpoints) */}
+      {/* ENLARGED 7x3 Grid Schedule Matrix Table (Full Text Visibility, No Truncation) */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>張老師 7x3 課表總覽</span>
-            <span className="text-xs text-[#7A736E] font-normal">（一學生一專屬顏色 · 粉綠: 開放時段 · 深綠: 確定課程）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（學生姓名與上下課時間100%完全顯示 · 無省略符號）</span>
           </h2>
           <div className="flex items-center gap-3 text-xs font-bold">
             <span className="flex items-center gap-1 text-[#2E7D32]">
@@ -517,14 +517,14 @@ export default function TeacherSchedulePage() {
             <span className="flex items-center gap-1 text-[#4527A0]">
               <span className="w-3 h-3 rounded-full bg-[#EDE7F6] border border-[#D1C4E9]" /> 小華 (靛紫)
             </span>
-            <span className="flex items-center gap-1 text-white">
-              <span className="w-3 h-3 rounded-full bg-[#2E7D32]" /> 確定課程 (深綠)
+            <span className="flex items-center gap-1 text-[#C2185B]">
+              <span className="w-3 h-3 rounded-full bg-[#FCE4EC] border border-[#F8BBD0]" /> 小美 (粉紅)
             </span>
           </div>
         </div>
 
-        {/* 7x3 Responsive Enlarged Grid System */}
-        <div className="min-w-[1050px]">
+        {/* 7x3 Responsive Enlarged Grid System (Min Width 1150px) */}
+        <div className="min-w-[1150px]">
           {/* Header Row: Month/Day on Top, Day-of-Week Underneath */}
           <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
             <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
@@ -561,14 +561,14 @@ export default function TeacherSchedulePage() {
 
                 {/* 7 Day Cells for this block (Min Height 140px) */}
                 {weekDates.map((d) => {
-                  // Booked Appointments (No Bullet Points, Student Unique Colors or Deep Green Confirmed)
+                  // Booked Appointments
                   const dayApps = appointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
                     return appDay === d.key && isTimeInBlock(appHour, block.key);
                   });
 
-                  // Available Open Slots (Pastel Mint Green Cards - 粉綠色)
+                  // Available Open Slots
                   const daySlots = scheduleSlots.filter((slot) => {
                     if (!slot.is_available) return false;
                     const slotDay = getSlotDayOfWeek(slot.start_time);
@@ -582,37 +582,37 @@ export default function TeacherSchedulePage() {
                       className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#D3C9BE] transition-all"
                     >
                       <div className="space-y-2">
-                        {/* Student Appointment Cards (Unique colors per student, no bulletpoints) */}
+                        {/* Student Appointment Cards (Stacked 2-line layout, FULL Student Name & FULL Time Range) */}
                         {dayApps.map((app) => {
-                          const cardStyle = getStudentCardStyle(app.student_name || '', app.status);
+                          const cardStyle = getStudentCardStyle(app.student_name || '');
                           return (
                             <div
                               key={app.id}
-                              className={`p-2 rounded-xl border text-xs font-bold flex items-center justify-between ${cardStyle}`}
+                              className={`p-2.5 rounded-xl border flex flex-col gap-0.5 ${cardStyle}`}
                             >
-                              <span className="truncate">{app.student_name || '學生'}</span>
-                              <span className="font-mono text-[10px] opacity-90">
-                                {new Date(app.start_time).getHours()}:00
-                              </span>
+                              <div className="font-black text-xs leading-snug">
+                                {app.student_name || '學生'}
+                              </div>
+                              <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold">
+                                {formatTimeRange(app.start_time, app.end_time)}
+                              </div>
                             </div>
                           );
                         })}
 
-                        {/* 2. 開放時段 (Pastel Mint Green Cards - 粉綠色, no bulletpoints) */}
+                        {/* Unbooked Open Slots (Pastel Mint Green, Stacked 2-line layout) */}
                         {daySlots.map((slot) => (
                           <div
                             key={slot.id}
                             onClick={() => toggleSlotAvailability(slot.id)}
-                            className="p-2 rounded-xl cursor-pointer text-xs font-extrabold flex items-center justify-between border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-all"
+                            className="p-2.5 rounded-xl cursor-pointer flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-all"
                           >
-                            <span className="truncate">開放時段</span>
-                            <span className="font-mono text-[10px]">
+                            <div className="font-black text-xs leading-snug">開放時段</div>
+                            <div className="font-mono text-[11px] tracking-tight font-bold">
                               {formatTimeRange(slot.start_time, slot.end_time)}
-                            </span>
+                            </div>
                           </div>
                         ))}
-
-
                       </div>
 
                       {/* Quick Add Button in Soft Pale Warm Yellow */}

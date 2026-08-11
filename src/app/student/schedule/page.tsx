@@ -149,7 +149,7 @@ export default function StudentSchedulePage() {
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表矩陣與智慧調課 (7x3 Grid)</h1>
         <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-          一週 (週一～週日) × 3大時段 放大矩陣課表 · 深綠色已確定課程與粉綠色開放時段
+          一週 (週一～週日) × 3大時段 放大矩陣課表 · 學生天藍色確認預約與粉綠開放時段 (完整時間全顯)
         </p>
       </div>
 
@@ -196,25 +196,25 @@ export default function StudentSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED 7x3 Grid Schedule Matrix Table for Student (No Bulletpoints) */}
+      {/* ENLARGED 7x3 Grid Schedule Matrix Table for Student */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>小明同學 7x3 上課週課表矩陣</span>
-            <span className="text-xs text-[#7A736E] font-normal">（深綠色: 確定課程 · 粉綠色: 老師開放時段）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（天藍色: 我的確定課程 · 粉綠色: 老師開放時段）</span>
           </h2>
           <div className="flex items-center gap-4 text-xs font-bold">
-            <span className="flex items-center gap-1.5 text-white">
-              <span className="w-3 h-3 rounded-full bg-[#2E7D32]" /> 確定課程 (深綠)
+            <span className="flex items-center gap-1.5 text-[#1565C0]">
+              <span className="w-3 h-3 rounded-full bg-[#E3F2FD] border border-[#BBDEFB]" /> 小明 (海洋天藍)
             </span>
             <span className="flex items-center gap-1.5 text-[#2E7D32]">
-              <span className="w-3 h-3 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]" /> 開放時段 (粉綠)
+              <span className="w-3 h-3 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]" /> 開放時段 (清新粉綠)
             </span>
           </div>
         </div>
 
-        {/* 7x3 Enlarged Matrix Grid Container */}
-        <div className="min-w-[1050px]">
+        {/* 7x3 Enlarged Matrix Grid Container (Min Width 1150px) */}
+        <div className="min-w-[1150px]">
           {/* Header Row: Month/Day on Top, Day-of-Week Underneath */}
           <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
             <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
@@ -270,41 +270,39 @@ export default function StudentSchedulePage() {
                       className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#E88D67]/40 transition-all"
                     >
                       <div className="space-y-2">
-                        {/* Confirmed Student Appointments (Deep Green Cards for Confirmed Booking) */}
+                        {/* Confirmed Student Appointments (Ocean Light Blue Cards - 小明天藍色, 2-line layout) */}
                         {cellAppointments.map((app) => (
                           <div
                             key={app.id}
-                            className="p-2 rounded-xl bg-[#2E7D32] text-white border border-[#1B5E20] space-y-1 shadow-xs font-bold"
+                            className="p-2.5 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] text-[#1565C0] flex flex-col gap-1 shadow-xs"
                           >
-                            <div className="flex items-center justify-between text-xs font-extrabold">
-                              <span>我的確定課程</span>
-                              <span className="font-mono text-[10px] opacity-90">
-                                {formatTimeRange(app.start_time, app.end_time)}
-                              </span>
+                            <div className="flex items-center justify-between text-xs font-black">
+                              <span>小明 (我的課程)</span>
+                            </div>
+                            <div className="font-mono text-[11px] font-bold tracking-tight">
+                              {formatTimeRange(app.start_time, app.end_time)}
                             </div>
                             <button
                               onClick={() => handleOpenRescheduleModal(app.id)}
-                              className="w-full py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
+                              className="w-full mt-0.5 py-1 rounded-lg bg-[#1565C0] hover:bg-[#0D47A1] text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
                             >
                               <ArrowRightLeft className="w-3 h-3" /> 申請調課
                             </button>
                           </div>
                         ))}
 
-                        {/* Teacher's Open Slots (Pastel Mint Green Cards - 粉綠色, No Bulletpoint) */}
+                        {/* Teacher's Open Slots (Pastel Mint Green Cards - 粉綠色, 2-line layout) */}
                         {cellAvailableSlots.map((slot) => (
                           <div
                             key={slot.id}
-                            className="p-2 rounded-xl bg-[#E8F5E9] border border-[#C8E6C9] text-xs font-extrabold text-[#2E7D32] flex items-center justify-between shadow-xs"
+                            className="p-2.5 rounded-xl bg-[#E8F5E9] border border-[#C8E6C9] text-[#2E7D32] flex flex-col gap-0.5 shadow-xs"
                           >
-                            <span>開放時段</span>
-                            <span className="font-mono text-[10px]">
+                            <div className="font-black text-xs">開放時段</div>
+                            <div className="font-mono text-[11px] font-bold tracking-tight">
                               {formatTimeRange(slot.start_time, slot.end_time)}
-                            </span>
+                            </div>
                           </div>
                         ))}
-
-
                       </div>
                     </div>
                   );
