@@ -56,35 +56,35 @@ const INITIAL_SLOTS: ScheduleSlot[] = [
   {
     id: 'slot-1',
     teacher_id: MOCK_TEACHER.id,
-    start_time: getDynamicDate(1, 14), // Tomorrow 14:00
+    start_time: getDynamicDate(1, 14), // Tomorrow 14:00 (Afternoon)
     end_time: getDynamicDate(1, 15),
     is_available: true,
   },
   {
     id: 'slot-2',
     teacher_id: MOCK_TEACHER.id,
-    start_time: getDynamicDate(1, 16), // Tomorrow 16:00
+    start_time: getDynamicDate(1, 16), // Tomorrow 16:00 (Afternoon)
     end_time: getDynamicDate(1, 17),
     is_available: true,
   },
   {
     id: 'slot-3',
     teacher_id: MOCK_TEACHER.id,
-    start_time: getDynamicDate(2, 10), // Day after tomorrow 10:00
+    start_time: getDynamicDate(2, 10), // Day after tomorrow 10:00 (Morning)
     end_time: getDynamicDate(2, 11),
     is_available: true,
   },
   {
     id: 'slot-4',
     teacher_id: MOCK_TEACHER.id,
-    start_time: getDynamicDate(2, 15), // Day after tomorrow 15:00
+    start_time: getDynamicDate(2, 15), // Day after tomorrow 15:00 (Afternoon)
     end_time: getDynamicDate(2, 16),
     is_available: false, // Booked by another student
   },
   {
     id: 'slot-5',
     teacher_id: MOCK_TEACHER.id,
-    start_time: getDynamicDate(3, 19), // 3 days later 19:00
+    start_time: getDynamicDate(3, 19), // 3 days later 19:00 (Evening)
     end_time: getDynamicDate(3, 20),
     is_available: true,
   },
@@ -110,14 +110,14 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
     student_id: MOCK_STUDENT.id,
     student_name: '小明',
     teacher_id: MOCK_TEACHER.id,
-    start_time: getDynamicDate(1, 10), // Tomorrow 10:00 - 11:00
+    start_time: getDynamicDate(1, 10), // Tomorrow 10:00 - 11:00 (Morning)
     end_time: getDynamicDate(1, 11),
     status: 'confirmed',
   },
   {
     id: 'app-2',
     student_id: 's0000000-other-student',
-    student_name: '小華 (其他學生 - 隱私保護)',
+    student_name: '小華 (其他學生)',
     teacher_id: MOCK_TEACHER.id,
     start_time: getDynamicDate(2, 15),
     end_time: getDynamicDate(2, 16),
@@ -128,8 +128,8 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
     student_id: MOCK_STUDENT.id,
     student_name: '小明',
     teacher_id: MOCK_TEACHER.id,
-    start_time: getDynamicDate(7, 10), // Next week
-    end_time: getDynamicDate(7, 11),
+    start_time: getDynamicDate(4, 19), // 4 days later 19:00 (Evening)
+    end_time: getDynamicDate(4, 20),
     status: 'confirmed',
   },
 ];
@@ -164,17 +164,6 @@ const INITIAL_DEMO_VIDEOS: TeacherDemoVideo[] = [
     tempo_tolerance: 8,
     created_at: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString(),
   },
-  {
-    id: 'demo-2',
-    teacher_id: MOCK_TEACHER.id,
-    title: '莫札特：G大調小提琴協奏曲 弓法與右臂運弓練習',
-    video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    midi_data: { bpm: 108, key: 'G Major' },
-    tags: ['莫札特', '弓法訓練', '中級班'],
-    pitch_tolerance: 4,
-    tempo_tolerance: 5,
-    created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
-  },
 ];
 
 const INITIAL_PRACTICE_VIDEOS: StudentPracticeVideo[] = [
@@ -188,7 +177,7 @@ const INITIAL_PRACTICE_VIDEOS: StudentPracticeVideo[] = [
       overall_score: 84,
       pitch_accuracy: 88,
       rhythm_accuracy: 79,
-      bpm_detected: 102, // Teacher is 96, student rushed slightly
+      bpm_detected: 102,
       summary: '整體表現富有音樂感！唯獨第 0:14 處節奏出現偏快（搶拍 6%），以及第 0:28 換指處音高偏高 15 cents。建議參考右側老師 Demo 調整運弓步調。',
       timeline_markers: [
         {
@@ -215,20 +204,13 @@ const INITIAL_PRACTICE_VIDEOS: StudentPracticeVideo[] = [
           description: '音高測量高出標準頻率 +18 cents。',
           recommendation: '第二指按弦位置需稍微後退 2 毫米，注意按弦力量。',
         },
-        {
-          time: 42,
-          type: 'posture',
-          severity: 'warning',
-          title: '末段運弓手腕略顯僵硬',
-          description: '運弓靠近弓尾時，手腕未及時順應沉下。',
-          recommendation: '換弓時注意力集中於手腕小幅度的緩衝運動。',
-        },
       ],
     },
   },
 ];
 
 interface DemoContextType {
+  isAuthenticated: boolean;
   currentRole: Role;
   currentUser: User;
   teacherProfile: Teacher;
@@ -239,6 +221,8 @@ interface DemoContextType {
   lessonRecords: LessonRecord[];
   demoVideos: TeacherDemoVideo[];
   practiceVideos: StudentPracticeVideo[];
+  login: (email: string, pass: string, role: Role) => { success: boolean; message: string };
+  logout: () => void;
   switchRole: (role: Role) => void;
   toggleSlotAvailability: (slotId: string) => void;
   addScheduleSlot: (startTime: string, endTime: string) => void;
@@ -251,6 +235,7 @@ interface DemoContextType {
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // Logged in by default for quick demo
   const [currentRole, setCurrentRole] = useState<Role>('teacher');
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>(INITIAL_SLOTS);
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
@@ -261,8 +246,34 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const currentUser = currentRole === 'teacher' ? MOCK_TEACHER_USER : MOCK_STUDENT_USER;
 
+  const login = (email: string, pass: string, role: Role) => {
+    // Check credentials for Teacher or Student
+    if (role === 'teacher') {
+      if (email.trim() === 'chang.teacher@harmony.edu' && pass === 'teacher123') {
+        setCurrentRole('teacher');
+        setIsAuthenticated(true);
+        return { success: true, message: '登入成功！歡迎張老師。' };
+      } else {
+        return { success: false, message: '帳號或密碼錯誤（預設帳號: chang.teacher@harmony.edu / 密碼: teacher123）' };
+      }
+    } else {
+      if (email.trim() === 'ming.student@harmony.edu' && pass === 'student123') {
+        setCurrentRole('student');
+        setIsAuthenticated(true);
+        return { success: true, message: '登入成功！歡迎小明同學。' };
+      } else {
+        return { success: false, message: '帳號或密碼錯誤（預設帳號: ming.student@harmony.edu / 密碼: student123）' };
+      }
+    }
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+  };
+
   const switchRole = (role: Role) => {
     setCurrentRole(role);
+    setIsAuthenticated(true);
   };
 
   const toggleSlotAvailability = (slotId: string) => {
@@ -288,7 +299,6 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, message: '該時段已不可預約或不存在。' };
     }
 
-    // Check if any confirmed appointment clashes with targetSlot time
     const slotStart = new Date(targetSlot.start_time).getTime();
     const slotEnd = new Date(targetSlot.end_time).getTime();
 
@@ -314,7 +324,6 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setRescheduleRequests((prev) => [...prev, newReq]);
 
-    // Mark slot as booked & update appointment start time
     setScheduleSlots((prev) =>
       prev.map((s) => (s.id === slotId ? { ...s, is_available: false } : s))
     );
@@ -364,6 +373,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <DemoContext.Provider
       value={{
+        isAuthenticated,
         currentRole,
         currentUser,
         teacherProfile: MOCK_TEACHER,
@@ -374,6 +384,8 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lessonRecords,
         demoVideos,
         practiceVideos,
+        login,
+        logout,
         switchRole,
         toggleSlotAvailability,
         addScheduleSlot,

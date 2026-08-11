@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
+import { LoginModal } from '@/components/LoginModal';
 import {
   Music,
   Calendar,
@@ -15,11 +16,15 @@ import {
   ArrowLeftRight,
   FileText,
   Sliders,
+  LogOut,
+  LogIn,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { currentRole, currentUser } = useDemoContext();
+  const { currentRole, currentUser, isAuthenticated, logout } = useDemoContext();
   const pathname = usePathname();
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const isTeacher = currentRole === 'teacher';
 
@@ -39,89 +44,118 @@ export const Navbar: React.FC = () => {
   const currentNavs = isTeacher ? teacherNavs : studentNavs;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#EFECE6] px-4 lg:px-8 py-3.5 shadow-[0_2px_15px_rgba(140,109,83,0.04)]">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Brand Logo & Role Identity Badge (Hides other role button to prevent confusion) */}
-        <div className="flex items-center justify-between md:justify-start gap-4">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform">
-              <Music className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-lg text-[#332C27] tracking-tight">
-                Harmonix AI Studio
-              </span>
-              <span className="text-xs text-[#7A736E] block -mt-1 font-medium">
-                音樂教室 AI 小幫手
-              </span>
-            </div>
-          </Link>
+    <>
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#EFECE6] px-4 lg:px-8 py-3.5 shadow-[0_2px_15px_rgba(140,109,83,0.04)]">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Brand Logo & Role Identity Controls */}
+          <div className="flex items-center justify-between md:justify-start gap-4">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform">
+                <Music className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="font-bold text-lg text-[#332C27] tracking-tight">
+                  Harmonix AI Studio
+                </span>
+                <span className="text-xs text-[#7A736E] block -mt-1 font-medium">
+                  音樂教室 AI 小幫手
+                </span>
+              </div>
+            </Link>
 
-          {/* Role Badge Display - Role Isolation Rule Applied */}
-          <div className="flex items-center bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6]">
-            {isTeacher ? (
-              <span className="px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-[#8C6D53] text-white shadow-sm">
-                <UserCheck className="w-3.5 h-3.5" />
-                張老師 (Teacher 視角)
-              </span>
+            {/* Authenticated Role Badge & Logout / Switch Account Control */}
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2 bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6]">
+                {isTeacher ? (
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 bg-[#8C6D53] text-white shadow-sm">
+                    <UserCheck className="w-3.5 h-3.5" />
+                    張老師 (Teacher)
+                  </span>
+                ) : (
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 bg-[#E88D67] text-white shadow-sm">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    小明 (Student)
+                  </span>
+                )}
+
+                <button
+                  onClick={() => {
+                    logout();
+                    setShowLoginModal(true);
+                  }}
+                  className="px-3 py-1 rounded-full text-[11px] font-bold text-[#7A736E] hover:text-[#332C27] hover:bg-[#EFECE6] transition-all flex items-center gap-1"
+                  title="登出並重新輸入帳密登入"
+                >
+                  <LogOut className="w-3 h-3 text-[#8C6D53]" />
+                  登出 / 切換帳號
+                </button>
+              </div>
             ) : (
-              <span className="px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-[#E88D67] text-white shadow-sm">
-                <Sparkles className="w-3.5 h-3.5" />
-                小明 (Student 視角)
-              </span>
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="px-4 py-1.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                帳號密碼登入
+              </button>
             )}
           </div>
-        </div>
 
-        {/* Navigation Menu - Role Isolated Links */}
-        <nav className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-          <Link
-            href="/"
-            className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              pathname === '/'
-                ? 'bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5]'
-                : 'text-[#7A736E] hover:text-[#332C27] hover:bg-[#FAF7F2]'
-            }`}
-          >
-            <ArrowLeftRight className="w-3.5 h-3.5" />
-            角色首頁 (P0)
-          </Link>
-          <div className="w-px h-4 bg-[#EFECE6] mx-1 hidden sm:block" />
-          {currentNavs.map((nav) => {
-            const Icon = nav.icon;
-            const active = pathname.startsWith(nav.href);
-            return (
-              <Link
-                key={nav.href}
-                href={nav.href}
-                className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  active
-                    ? isTeacher
-                      ? 'bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] shadow-sm'
-                      : 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8] shadow-sm'
-                    : 'text-[#7A736E] hover:text-[#332C27] hover:bg-[#FAF7F2]'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${active ? (isTeacher ? 'text-[#8C6D53]' : 'text-[#E88D67]') : 'text-[#7A736E]'}`} />
-                {nav.label}
-              </Link>
-            );
-          })}
-        </nav>
+          {/* Navigation Menu - Role Isolated Links */}
+          <nav className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+            <Link
+              href="/"
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                pathname === '/'
+                  ? 'bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5]'
+                  : 'text-[#7A736E] hover:text-[#332C27] hover:bg-[#FAF7F2]'
+              }`}
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5" />
+              角色首頁 (P0)
+            </Link>
+            <div className="w-px h-4 bg-[#EFECE6] mx-1 hidden sm:block" />
+            {currentNavs.map((nav) => {
+              const Icon = nav.icon;
+              const active = pathname.startsWith(nav.href);
+              return (
+                <Link
+                  key={nav.href}
+                  href={nav.href}
+                  className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    active
+                      ? isTeacher
+                        ? 'bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] shadow-sm'
+                        : 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8] shadow-sm'
+                      : 'text-[#7A736E] hover:text-[#332C27] hover:bg-[#FAF7F2]'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${active ? (isTeacher ? 'text-[#8C6D53]' : 'text-[#E88D67]') : 'text-[#7A736E]'}`} />
+                  {nav.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* User Identity Info */}
-        <div className="hidden lg:flex items-center gap-3">
-          <img
-            src={currentUser.avatar_url}
-            alt={currentUser.name}
-            className="w-8 h-8 rounded-full border-2 border-[#EFECE6] object-cover"
-          />
-          <div className="text-right">
-            <div className="text-xs font-bold text-[#332C27]">{currentUser.name}</div>
-            <div className="text-[10px] text-[#7A736E] font-medium">{currentUser.email}</div>
-          </div>
+          {/* User Identity Info */}
+          {isAuthenticated && (
+            <div className="hidden lg:flex items-center gap-3">
+              <img
+                src={currentUser.avatar_url}
+                alt={currentUser.name}
+                className="w-8 h-8 rounded-full border-2 border-[#EFECE6] object-cover"
+              />
+              <div className="text-right">
+                <div className="text-xs font-bold text-[#332C27]">{currentUser.name}</div>
+                <div className="text-[10px] text-[#7A736E] font-medium">{currentUser.email}</div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Login Modal Popup */}
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+    </>
   );
 };

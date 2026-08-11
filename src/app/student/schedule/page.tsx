@@ -13,11 +13,30 @@ import {
   Sparkles,
   X,
   User,
+  Sun,
+  Sunset,
+  Moon,
 } from 'lucide-react';
 import { AvailableSlotResponse } from '@/types';
 
+const DAYS = [
+  { key: 1, label: '週一', short: 'Mon' },
+  { key: 2, label: '週二', short: 'Tue' },
+  { key: 3, label: '週三', short: 'Wed' },
+  { key: 4, label: '週四', short: 'Thu' },
+  { key: 5, label: '週五', short: 'Fri' },
+  { key: 6, label: '週六', short: 'Sat' },
+  { key: 0, label: '週日', short: 'Sun' },
+];
+
+const TIME_BLOCKS = [
+  { key: 'morning', label: '上午', sub: '09:00 - 12:00', icon: Sun },
+  { key: 'afternoon', label: '下午', sub: '13:00 - 18:00', icon: Sunset },
+  { key: 'evening', label: '晚間', sub: '19:00 - 22:00', icon: Moon },
+];
+
 export default function StudentSchedulePage() {
-  const { appointments, studentProfile, teacherProfile, requestReschedule } = useDemoContext();
+  const { appointments, studentProfile, teacherProfile, scheduleSlots, requestReschedule } = useDemoContext();
 
   const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlotResponse[]>([]);
@@ -26,14 +45,22 @@ export default function StudentSchedulePage() {
   const [rescheduleReason, setRescheduleReason] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<{ success: boolean; text: string } | null>(null);
 
-  // Filter student's own appointments (Privacy filter)
+  // Filter student's own appointments (Privacy protection)
   const myAppointments = appointments.filter((app) => app.student_id === studentProfile.id);
 
-  const formatDateTime = (iso: string) => {
-    const d = new Date(iso);
-    const dateStr = d.toLocaleDateString('zh-TW', { weekday: 'short', month: 'numeric', day: 'numeric' });
-    const timeStr = d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
-    return { dateStr, timeStr };
+  const getSlotDayOfWeek = (isoString: string) => new Date(isoString).getDay();
+  const getSlotHour = (isoString: string) => new Date(isoString).getHours();
+
+  const isTimeInBlock = (hour: number, blockKey: string) => {
+    if (blockKey === 'morning') return hour >= 8 && hour < 12;
+    if (blockKey === 'afternoon') return hour >= 12 && hour < 18;
+    return hour >= 18 && hour < 23;
+  };
+
+  const formatTimeRange = (startIso: string, endIso: string) => {
+    const s = new Date(startIso).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const e = new Date(endIso).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${s} - ${e}`;
   };
 
   const handleOpenRescheduleModal = async (appointmentId: string) => {
@@ -83,91 +110,128 @@ export default function StudentSchedulePage() {
           <CalendarIcon className="w-4 h-4" />
           Student Portal (P3)
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表與智慧隱私調課</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表矩陣與智慧調課 (7x3 Grid)</h1>
         <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-          檢視個人預約 · 點擊申請調課彈窗：只顯示空檔且絕不洩漏其他學生隱私資訊
+          一週 (週一～週日) × 3大時段 (上午/下午/晚間) 矩陣課表 · 精準展現個人預約與老師開放空檔
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: My Confirmed Appointments (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
-              <span>我的課程表 (`appointments`)</span>
-            </h2>
-            <span className="text-xs text-[#B85536] bg-[#FCEADE] px-3.5 py-1 rounded-full border border-[#F6D0B8] font-bold">
-              授課老師：{teacherProfile.instrument} 張老師
+      {/* 7x3 Grid Schedule Matrix Table for Student */}
+      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto">
+        <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4">
+          <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
+            <span>小明同學 7x3 上課週課表矩陣</span>
+            <span className="text-xs text-[#7A736E] font-normal">（授課指導：張老師）</span>
+          </h2>
+          <div className="flex items-center gap-3 text-xs font-bold">
+            <span className="flex items-center gap-1.5 text-[#B85536]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FCEADE] border border-[#F6D0B8]" /> 我的上課時間
             </span>
-          </div>
-
-          <div className="space-y-4">
-            {myAppointments.map((app) => {
-              const start = formatDateTime(app.start_time);
-              const end = formatDateTime(app.end_time);
-              return (
-                <div
-                  key={app.id}
-                  className="warm-card p-6 rounded-3xl border border-[#EFECE6] shadow-warm hover:border-[#E88D67]/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-0.5 rounded-full bg-[#E3E8E1] text-[#3D5240] border border-[#C5D2C2] text-[10px] font-bold">
-                        {app.status === 'rescheduled' ? '已調整時段' : '正次預約'}
-                      </span>
-                      <span className="text-xs text-[#7A736E] font-mono">ID: {app.id}</span>
-                    </div>
-
-                    <div className="text-lg font-bold text-[#332C27] flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#E88D67]" />
-                      {start.dateStr} {start.timeStr} - {end.timeStr}
-                    </div>
-
-                    <div className="text-xs text-[#7A736E] font-medium flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-[#8C6D53]" />
-                      授課指導：張老師 ({teacherProfile.instrument})
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleOpenRescheduleModal(app.id)}
-                    className="px-5 py-2.5 rounded-full bg-[#E88D67] hover:bg-[#D67A53] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-[#E88D67]/20 self-start sm:self-auto"
-                  >
-                    <ArrowRightLeft className="w-4 h-4" />
-                    申請智慧調課 (Reschedule)
-                  </button>
-                </div>
-              );
-            })}
+            <span className="flex items-center gap-1.5 text-[#3D5240]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#E3E8E1] border border-[#C5D2C2]" /> 可申請調課空檔
+            </span>
           </div>
         </div>
 
-        {/* Right Column: Privacy Protection Card */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-[#332C27]">智慧隱私保護機制</h2>
-          <div className="warm-card p-6 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#E3E8E1] border border-[#C5D2C2] text-[#3D5240] flex items-center justify-center font-bold">
-              <ShieldCheck className="w-5 h-5" />
+        {/* 7x3 Matrix Grid Container */}
+        <div className="min-w-[900px]">
+          {/* Header Row: 7 Days */}
+          <div className="grid grid-cols-8 gap-3 mb-3">
+            <div className="p-3 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
+              時段 / 日期
             </div>
-            <h3 className="font-bold text-base text-[#332C27]">RLS + 衝突演算法保護</h3>
-            <p className="text-xs text-[#7A736E] leading-relaxed font-medium">
-              系統在查詢可調課時間時，會自動：
-            </p>
-            <ul className="text-xs text-[#332C27] space-y-2.5 font-medium">
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#3D5240] shrink-0 mt-0.5" />
-                1. 僅拉取老師標註為開放 (`is_available = true`) 的時間。
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#3D5240] shrink-0 mt-0.5" />
-                2. 剔除任何與其他人重複的時段。
-              </li>
-              <li className="flex items-start gap-2">
-                <Lock className="w-4 h-4 text-[#8C6D53] shrink-0 mt-0.5" />
-                3. 嚴格遮蔽其他學生的姓名、頭像與個別預約時間。
-              </li>
-            </ul>
+            {DAYS.map((day) => (
+              <div
+                key={day.key}
+                className="p-3 text-center bg-[#FCEADE]/40 rounded-2xl border border-[#F6D0B8] space-y-0.5"
+              >
+                <div className="font-extrabold text-sm text-[#B85536]">{day.label}</div>
+                <div className="text-[10px] text-[#7A736E] font-mono">{day.short}</div>
+              </div>
+            ))}
           </div>
+
+          {/* 3 Time Block Rows */}
+          {TIME_BLOCKS.map((block) => {
+            const BlockIcon = block.icon;
+            return (
+              <div key={block.key} className="grid grid-cols-8 gap-3 mb-4">
+                {/* Left Label Cell */}
+                <div className="p-3 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1">
+                  <BlockIcon className="w-5 h-5 text-[#E88D67]" />
+                  <div className="font-extrabold text-xs text-[#332C27]">{block.label}</div>
+                  <div className="text-[9px] text-[#7A736E] font-mono">{block.sub}</div>
+                </div>
+
+                {/* 7 Day Cells */}
+                {DAYS.map((day) => {
+                  // Student's appointments in this cell
+                  const cellAppointments = myAppointments.filter((app) => {
+                    const appDay = getSlotDayOfWeek(app.start_time);
+                    const appHour = getSlotHour(app.start_time);
+                    return appDay === day.key && isTimeInBlock(appHour, block.key);
+                  });
+
+                  // Teacher's available slots in this cell
+                  const cellAvailableSlots = scheduleSlots.filter((slot) => {
+                    if (!slot.is_available) return false;
+                    const slotDay = getSlotDayOfWeek(slot.start_time);
+                    const slotHour = getSlotHour(slot.start_time);
+                    return slotDay === day.key && isTimeInBlock(slotHour, block.key);
+                  });
+
+                  return (
+                    <div
+                      key={day.key}
+                      className="min-h-[115px] p-2.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2 hover:border-[#E88D67]/40 transition-all"
+                    >
+                      <div className="space-y-1.5">
+                        {/* Student's Confirmed Appointments */}
+                        {cellAppointments.map((app) => (
+                          <div
+                            key={app.id}
+                            className="p-2 rounded-xl bg-[#FCEADE] border border-[#F6D0B8] space-y-1"
+                          >
+                            <div className="flex items-center justify-between text-[11px] font-bold text-[#B85536]">
+                              <span>🎵 我的課程</span>
+                              <span className="font-mono text-[9px]">
+                                {formatTimeRange(app.start_time, app.end_time)}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleOpenRescheduleModal(app.id)}
+                              className="w-full py-1 rounded-lg bg-[#E88D67] hover:bg-[#D67A53] text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
+                            >
+                              <ArrowRightLeft className="w-3 h-3" /> 申請調課
+                            </button>
+                          </div>
+                        ))}
+
+                        {/* Teacher's Available Slots */}
+                        {cellAvailableSlots.map((slot) => (
+                          <div
+                            key={slot.id}
+                            className="p-1.5 rounded-xl bg-[#E3E8E1] border border-[#C5D2C2] text-[10px] font-bold text-[#3D5240] flex items-center justify-between"
+                          >
+                            <span>🟢 老師開放空檔</span>
+                            <span className="font-mono text-[9px]">
+                              {formatTimeRange(slot.start_time, slot.end_time)}
+                            </span>
+                          </div>
+                        ))}
+
+                        {cellAppointments.length === 0 && cellAvailableSlots.length === 0 && (
+                          <div className="text-[10px] text-[#7A736E] text-center py-4 italic font-medium">
+                            無排課 / 無空檔
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -224,8 +288,7 @@ export default function StudentSchedulePage() {
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {availableSlots.map((slot) => {
-                      const start = formatDateTime(slot.start_time);
-                      const end = formatDateTime(slot.end_time);
+                      const start = formatTimeRange(slot.start_time, slot.end_time);
                       const isSelected = selectedSlotId === slot.slot_id;
                       return (
                         <div
@@ -240,7 +303,7 @@ export default function StudentSchedulePage() {
                           <div className="flex items-center gap-2.5">
                             <Clock className={`w-4 h-4 ${isSelected ? 'text-[#8C6D53]' : 'text-[#7A736E]'}`} />
                             <span className="text-xs font-bold font-mono">
-                              {start.dateStr} {start.timeStr} - {end.timeStr}
+                              {start}
                             </span>
                           </div>
                           <span className="text-[10px] text-[#3D5240] bg-[#E3E8E1] px-2.5 py-0.5 rounded-full font-bold border border-[#C5D2C2]">
