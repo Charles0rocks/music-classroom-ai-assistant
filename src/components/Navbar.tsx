@@ -35,32 +35,32 @@ export const Navbar: React.FC = () => {
   const currentNavs = isTeacher ? teacherNavs : studentNavs;
 
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-3">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#EFECE6] px-4 lg:px-8 py-3.5 shadow-[0_2px_15px_rgba(140,109,83,0.04)]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {/* Brand Logo & Role Selector Quick Action */}
         <div className="flex items-center justify-between md:justify-start gap-4">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-500/25 group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform">
               <Music className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300">
+              <span className="font-bold text-lg text-[#332C27] tracking-tight">
                 Harmonix AI Studio
               </span>
-              <span className="text-xs text-slate-400 block -mt-1 font-medium">
+              <span className="text-xs text-[#7A736E] block -mt-1 font-medium">
                 音樂教室 AI 小幫手
               </span>
             </div>
           </Link>
 
-          {/* Quick Role Switcher Button */}
-          <div className="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700/60 shadow-inner">
+          {/* Quick Role Switcher Button Pill Container */}
+          <div className="flex items-center bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6]">
             <button
               onClick={() => switchRole('teacher')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all ${
                 isTeacher
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#8C6D53] text-white shadow-sm'
+                  : 'text-[#7A736E] hover:text-[#332C27]'
               }`}
             >
               <UserCheck className="w-3.5 h-3.5" />
@@ -68,10 +68,10 @@ export const Navbar: React.FC = () => {
             </button>
             <button
               onClick={() => switchRole('student')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all ${
                 !isTeacher
-                  ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#E88D67] text-white shadow-sm'
+                  : 'text-[#7A736E] hover:text-[#332C27]'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -84,16 +84,16 @@ export const Navbar: React.FC = () => {
         <nav className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           <Link
             href="/"
-            className={`px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+            className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
               pathname === '/'
-                ? 'bg-slate-800 text-purple-300 border border-purple-500/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8]'
+                : 'text-[#7A736E] hover:text-[#332C27] hover:bg-[#FAF7F2]'
             }`}
           >
             <ArrowLeftRight className="w-3.5 h-3.5" />
             角色首頁 (P0)
           </Link>
-          <div className="w-px h-4 bg-slate-800 mx-1 hidden sm:block" />
+          <div className="w-px h-4 bg-[#EFECE6] mx-1 hidden sm:block" />
           {currentNavs.map((nav) => {
             const Icon = nav.icon;
             const active = pathname.startsWith(nav.href);
@@ -101,15 +101,15 @@ export const Navbar: React.FC = () => {
               <Link
                 key={nav.href}
                 href={nav.href}
-                className={`px-3.5 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   active
                     ? isTeacher
-                      ? 'bg-purple-950/80 text-purple-200 border border-purple-500/40 shadow-sm'
-                      : 'bg-cyan-950/80 text-cyan-200 border border-cyan-500/40 shadow-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                      ? 'bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] shadow-sm'
+                      : 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8] shadow-sm'
+                    : 'text-[#7A736E] hover:text-[#332C27] hover:bg-[#FAF7F2]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${active ? (isTeacher ? 'text-purple-400' : 'text-cyan-400') : 'text-slate-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${active ? (isTeacher ? 'text-[#8C6D53]' : 'text-[#E88D67]') : 'text-[#7A736E]'}`} />
                 {nav.label}
               </Link>
             );
@@ -121,11 +121,11 @@ export const Navbar: React.FC = () => {
           <img
             src={currentUser.avatar_url}
             alt={currentUser.name}
-            className="w-8 h-8 rounded-full border-2 border-slate-700 object-cover"
+            className="w-8 h-8 rounded-full border-2 border-[#EFECE6] object-cover"
           />
           <div className="text-right">
-            <div className="text-xs font-semibold text-slate-200">{currentUser.name}</div>
-            <div className="text-[10px] text-slate-400 font-mono">{currentUser.email}</div>
+            <div className="text-xs font-bold text-[#332C27]">{currentUser.name}</div>
+            <div className="text-[10px] text-[#7A736E] font-medium">{currentUser.email}</div>
           </div>
         </div>
       </div>

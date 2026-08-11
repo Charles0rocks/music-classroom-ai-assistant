@@ -57,13 +57,13 @@ export default function TeacherDemosPage() {
   return (
     <div className="space-y-8">
       {/* Header Banner */}
-      <div className="glass-panel p-6 rounded-2xl border border-purple-500/20">
-        <div className="flex items-center gap-2 text-purple-400 text-xs font-semibold uppercase tracking-wider mb-1">
+      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm bg-gradient-to-r from-white to-[#FAF2EC]">
+        <div className="flex items-center gap-2 text-[#8C6D53] text-xs font-bold uppercase tracking-wider mb-1">
           <Video className="w-4 h-4" />
           Teacher Portal (P7)
         </div>
-        <h1 className="text-2xl font-extrabold text-white">範例影片庫與 AI 標籤微調</h1>
-        <p className="text-slate-400 text-xs mt-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">範例影片庫與 AI 標籤微調</h1>
+        <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
           上傳教學示範影片 · 自訂 AI 音高/節奏容錯率門檻 · 設定演練標籤
         </p>
       </div>
@@ -72,10 +72,10 @@ export default function TeacherDemosPage() {
         {/* Left Column: Video List (1 col) */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <h2 className="text-base font-bold text-[#332C27] flex items-center gap-2">
               <span>示範影片庫 (`teacher_demo_videos`)</span>
             </h2>
-            <span className="text-xs text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-900">
+            <span className="text-xs text-[#8C6D53] bg-[#FAF2EC] px-3 py-1 rounded-full border border-[#E8D4C5] font-bold">
               {demoVideos.length} 部影片
             </span>
           </div>
@@ -89,21 +89,21 @@ export default function TeacherDemosPage() {
                   setPitchTol(video.pitch_tolerance);
                   setTempoTol(video.tempo_tolerance);
                 }}
-                className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                className={`p-4.5 rounded-2xl cursor-pointer transition-all border ${
                   activeVideo?.id === video.id
-                    ? 'glass-panel border-purple-500/80 shadow-lg shadow-purple-500/10'
-                    : 'bg-slate-900/60 border-slate-800/80 hover:border-slate-700'
+                    ? 'bg-white border-[#8C6D53] shadow-warm-hover ring-2 ring-[#8C6D53]/20'
+                    : 'warm-card-interactive border-[#EFECE6]'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-600/20 border border-purple-500/40 flex items-center justify-center shrink-0 text-purple-300">
+                  <div className="w-10 h-10 rounded-xl bg-[#FAF2EC] border border-[#E8D4C5] flex items-center justify-center shrink-0 text-[#8C6D53]">
                     <Video className="w-5 h-5" />
                   </div>
                   <div className="space-y-1 overflow-hidden">
-                    <h3 className="font-bold text-xs text-slate-100 truncate">{video.title}</h3>
+                    <h3 className="font-bold text-xs text-[#332C27] truncate">{video.title}</h3>
                     <div className="flex flex-wrap gap-1">
                       {video.tags.map((tag) => (
-                        <span key={tag} className="text-[10px] bg-slate-800 text-purple-300 px-1.5 py-0.5 rounded">
+                        <span key={tag} className="text-[10px] bg-[#E3E8E1] text-[#3D5240] px-2 py-0.5 rounded-full font-bold">
                           #{tag}
                         </span>
                       ))}
@@ -119,13 +119,15 @@ export default function TeacherDemosPage() {
         {activeVideo && (
           <div className="lg:col-span-2 space-y-6">
             {/* Video Preview Box */}
-            <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-              <h3 className="font-bold text-sm text-slate-100 flex items-center justify-between">
+            <div className="warm-card p-6 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
+              <h3 className="font-bold text-sm text-[#332C27] flex items-center justify-between">
                 <span>影片預覽與 AI 診斷參數設定</span>
-                <span className="text-xs text-slate-400 font-mono">BPM: {activeVideo.midi_data?.bpm || 96}</span>
+                <span className="text-xs text-[#8C6D53] font-bold bg-[#FAF2EC] px-3 py-1 rounded-full border border-[#E8D4C5]">
+                  BPM: {activeVideo.midi_data?.bpm || 96}
+                </span>
               </h3>
 
-              <div className="aspect-video bg-black rounded-xl overflow-hidden relative border border-slate-800">
+              <div className="aspect-video bg-[#332C27] rounded-2xl overflow-hidden relative border border-[#EFECE6] shadow-inner">
                 <video
                   src={activeVideo.video_url}
                   controls
@@ -133,18 +135,18 @@ export default function TeacherDemosPage() {
                 />
               </div>
 
-              <div className="text-sm font-bold text-purple-300">{activeVideo.title}</div>
+              <div className="text-sm font-bold text-[#332C27]">{activeVideo.title}</div>
             </div>
 
             {/* AI Tolerances Settings Form */}
-            <form onSubmit={handleSaveSettings} className="glass-panel p-6 rounded-2xl border border-purple-500/30 space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-purple-400" />
+            <form onSubmit={handleSaveSettings} className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6">
+              <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
+                <h3 className="font-bold text-sm text-[#332C27] flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-[#8C6D53]" />
                   AI 音聲比對門檻微調 (Pitch & Tempo Tolerance)
                 </h3>
                 {savedMessage && (
-                  <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="text-xs text-[#3D5240] bg-[#E3E8E1] px-3 py-1 rounded-full font-bold flex items-center gap-1 border border-[#C5D2C2]">
                     <Check className="w-3.5 h-3.5" /> 已更新 AI 設定
                   </span>
                 )}
@@ -153,10 +155,10 @@ export default function TeacherDemosPage() {
               {/* Pitch Tolerance Slider */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <label className="font-semibold text-slate-200">
-                    音高容錯率 (Pitch Tolerance): <span className="text-purple-400 font-bold">{pitchTol} cents</span>
+                  <label className="font-bold text-[#332C27]">
+                    音高容錯率 (Pitch Tolerance): <span className="text-[#8C6D53] font-extrabold">{pitchTol} cents</span>
                   </label>
-                  <span className="text-[11px] text-slate-400">（數值越低越嚴格）</span>
+                  <span className="text-[11px] text-[#7A736E]">（數值越低越嚴格）</span>
                 </div>
                 <input
                   type="range"
@@ -164,9 +166,9 @@ export default function TeacherDemosPage() {
                   max="15"
                   value={pitchTol}
                   onChange={(e) => setPitchTol(parseInt(e.target.value, 10))}
-                  className="w-full accent-purple-500 bg-slate-900"
+                  className="w-full accent-[#8C6D53] bg-[#FAF7F2]"
                 />
-                <div className="flex justify-between text-[10px] text-slate-500">
+                <div className="flex justify-between text-[10px] text-[#7A736E] font-medium">
                   <span>1 cent (專業金獎標準)</span>
                   <span>5 cents (建議標準)</span>
                   <span>15 cents (寬鬆入門)</span>
@@ -176,10 +178,10 @@ export default function TeacherDemosPage() {
               {/* Tempo Tolerance Slider */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <label className="font-semibold text-slate-200">
-                    節奏/搶拍容錯率 (Tempo Tolerance): <span className="text-cyan-400 font-bold">{tempoTol}%</span>
+                  <label className="font-bold text-[#332C27]">
+                    節奏/搶拍容錯率 (Tempo Tolerance): <span className="text-[#E88D67] font-extrabold">{tempoTol}%</span>
                   </label>
-                  <span className="text-[11px] text-slate-400">（超過此比例判定為搶拍/拖拍）</span>
+                  <span className="text-[11px] text-[#7A736E]">（超過此比例判定為搶拍/拖拍）</span>
                 </div>
                 <input
                   type="range"
@@ -187,9 +189,9 @@ export default function TeacherDemosPage() {
                   max="20"
                   value={tempoTol}
                   onChange={(e) => setTempoTol(parseInt(e.target.value, 10))}
-                  className="w-full accent-cyan-500 bg-slate-900"
+                  className="w-full accent-[#E88D67] bg-[#FAF7F2]"
                 />
-                <div className="flex justify-between text-[10px] text-slate-500">
+                <div className="flex justify-between text-[10px] text-[#7A736E] font-medium">
                   <span>2% (強烈推薦嚴格對拍)</span>
                   <span>8% (建議標準)</span>
                   <span>20% (寬鬆樂感優先)</span>
@@ -197,20 +199,20 @@ export default function TeacherDemosPage() {
               </div>
 
               {/* Tag Management */}
-              <div className="space-y-3 pt-2 border-t border-slate-800">
-                <label className="block text-xs font-semibold text-slate-200">訓練標籤 (Tags)</label>
+              <div className="space-y-3 pt-2 border-t border-[#EFECE6]">
+                <label className="block text-xs font-bold text-[#332C27]">訓練標籤 (Tags)</label>
                 <div className="flex flex-wrap gap-2">
                   {activeVideo.tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center gap-1 text-xs bg-purple-950/80 border border-purple-500/40 text-purple-200 px-3 py-1 rounded-lg"
+                      className="inline-flex items-center gap-1.5 text-xs bg-[#E3E8E1] text-[#3D5240] border border-[#C5D2C2] px-3.5 py-1 rounded-full font-bold"
                     >
-                      <Tag className="w-3 h-3 text-purple-400" />
+                      <Tag className="w-3 h-3" />
                       {t}
                       <button
                         type="button"
                         onClick={() => handleRemoveTag(t)}
-                        className="text-purple-400 hover:text-rose-400 ml-1"
+                        className="text-[#3D5240] hover:text-[#B85536] ml-1"
                       >
                         ×
                       </button>
@@ -224,12 +226,12 @@ export default function TeacherDemosPage() {
                     placeholder="輸入新標籤 (例如：弓法練習)"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+                    className="flex-1 bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3.5 py-2 text-xs text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
                   />
                   <button
                     type="button"
                     onClick={handleAddTag}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700"
+                    className="px-4 py-2 bg-[#8C6D53] hover:bg-[#765942] text-white text-xs font-bold rounded-full shadow-sm"
                   >
                     新增標籤
                   </button>
@@ -239,7 +241,7 @@ export default function TeacherDemosPage() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/25 transition-all"
+                  className="w-full py-3 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs shadow-md shadow-[#8C6D53]/20 transition-all"
                 >
                   儲存微調設定 (Save Parameters)
                 </button>

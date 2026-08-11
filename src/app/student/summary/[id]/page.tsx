@@ -33,43 +33,44 @@ export default function StudentSummaryDetailPage() {
       <div className="flex items-center justify-between">
         <Link
           href="/student/practice"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7A736E] hover:text-[#332C27] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> 返回作業學習中心 (P4)
         </Link>
-        <span className="text-xs text-cyan-400 font-mono bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800">
+        <span className="text-xs text-[#8C6D53] font-bold bg-[#FAF2EC] px-3.5 py-1 rounded-full border border-[#E8D4C5]">
           Lesson Card ID: {record.id}
         </span>
       </div>
 
-      {/* Main Premium AI Summary Card */}
-      <div className="relative overflow-hidden rounded-3xl glass-panel p-8 border border-cyan-500/40 shadow-2xl space-y-8 bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-purple-950/30">
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Main Premium Physical Paper Lesson Card */}
+      <div className="relative overflow-hidden rounded-3xl paper-card p-8 sm:p-10 border border-[#EAE3D9] shadow-warm space-y-8 bg-[#FDFBF7]">
+        {/* Soft Background Warm Blurs */}
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-[#E88D67]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-[#8C6D53]/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Card Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EFECE6] pb-6">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FAF2EC] border border-[#E8D4C5] text-[#8C6D53] text-xs font-bold">
               <Sparkles className="w-3.5 h-3.5" />
               AI 課堂情緒過濾 & 淨化學習卡片 (P5)
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27] tracking-tight">
               {record.song_title || '巴哈：E大調小提琴協奏曲 第一樂章'}
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#7A736E] font-medium">
               指導老師：張老師 · 上課日期：{new Date(record.created_at).toLocaleDateString('zh-TW')}
             </p>
           </div>
 
           {/* BPM Target Pill Badge */}
-          <div className="flex items-center gap-3 bg-slate-950/80 p-3 rounded-2xl border border-cyan-500/30 shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+          <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-[#EFECE6] shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-[#FAF2EC] text-[#8C6D53] flex items-center justify-center border border-[#E8D4C5]">
               <Gauge className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-semibold block uppercase">建議練習速度</span>
-              <span className="text-xl font-black text-cyan-300 font-mono">
+              <span className="text-[10px] text-[#7A736E] font-bold block uppercase">建議練習速度</span>
+              <span className="text-xl font-black text-[#8C6D53] font-mono">
                 BPM {summary.bpm_recommendation || 72}
               </span>
             </div>
@@ -77,36 +78,36 @@ export default function StudentSummaryDetailPage() {
         </div>
 
         {/* Audio Recording Player Bar */}
-        <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-4 bg-slate-950/60">
-          <button className="w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/30 transition-all shrink-0">
+        <div className="warm-card p-4 rounded-2xl border border-[#EFECE6] flex items-center gap-4 bg-white shadow-sm">
+          <button className="w-10 h-10 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white flex items-center justify-center shadow-md shadow-[#8C6D53]/20 transition-all shrink-0">
             <Play className="w-4 h-4 fill-current ml-0.5" />
           </button>
           <div className="flex-1 space-y-1">
-            <div className="flex justify-between text-xs font-semibold text-slate-300">
+            <div className="flex justify-between text-xs font-bold text-[#332C27]">
               <span>課堂現場音訊紀錄 (Classroom Audio)</span>
-              <span className="text-slate-500 font-mono">03:45 / 12:30</span>
+              <span className="text-[#7A736E] font-mono">03:45 / 12:30</span>
             </div>
-            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div className="w-1/3 h-full bg-gradient-to-r from-purple-500 to-cyan-400" />
+            <div className="h-2 bg-[#FAF7F2] rounded-full overflow-hidden border border-[#EFECE6]">
+              <div className="w-1/3 h-full bg-gradient-to-r from-[#8C6D53] to-[#E88D67]" />
             </div>
           </div>
-          <Volume2 className="w-5 h-5 text-slate-400 shrink-0" />
+          <Volume2 className="w-5 h-5 text-[#7A736E] shrink-0" />
         </div>
 
         {/* Section 1: Technical Tips & Hand Postures */}
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-purple-300 uppercase tracking-wider flex items-center gap-2">
-            <Bookmark className="w-4 h-4 text-purple-400" />
+          <h2 className="text-sm font-bold text-[#8C6D53] uppercase tracking-wider flex items-center gap-2">
+            <Bookmark className="w-4 h-4 text-[#8C6D53]" />
             一、本週技術與手型重點 (Technical Tips)
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {summary.technical_tips.map((tip, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl bg-slate-900/80 border border-purple-500/20 hover:border-purple-500/40 transition-all space-y-1"
+                className="p-4.5 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] space-y-1 shadow-sm"
               >
-                <span className="text-[10px] font-mono text-purple-400 font-bold">TIP #{idx + 1}</span>
-                <p className="text-xs text-slate-200 leading-relaxed">{tip}</p>
+                <span className="text-[10px] font-mono text-[#8C6D53] font-bold">TIP #{idx + 1}</span>
+                <p className="text-xs text-[#332C27] font-medium leading-relaxed">{tip}</p>
               </div>
             ))}
           </div>
@@ -114,17 +115,17 @@ export default function StudentSummaryDetailPage() {
 
         {/* Section 2: Music Theory & Score Details */}
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-cyan-400" />
+          <h2 className="text-sm font-bold text-[#3D5240] uppercase tracking-wider flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-[#3D5240]" />
             二、樂理與節拍重點 (Music Theory & Timing)
           </h2>
-          <div className="p-4 rounded-2xl bg-slate-900/80 border border-cyan-500/20 space-y-2">
-            <div className="flex items-start gap-2 text-xs text-slate-200">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+          <div className="p-4.5 rounded-2xl bg-[#E3E8E1]/50 border border-[#C5D2C2] space-y-2.5 shadow-sm">
+            <div className="flex items-start gap-2.5 text-xs text-[#332C27] font-medium">
+              <CheckCircle2 className="w-4 h-4 text-[#3D5240] shrink-0 mt-0.5" />
               <span>十六分音符過渡區間需注意手腕連貫度，避免第 16 小節搶拍。</span>
             </div>
-            <div className="flex items-start gap-2 text-xs text-slate-200">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2.5 text-xs text-[#332C27] font-medium">
+              <CheckCircle2 className="w-4 h-4 text-[#3D5240] shrink-0 mt-0.5" />
               <span>升 C (C#) 按弦位置精準度維持，注意第二指拉回力度。</span>
             </div>
           </div>
@@ -132,35 +133,37 @@ export default function StudentSummaryDetailPage() {
 
         {/* Section 3: Homework & Practice Guide */}
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <h2 className="text-sm font-bold text-[#B85536] uppercase tracking-wider flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#E88D67]" />
             三、回家作業與練習指引 (Homework)
           </h2>
           <div className="space-y-2">
             {summary.homework.map((hw, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs text-slate-200"
+                className="p-4 rounded-2xl bg-[#FCEADE]/40 border border-[#F6D0B8] flex items-center justify-between text-xs text-[#332C27] font-medium shadow-sm"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-mono font-bold text-[10px]">
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#E88D67] text-white flex items-center justify-center font-mono font-bold text-xs">
                     {idx + 1}
                   </span>
                   <span>{hw}</span>
                 </div>
-                <span className="text-[10px] text-slate-500 font-mono">未完成</span>
+                <span className="text-[10px] text-[#B85536] font-bold bg-[#FCEADE] px-2.5 py-0.5 rounded-full border border-[#F6D0B8]">
+                  未完成
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Section 4: Encouragement Quote */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-950/60 to-indigo-950/60 border border-purple-500/40 text-center space-y-2 shadow-inner">
-          <Heart className="w-5 h-5 text-rose-400 mx-auto animate-pulse" />
-          <p className="text-xs sm:text-sm text-purple-100 font-medium italic leading-relaxed">
+        {/* Section 4: Encouragement Quote Card */}
+        <div className="p-6 rounded-3xl bg-[#FAF2EC] border border-[#E8D4C5] text-center space-y-2.5 shadow-sm">
+          <Heart className="w-5 h-5 text-[#E88D67] mx-auto fill-[#E88D67]" />
+          <p className="text-sm sm:text-base text-[#8C6D53] font-bold italic leading-relaxed">
             「{summary.encouragement}」
           </p>
-          <span className="text-[10px] text-purple-300/70 block">— 張老師課後小結</span>
+          <span className="text-xs text-[#7A736E] block font-medium">— 張老師課後小結</span>
         </div>
       </div>
     </div>

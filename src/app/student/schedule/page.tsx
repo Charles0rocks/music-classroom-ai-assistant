@@ -78,13 +78,13 @@ export default function StudentSchedulePage() {
   return (
     <div className="space-y-8">
       {/* Header Banner */}
-      <div className="glass-panel p-6 rounded-2xl border border-cyan-500/20">
-        <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-1">
+      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm bg-gradient-to-r from-white to-[#FCEADE]">
+        <div className="flex items-center gap-2 text-[#E88D67] text-xs font-bold uppercase tracking-wider mb-1">
           <CalendarIcon className="w-4 h-4" />
           Student Portal (P3)
         </div>
-        <h1 className="text-2xl font-extrabold text-white">個人課表與智慧隱私調課</h1>
-        <p className="text-slate-400 text-xs mt-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表與智慧隱私調課</h1>
+        <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
           檢視個人預約 · 點擊申請調課彈窗：只顯示空檔且絕不洩漏其他學生隱私資訊
         </p>
       </div>
@@ -93,10 +93,10 @@ export default function StudentSchedulePage() {
         {/* Left Column: My Confirmed Appointments (2 cols) */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
               <span>我的課程表 (`appointments`)</span>
             </h2>
-            <span className="text-xs text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800">
+            <span className="text-xs text-[#B85536] bg-[#FCEADE] px-3.5 py-1 rounded-full border border-[#F6D0B8] font-bold">
               授課老師：{teacherProfile.instrument} 張老師
             </span>
           </div>
@@ -108,30 +108,30 @@ export default function StudentSchedulePage() {
               return (
                 <div
                   key={app.id}
-                  className="glass-panel p-5 rounded-2xl border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="warm-card p-6 rounded-3xl border border-[#EFECE6] shadow-warm hover:border-[#E88D67]/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold">
+                      <span className="px-3 py-0.5 rounded-full bg-[#E3E8E1] text-[#3D5240] border border-[#C5D2C2] text-[10px] font-bold">
                         {app.status === 'rescheduled' ? '已調整時段' : '正次預約'}
                       </span>
-                      <span className="text-xs text-slate-400 font-mono">ID: {app.id}</span>
+                      <span className="text-xs text-[#7A736E] font-mono">ID: {app.id}</span>
                     </div>
 
-                    <div className="text-base font-bold text-white flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-cyan-400" />
+                    <div className="text-lg font-bold text-[#332C27] flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#E88D67]" />
                       {start.dateStr} {start.timeStr} - {end.timeStr}
                     </div>
 
-                    <div className="text-xs text-slate-300 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-slate-400" />
+                    <div className="text-xs text-[#7A736E] font-medium flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-[#8C6D53]" />
                       授課指導：張老師 ({teacherProfile.instrument})
                     </div>
                   </div>
 
                   <button
                     onClick={() => handleOpenRescheduleModal(app.id)}
-                    className="px-4 py-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white font-semibold text-xs border border-cyan-500/40 flex items-center justify-center gap-2 transition-all shadow-md"
+                    className="px-5 py-2.5 rounded-full bg-[#E88D67] hover:bg-[#D67A53] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-[#E88D67]/20 self-start sm:self-auto"
                   >
                     <ArrowRightLeft className="w-4 h-4" />
                     申請智慧調課 (Reschedule)
@@ -144,26 +144,26 @@ export default function StudentSchedulePage() {
 
         {/* Right Column: Privacy Protection Card */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-100">智慧隱私保護機制</h2>
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 flex items-center justify-center">
+          <h2 className="text-lg font-bold text-[#332C27]">智慧隱私保護機制</h2>
+          <div className="warm-card p-6 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
+            <div className="w-10 h-10 rounded-2xl bg-[#E3E8E1] border border-[#C5D2C2] text-[#3D5240] flex items-center justify-center font-bold">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-sm text-slate-100">RLS + 衝突演算法保護</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="font-bold text-base text-[#332C27]">RLS + 衝突演算法保護</h3>
+            <p className="text-xs text-[#7A736E] leading-relaxed font-medium">
               系統在查詢可調課時間時，會自動：
             </p>
-            <ul className="text-xs text-slate-300 space-y-2">
+            <ul className="text-xs text-[#332C27] space-y-2.5 font-medium">
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-[#3D5240] shrink-0 mt-0.5" />
                 1. 僅拉取老師標註為開放 (`is_available = true`) 的時間。
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-[#3D5240] shrink-0 mt-0.5" />
                 2. 剔除任何與其他人重複的時段。
               </li>
               <li className="flex items-start gap-2">
-                <Lock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <Lock className="w-4 h-4 text-[#8C6D53] shrink-0 mt-0.5" />
                 3. 嚴格遮蔽其他學生的姓名、頭像與個別預約時間。
               </li>
             </ul>
@@ -173,33 +173,33 @@ export default function StudentSchedulePage() {
 
       {/* Reschedule Modal (Popup strictly hiding other students' privacy) */}
       {rescheduleAppointmentId && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-lg p-6 rounded-2xl border border-cyan-500/40 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-[#332C27]/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg p-6 sm:p-8 rounded-3xl border border-[#EFECE6] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-cyan-400" />
-                <h3 className="font-bold text-base text-white">智慧調課申請 (Smart Reschedule)</h3>
+                <Sparkles className="w-5 h-5 text-[#E88D67]" />
+                <h3 className="font-bold text-lg text-[#332C27]">智慧調課申請 (Smart Reschedule)</h3>
               </div>
               <button
                 onClick={() => setRescheduleAppointmentId(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-[#7A736E] hover:text-[#332C27]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Privacy Guarantee Alert Banner */}
-            <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-500/40 flex items-center gap-2.5 text-xs text-indigo-200">
-              <ShieldCheck className="w-5 h-5 text-indigo-400 shrink-0" />
+            <div className="p-3.5 rounded-2xl bg-[#E3E8E1]/60 border border-[#C5D2C2] flex items-center gap-2.5 text-xs text-[#3D5240] font-bold">
+              <ShieldCheck className="w-5 h-5 text-[#3D5240] shrink-0" />
               <span>隱私保護已啟用：僅呈現張老師開放且無衝突之空檔，保護他人隱私。</span>
             </div>
 
             {feedbackMsg && (
               <div
-                className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                className={`p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 ${
                   feedbackMsg.success
-                    ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50'
-                    : 'bg-rose-950/80 text-rose-300 border border-rose-500/50'
+                    ? 'bg-[#E3E8E1] text-[#3D5240] border border-[#C5D2C2]'
+                    : 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8]'
                 }`}
               >
                 {feedbackMsg.success ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
@@ -209,16 +209,16 @@ export default function StudentSchedulePage() {
 
             <form onSubmit={handleSubmitReschedule} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">
+                <label className="block text-xs font-bold text-[#332C27] mb-2">
                   選擇目標開放空檔 (`schedule_slots`)
                 </label>
 
                 {isLoadingSlots ? (
-                  <div className="py-8 text-center text-xs text-slate-400 animate-pulse">
+                  <div className="py-8 text-center text-xs text-[#7A736E] font-medium animate-pulse">
                     正在演算法比對無衝突時段...
                   </div>
                 ) : availableSlots.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-amber-400 bg-amber-950/40 rounded-xl border border-amber-800">
+                  <div className="py-6 text-center text-xs text-[#B85536] bg-[#FCEADE] rounded-2xl border border-[#F6D0B8] font-bold">
                     目前老師暫無可供調課的開放空檔，請聯絡老師新增開放時間。
                   </div>
                 ) : (
@@ -231,19 +231,19 @@ export default function StudentSchedulePage() {
                         <div
                           key={slot.slot_id}
                           onClick={() => setSelectedSlotId(slot.slot_id)}
-                          className={`p-3 rounded-xl cursor-pointer transition-all border flex items-center justify-between ${
+                          className={`p-3.5 rounded-2xl cursor-pointer transition-all border flex items-center justify-between ${
                             isSelected
-                              ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-md'
-                              : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:border-slate-700'
+                              ? 'bg-[#FAF2EC] border-[#8C6D53] text-[#332C27] shadow-sm'
+                              : 'bg-[#FAF7F2] border-[#EFECE6] text-[#7A736E] hover:border-[#D3C9BE]'
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <Clock className={`w-4 h-4 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
+                            <Clock className={`w-4 h-4 ${isSelected ? 'text-[#8C6D53]' : 'text-[#7A736E]'}`} />
                             <span className="text-xs font-bold font-mono">
                               {start.dateStr} {start.timeStr} - {end.timeStr}
                             </span>
                           </div>
-                          <span className="text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800 font-semibold">
+                          <span className="text-[10px] text-[#3D5240] bg-[#E3E8E1] px-2.5 py-0.5 rounded-full font-bold border border-[#C5D2C2]">
                             可預約 (Available)
                           </span>
                         </div>
@@ -254,13 +254,13 @@ export default function StudentSchedulePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">調課原因 (選填)</label>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">調課原因 (選填)</label>
                 <textarea
                   rows={2}
                   value={rescheduleReason}
                   onChange={(e) => setRescheduleReason(e.target.value)}
                   placeholder="例如：學校段考時間調整..."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3.5 py-2 text-xs text-[#332C27] focus:outline-none focus:border-[#E88D67]"
                 />
               </div>
 
@@ -268,14 +268,14 @@ export default function StudentSchedulePage() {
                 <button
                   type="button"
                   onClick={() => setRescheduleAppointmentId(null)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-slate-200"
+                  className="px-4 py-2 rounded-full text-xs font-bold text-[#7A736E] hover:text-[#332C27]"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
                   disabled={!selectedSlotId || availableSlots.length === 0}
-                  className="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-full bg-[#E88D67] hover:bg-[#D67A53] text-white font-bold text-xs shadow-md shadow-[#E88D67]/20 disabled:opacity-50"
                 >
                   送出調課申請
                 </button>
