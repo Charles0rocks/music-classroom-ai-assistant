@@ -311,23 +311,28 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (isClashing) {
       return { success: false, message: '該時段已被其他學生預約，衝突保護觸發！' };
+      return { success: false, message: '該開放時段已不可預約或不存在。' };
     }
 
-    const newReq: RescheduleRequest = {
-      id: `req-${Date.now()}`,
-      appointment_id: appointmentId,
-      requested_slot_id: slotId,
-      status: 'pending',
-      reason: reason || '學業安排調整申請調課',
-      created_at: new Date().toISOString(),
-    };
+    const targetApp = appointments.find((a) => a.id === appointmentId);
+    if (!targetApp) {
+      return { success: false, message: '找不到欲調課的舊課程。' };
+    }
 
-    setRescheduleRequests((prev) => [...prev, newReq]);
+    // 24-hour restriction check
+    const now = new Date().getTime();
+    const oldStartTime = new Date(targetApp.start_time).getTime();
+    const diffHours = (oldStartTime - now) / (1000 * 60 * 60);
+    if (diffHours < 24) {
+      return { success: false, message: '上課前 24 小時內不接受線上調課，請直接聯繫老師！' };
+    }
 
+    // 1. Mark target slot as no longer available
     setScheduleSlots((prev) =>
       prev.map((s) => (s.id === slotId ? { ...s, is_available: false } : s))
     );
 
+    // 2. Update appointment to target slot time & set status to rescheduled
     setAppointments((prev) =>
       prev.map((app) =>
         app.id === appointmentId
@@ -341,7 +346,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       )
     );
 
-    return { success: true, message: '調課申請成功！已自動重整課表並更新您的上課時段。' };
+    return { success: true, message: '調課成功！舊課程已成功移至新時段，全站與老師端課表已即時同步連動。' };
   };
 
   const addLessonRecord = (recordData: Omit<LessonRecord, 'id' | 'created_at'>) => {

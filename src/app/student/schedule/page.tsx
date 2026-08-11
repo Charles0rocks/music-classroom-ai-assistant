@@ -18,8 +18,9 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
+  Info,
 } from 'lucide-react';
-import { AvailableSlotResponse } from '@/types';
+import { ScheduleSlot, Appointment } from '@/types';
 
 const DAYS = [
   { key: 1, label: '週一', short: 'Mon' },
@@ -41,10 +42,10 @@ export default function StudentSchedulePage() {
   const { appointments, studentProfile, teacherProfile, scheduleSlots, requestReschedule } = useDemoContext();
 
   const [weekOffset, setWeekOffset] = useState<number>(0);
-  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<AvailableSlotResponse[]>([]);
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-  const [selectedSlotId, setSelectedSlotId] = useState<string>('');
+  
+  // Interactive Modal State for clicking "張老師開放時段"
+  const [selectedTargetSlot, setSelectedTargetSlot] = useState<ScheduleSlot | null>(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>('');
   const [rescheduleReason, setRescheduleReason] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<{ success: boolean; text: string } | null>(null);
 
@@ -101,39 +102,40 @@ export default function StudentSchedulePage() {
     return `${s} - ${e}`;
   };
 
-  const handleOpenRescheduleModal = async (appointmentId: string) => {
-    setRescheduleAppointmentId(appointmentId);
-    setIsLoadingSlots(true);
-    setFeedbackMsg(null);
+  const formatFullDateStr = (isoString: string) => {
+    const d = new Date(isoString);
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const date = String(d.getDate()).padStart(2, '0');
+    const dayName = DAYS.find((item) => item.key === d.getDay())?.label || '';
+    return `${m}/${date} ${dayName}`;
+  };
 
-    try {
-      const res = await fetch(
-        `/api/schedule/available-slots?teacherId=${teacherProfile.id}&studentId=${studentProfile.id}`
-      );
-      const data = await res.json();
-      if (data.available_slots) {
-        setAvailableSlots(data.available_slots);
-        if (data.available_slots.length > 0) {
-          setSelectedSlotId(data.available_slots[0].slot_id);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoadingSlots(false);
+  // Check 24-hour advance restriction rule
+  const isWithin24Hours = (startTimeIso: string) => {
+    const now = new Date().getTime();
+    const lessonTime = new Date(startTimeIso).getTime();
+    const diffHours = (lessonTime - now) / (1000 * 60 * 60);
+    return diffHours < 24;
+  };
+
+  const handleOpenSlotClick = (slot: ScheduleSlot) => {
+    setSelectedTargetSlot(slot);
+    setFeedbackMsg(null);
+    if (myAppointments.length > 0) {
+      setSelectedAppointmentId(myAppointments[0].id);
     }
   };
 
   const handleSubmitReschedule = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rescheduleAppointmentId || !selectedSlotId) return;
+    if (!selectedTargetSlot || !selectedAppointmentId) return;
 
-    const result = requestReschedule(rescheduleAppointmentId, selectedSlotId, rescheduleReason);
+    const result = requestReschedule(selectedAppointmentId, selectedTargetSlot.id, rescheduleReason);
     setFeedbackMsg({ success: result.success, text: result.message });
 
     if (result.success) {
       setTimeout(() => {
-        setRescheduleAppointmentId(null);
+        setSelectedTargetSlot(null);
         setFeedbackMsg(null);
       }, 2000);
     }
@@ -149,7 +151,7 @@ export default function StudentSchedulePage() {
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表矩陣與智慧調課 (7x3 Grid)</h1>
         <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-          一週 (週一～週日) × 3大時段 放大矩陣課表 · 學生天藍色確認預約與粉綠開放時段 (完整時間全顯)
+          點擊「張老師開放時段」即可直接調課 · 預防上課前 24 小時急迫調課保護
         </p>
       </div>
 
@@ -201,14 +203,14 @@ export default function StudentSchedulePage() {
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>小明同學 7x3 上課週課表矩陣</span>
-            <span className="text-xs text-[#7A736E] font-normal">（天藍色: 我的確定課程 · 粉綠色: 老師開放時段）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（天藍色: 我的課程 · 清新粉綠: 張老師開放時段）</span>
           </h2>
           <div className="flex items-center gap-4 text-xs font-bold">
             <span className="flex items-center gap-1.5 text-[#1565C0]">
               <span className="w-3 h-3 rounded-full bg-[#E3F2FD] border border-[#BBDEFB]" /> 我的課程 (海洋天藍)
             </span>
             <span className="flex items-center gap-1.5 text-[#2E7D32]">
-              <span className="w-3 h-3 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]" /> 開放時段 (清新粉綠)
+              <span className="w-3 h-3 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]" /> 張老師開放時段 (清新粉綠)
             </span>
           </div>
         </div>
@@ -270,34 +272,42 @@ export default function StudentSchedulePage() {
                       className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#E88D67]/40 transition-all"
                     >
                       <div className="space-y-2">
-                        {/* Confirmed Student Appointments (Ocean Light Blue Cards - 小明天藍色, 2-line layout) */}
-                        {cellAppointments.map((app) => (
-                          <div
-                            key={app.id}
-                            className="p-2.5 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] text-[#1565C0] flex flex-col gap-1 shadow-xs"
-                          >
-                            <div className="flex items-center justify-between text-xs font-black">
-                              <span>我的課程</span>
-                            </div>
-                            <div className="font-mono text-[11px] font-bold tracking-tight">
-                              {formatTimeRange(app.start_time, app.end_time)}
-                            </div>
-                            <button
-                              onClick={() => handleOpenRescheduleModal(app.id)}
-                              className="w-full mt-0.5 py-1 rounded-lg bg-[#1565C0] hover:bg-[#0D47A1] text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
+                        {/* Confirmed Student Appointments (Ocean Light Blue Cards) */}
+                        {cellAppointments.map((app) => {
+                          const locked24h = isWithin24Hours(app.start_time);
+                          return (
+                            <div
+                              key={app.id}
+                              className="p-2.5 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] text-[#1565C0] flex flex-col gap-1 shadow-xs"
                             >
-                              <ArrowRightLeft className="w-3 h-3" /> 申請調課
-                            </button>
-                          </div>
-                        ))}
+                              <div className="flex items-center justify-between text-xs font-black">
+                                <span>{app.status === 'rescheduled' ? '我的課程 (調課)' : '我的課程'}</span>
+                              </div>
+                              <div className="font-mono text-[11px] font-bold tracking-tight">
+                                {formatTimeRange(app.start_time, app.end_time)}
+                              </div>
 
-                        {/* Teacher's Open Slots (Pastel Mint Green Cards - 粉綠色, 2-line layout) */}
+                              {locked24h ? (
+                                <div className="mt-1 text-[10px] text-[#B85536] bg-[#FCEADE] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-[#F6D0B8]">
+                                  <Lock className="w-3 h-3 shrink-0" /> 24h內不可線上調課
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+
+                        {/* Teacher's Open Slots ("張老師開放時段" - Clickable to open Reschedule Modal) */}
                         {cellAvailableSlots.map((slot) => (
                           <div
                             key={slot.id}
-                            className="p-2.5 rounded-xl bg-[#E8F5E9] border border-[#C8E6C9] text-[#2E7D32] flex flex-col gap-0.5 shadow-xs"
+                            onClick={() => handleOpenSlotClick(slot)}
+                            className="p-2.5 rounded-xl cursor-pointer bg-[#E8F5E9] border border-[#C8E6C9] text-[#2E7D32] hover:bg-[#C8E6C9] flex flex-col gap-0.5 shadow-xs transition-all"
+                            title="點擊預約/將課程調整至此時段"
                           >
-                            <div className="font-black text-xs">開放時段</div>
+                            <div className="font-black text-xs flex items-center justify-between">
+                              <span>張老師開放時段</span>
+                              <Sparkles className="w-3 h-3 text-[#2E7D32]" />
+                            </div>
                             <div className="font-mono text-[11px] font-bold tracking-tight">
                               {formatTimeRange(slot.start_time, slot.end_time)}
                             </div>
@@ -313,26 +323,33 @@ export default function StudentSchedulePage() {
         </div>
       </div>
 
-      {/* Reschedule Modal */}
-      {rescheduleAppointmentId && (
+      {/* Interactive Reschedule Modal when clicking "張老師開放時段" */}
+      {selectedTargetSlot && (
         <div className="fixed inset-0 z-50 bg-[#332C27]/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg p-6 sm:p-8 rounded-3xl border border-[#EFECE6] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white w-full max-w-md p-6 sm:p-8 rounded-3xl border border-[#EFECE6] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#E88D67]" />
-                <h3 className="font-bold text-lg text-[#332C27]">智慧調課申請 (Smart Reschedule)</h3>
+                <h3 className="font-bold text-lg text-[#332C27]">將課程調整至「張老師開放時段」</h3>
               </div>
               <button
-                onClick={() => setRescheduleAppointmentId(null)}
+                onClick={() => setSelectedTargetSlot(null)}
                 className="text-[#7A736E] hover:text-[#332C27]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#E3E8E1]/60 border border-[#C5D2C2] flex items-center gap-2.5 text-xs text-[#3D5240] font-bold">
-              <ShieldCheck className="w-5 h-5 text-[#3D5240] shrink-0" />
-              <span>隱私保護已啟用：僅呈現張老師開放且無衝突之空檔，保護他人隱私。</span>
+            <div className="p-3.5 rounded-2xl bg-[#E8F5E9] border border-[#C8E6C9] text-xs text-[#2E7D32] font-bold flex items-center justify-between">
+              <span>目標時段：</span>
+              <span className="font-mono font-black text-sm">
+                {formatFullDateStr(selectedTargetSlot.start_time)} {formatTimeRange(selectedTargetSlot.start_time, selectedTargetSlot.end_time)}
+              </span>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center gap-2 text-xs text-[#7A736E] font-medium">
+              <Info className="w-4 h-4 text-[#E88D67] shrink-0" />
+              <span>規則提醒：上課前 24 小時內之舊課程不受理線上調課。</span>
             </div>
 
             {feedbackMsg && (
@@ -351,41 +368,51 @@ export default function StudentSchedulePage() {
             <form onSubmit={handleSubmitReschedule} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#332C27] mb-2">
-                  選擇目標開放空檔 (`schedule_slots`)
+                  請問您想將哪一天的舊課程調整至此時段？
                 </label>
 
-                {isLoadingSlots ? (
-                  <div className="py-8 text-center text-xs text-[#7A736E] font-medium animate-pulse">
-                    正在演算法比對無衝突時段...
-                  </div>
-                ) : availableSlots.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-[#B85536] bg-[#FCEADE] rounded-2xl border border-[#F6D0B8] font-bold">
-                    目前老師暫無可供調課的開放空檔，請聯絡老師新增開放時間。
+                {myAppointments.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-[#7A736E] bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] font-bold">
+                    您目前沒有已排定的舊課程可供調課。
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    {availableSlots.map((slot) => {
-                      const start = formatTimeRange(slot.start_time, slot.end_time);
-                      const isSelected = selectedSlotId === slot.slot_id;
+                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                    {myAppointments.map((app) => {
+                      const timeStr = `${formatFullDateStr(app.start_time)} ${formatTimeRange(app.start_time, app.end_time)}`;
+                      const isLocked = isWithin24Hours(app.start_time);
+                      const isSelected = selectedAppointmentId === app.id;
+
                       return (
                         <div
-                          key={slot.slot_id}
-                          onClick={() => setSelectedSlotId(slot.slot_id)}
-                          className={`p-3.5 rounded-2xl cursor-pointer transition-all border flex items-center justify-between ${
-                            isSelected
-                              ? 'bg-[#E8F5E9] border-[#C8E6C9] text-[#2E7D32] shadow-sm font-bold'
-                              : 'bg-[#FAF7F2] border-[#EFECE6] text-[#7A736E] hover:border-[#D3C9BE]'
+                          key={app.id}
+                          onClick={() => {
+                            if (!isLocked) setSelectedAppointmentId(app.id);
+                          }}
+                          className={`p-3.5 rounded-2xl border transition-all flex flex-col gap-1 ${
+                            isLocked
+                              ? 'bg-[#FAF7F2] border-[#EFECE6] opacity-60 cursor-not-allowed'
+                              : isSelected
+                              ? 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] cursor-pointer font-bold shadow-xs'
+                              : 'bg-white border-[#EFECE6] text-[#332C27] cursor-pointer hover:border-[#BBDEFB]'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5">
-                            <Clock className={`w-4 h-4 ${isSelected ? 'text-[#2E7D32]' : 'text-[#7A736E]'}`} />
-                            <span className="text-xs font-bold font-mono">
-                              {start}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-extrabold">
+                              我的課程 {app.status === 'rescheduled' ? '(先前已調課)' : ''}
                             </span>
+                            {isLocked ? (
+                              <span className="text-[10px] text-[#B85536] bg-[#FCEADE] px-2 py-0.5 rounded-full font-bold border border-[#F6D0B8] flex items-center gap-1">
+                                <Lock className="w-3 h-3" /> 24h內不可線上調課
+                              </span>
+                            ) : isSelected ? (
+                              <span className="text-[10px] text-[#1565C0] bg-[#E3F2FD] px-2 py-0.5 rounded-full font-bold border border-[#BBDEFB]">
+                                已選擇此課程調課
+                              </span>
+                            ) : null}
                           </div>
-                          <span className="text-[10px] text-[#2E7D32] bg-[#E8F5E9] px-2.5 py-0.5 rounded-full font-bold border border-[#C8E6C9]">
-                            可預約 (Available)
-                          </span>
+                          <div className="font-mono text-xs font-bold text-[#7A736E]">
+                            {timeStr}
+                          </div>
                         </div>
                       );
                     })}
@@ -399,7 +426,7 @@ export default function StudentSchedulePage() {
                   rows={2}
                   value={rescheduleReason}
                   onChange={(e) => setRescheduleReason(e.target.value)}
-                  placeholder="例如：學校段考時間調整..."
+                  placeholder="例如：時間調整申請..."
                   className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3.5 py-2 text-xs text-[#332C27] focus:outline-none focus:border-[#E88D67]"
                 />
               </div>
@@ -407,17 +434,17 @@ export default function StudentSchedulePage() {
               <div className="pt-2 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setRescheduleAppointmentId(null)}
+                  onClick={() => setSelectedTargetSlot(null)}
                   className="px-4 py-2 rounded-full text-xs font-bold text-[#7A736E] hover:text-[#332C27]"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  disabled={!selectedSlotId || availableSlots.length === 0}
+                  disabled={!selectedAppointmentId || myAppointments.length === 0}
                   className="px-5 py-2.5 rounded-full bg-[#E88D67] hover:bg-[#D67A53] text-white font-bold text-xs shadow-md shadow-[#E88D67]/20 disabled:opacity-50"
                 >
-                  送出調課申請
+                  確認調課至此時段
                 </button>
               </div>
             </form>

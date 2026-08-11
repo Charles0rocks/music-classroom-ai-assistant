@@ -599,13 +599,14 @@ export default function TeacherSchedulePage() {
                         {/* Student Appointment Cards (Stacked 2-line layout, FULL Student Name & FULL Time Range) */}
                         {dayApps.map((app) => {
                           const cardStyle = getStudentCardStyle(app.student_name || '');
+                          const titleText = app.status === 'rescheduled' ? `${app.student_name || '學生'} (調課)` : (app.student_name || '學生');
                           return (
                             <div
                               key={app.id}
                               className={`p-2.5 rounded-xl border flex flex-col gap-0.5 ${cardStyle}`}
                             >
                               <div className="font-black text-xs leading-snug">
-                                {app.student_name || '學生'}
+                                {titleText}
                               </div>
                               <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold">
                                 {formatTimeRange(app.start_time, app.end_time)}
