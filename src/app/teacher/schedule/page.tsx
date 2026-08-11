@@ -42,8 +42,11 @@ const TIME_BLOCKS = [
 
 type ScheduleMode = 'recurring' | 'openSlot';
 
-// Unique Color Assignment Per Student (No bullet points)
+// Unique Color Assignment Per Student (Deep Green for Confirmed Booking)
 const getStudentCardStyle = (studentName: string, status: string) => {
+  if (status === 'confirmed' || status === 'rescheduled') {
+    return 'bg-[#2E7D32] border-[#1B5E20] text-white shadow-xs font-extrabold'; // Deep Green for Confirmed Booking
+  }
   if (studentName.includes('小明')) {
     return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs'; // Ocean Light Blue
   } else if (studentName.includes('小華')) {

@@ -270,11 +270,11 @@ export default function StudentSchedulePage() {
                       className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#E88D67]/40 transition-all"
                     >
                       <div className="space-y-2">
-                        {/* Confirmed Student Appointments (Ocean Light Blue Cards, No Bulletpoint) */}
+                        {/* Confirmed Student Appointments (Deep Green Cards for Confirmed Booking) */}
                         {cellAppointments.map((app) => (
                           <div
                             key={app.id}
-                            className="p-2 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] text-[#1565C0] space-y-1 shadow-xs font-bold"
+                            className="p-2 rounded-xl bg-[#2E7D32] text-white border border-[#1B5E20] space-y-1 shadow-xs font-bold"
                           >
                             <div className="flex items-center justify-between text-xs font-extrabold">
                               <span>我的確定課程</span>
@@ -284,7 +284,7 @@ export default function StudentSchedulePage() {
                             </div>
                             <button
                               onClick={() => handleOpenRescheduleModal(app.id)}
-                              className="w-full py-1 rounded-lg bg-[#1565C0] hover:bg-[#0D47A1] text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
+                              className="w-full py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs transition-all"
                             >
                               <ArrowRightLeft className="w-3 h-3" /> 申請調課
                             </button>
