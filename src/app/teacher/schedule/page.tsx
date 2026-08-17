@@ -23,6 +23,9 @@ import {
   Layers,
   BookOpen,
   ArrowRightLeft,
+  Trash2,
+  GripVertical,
+  Move,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 
@@ -44,19 +47,29 @@ const TIME_BLOCKS = [
 
 type ScheduleMode = 'recurring' | 'openSlot' | 'reschedule';
 
+interface RecurringScheduleLog {
+  id: string;
+  studentName: string;
+  dayKey: number;
+  monthDay: string;
+  dayLabel: string;
+  blockKey: string;
+  startTime: string;
+  endTime: string;
+}
+
 // Student Color Mapping Rules:
-// 🎓 小明 (Ming)：海洋天藍色 (bg-[#E3F2FD] text-[#1565C0])
-// 🎓 小華 (Hua)：優雅靛紫色 (bg-[#EDE7F6] text-[#4527A0])
-// 🎓 小美 (Mei)：柔粉紅色 (bg-[#FCE4EC] text-[#C2185B])
 const getStudentCardStyle = (studentName: string) => {
   if (studentName.includes('小明')) {
-    return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs'; // Ocean Light Blue
+    return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs';
   } else if (studentName.includes('小華')) {
-    return 'bg-[#EDE7F6] border-[#D1C4E9] text-[#4527A0] shadow-xs'; // Elegant Indigo/Purple
+    return 'bg-[#EDE7F6] border-[#D1C4E9] text-[#4527A0] shadow-xs';
   } else if (studentName.includes('小美')) {
-    return 'bg-[#FCE4EC] border-[#F8BBD0] text-[#C2185B] shadow-xs'; // Soft Pink
+    return 'bg-[#FCE4EC] border-[#F8BBD0] text-[#C2185B] shadow-xs';
+  } else if (studentName.includes('小王')) {
+    return 'bg-[#FFF3E0] border-[#FFE0B2] text-[#E65100] shadow-xs';
   } else {
-    return 'bg-[#E8EAF6] border-[#C5CAE9] text-[#283593] shadow-xs'; // Classic Powder Blue
+    return 'bg-[#E8EAF6] border-[#C5CAE9] text-[#283593] shadow-xs';
   }
 };
 
@@ -65,6 +78,7 @@ export default function TeacherSchedulePage() {
   const {
     currentRole,
     scheduleSlots,
+    setScheduleSlots,
     toggleSlotAvailability,
     addScheduleSlot,
     appointments,
@@ -82,12 +96,36 @@ export default function TeacherSchedulePage() {
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>('recurring');
 
-  // Form State for Mode 1: 1. 常態課表
+  // Form State for Mode 1: 1. 常態課表 (Supports Custom Typing!)
   const [recurringStudent, setRecurringStudent] = useState('小明');
   const [recurringDayKey, setRecurringDayKey] = useState<number>(3);
   const [recurringBlockKey, setRecurringBlockKey] = useState<string>('morning');
   const [recurringStartTime, setRecurringStartTime] = useState('10:00');
   const [recurringEndTime, setRecurringEndTime] = useState('11:00');
+
+  // Persistent Log Array for Registered Recurring Schedules in "課表設定" Panel
+  const [recurringLogs, setRecurringLogs] = useState<RecurringScheduleLog[]>([
+    {
+      id: 'rec-log-1',
+      studentName: '小明',
+      dayKey: 3,
+      monthDay: '08/19',
+      dayLabel: '週三',
+      blockKey: 'morning',
+      startTime: '10:00',
+      endTime: '11:00',
+    },
+    {
+      id: 'rec-log-2',
+      studentName: '小華',
+      dayKey: 4,
+      monthDay: '08/20',
+      dayLabel: '週四',
+      blockKey: 'afternoon',
+      startTime: '15:00',
+      endTime: '16:00',
+    },
+  ]);
 
   // Form State for Mode 2: 2. 開放時段
   const [openDayKey, setOpenDayKey] = useState<number>(4);
@@ -103,6 +141,14 @@ export default function TeacherSchedulePage() {
   const [rescheduleEndTime, setRescheduleEndTime] = useState('11:00');
 
   const [settingNotice, setSettingNotice] = useState<string | null>(null);
+
+  // HTML5 Drag and Drop State
+  const [draggedCard, setDraggedCard] = useState<{ type: 'appointment' | 'slot'; id: string } | null>(null);
+
+  // Quick Move Card Modal State (Touchscreen Support)
+  const [moveCardItem, setMoveCardItem] = useState<{ type: 'appointment' | 'slot'; id: string; name: string } | null>(null);
+  const [moveTargetDayKey, setMoveTargetDayKey] = useState<number>(4);
+  const [moveTargetBlockKey, setMoveTargetBlockKey] = useState<string>('afternoon');
 
   // Modal State for Single Quick Add
   const [selectedDayKey, setSelectedDayKey] = useState<number>(3);
@@ -147,7 +193,7 @@ export default function TeacherSchedulePage() {
   const { weekDates, yearBanner } = getWeekDates(weekOffset);
 
   if (currentRole === 'student') {
-    return null; // Return null while redirecting
+    return null;
   }
 
   const getSlotDayOfWeek = (isoString: string) => new Date(isoString).getDay();
@@ -192,14 +238,39 @@ export default function TeacherSchedulePage() {
     e.preventDefault();
 
     if (scheduleMode === 'recurring') {
+      const studentNameInput = recurringStudent.trim() || '學生';
       const targetDayObj = weekDates.find((w) => w.key === recurringDayKey);
       const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
 
       const startIso = new Date(`${datePrefix}T${recurringStartTime}`).toISOString();
       const endIso = new Date(`${datePrefix}T${recurringEndTime}`).toISOString();
 
-      addScheduleSlot(startIso, endIso);
-      setSettingNotice(`已成功新增「1. 常態課表」：${recurringStudent} · ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
+      // Add to Appointments list
+      const newApp: Appointment = {
+        id: `app-custom-${Date.now()}`,
+        student_id: `s-custom-${Date.now()}`,
+        student_name: studentNameInput,
+        teacher_id: teacherProfile.id,
+        start_time: startIso,
+        end_time: endIso,
+        status: 'confirmed',
+      };
+      setAppointments((prev) => [...prev, newApp]);
+
+      // Record in "課表設定" Panel Logs
+      const newLog: RecurringScheduleLog = {
+        id: `rec-${Date.now()}`,
+        studentName: studentNameInput,
+        dayKey: recurringDayKey,
+        monthDay: targetDayObj?.monthDay || '',
+        dayLabel: targetDayObj?.dayLabel || '',
+        blockKey: recurringBlockKey,
+        startTime: recurringStartTime,
+        endTime: recurringEndTime,
+      };
+      setRecurringLogs((prev) => [newLog, ...prev]);
+
+      setSettingNotice(`已成功新增並記錄常態課表：【${studentNameInput}】· ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
     } else if (scheduleMode === 'openSlot') {
       const targetDayObj = weekDates.find((w) => w.key === openDayKey);
       const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
@@ -241,6 +312,73 @@ export default function TeacherSchedulePage() {
     }, 4000);
   };
 
+  const handleRemoveRecurringLog = (logId: string) => {
+    setRecurringLogs((prev) => prev.filter((l) => l.id !== logId));
+  };
+
+  // Drag and Drop Logic Execution (Move Card to Target Cell)
+  const handleDropOnCell = (dayKey: number, blockKey: string) => {
+    if (!draggedCard) return;
+
+    const targetDayObj = weekDates.find((w) => w.key === dayKey);
+    const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
+
+    let defaultStartTime = '10:00';
+    let defaultEndTime = '11:00';
+
+    if (blockKey === 'afternoon') {
+      defaultStartTime = '14:00';
+      defaultEndTime = '15:00';
+    } else if (blockKey === 'evening') {
+      defaultStartTime = '19:00';
+      defaultEndTime = '20:00';
+    }
+
+    const newStartIso = new Date(`${datePrefix}T${defaultStartTime}`).toISOString();
+    const newEndIso = new Date(`${datePrefix}T${defaultEndTime}`).toISOString();
+
+    if (draggedCard.type === 'appointment') {
+      const targetApp = appointments.find((a) => a.id === draggedCard.id);
+      setAppointments((prev) =>
+        prev.map((app) =>
+          app.id === draggedCard.id
+            ? {
+                ...app,
+                start_time: newStartIso,
+                end_time: newEndIso,
+                status: 'rescheduled',
+              }
+            : app
+        )
+      );
+      setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳移動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
+    } else if (draggedCard.type === 'slot') {
+      setScheduleSlots((prev) =>
+        prev.map((slot) =>
+          slot.id === draggedCard.id
+            ? {
+                ...slot,
+                start_time: newStartIso,
+                end_time: newEndIso,
+              }
+            : slot
+        )
+      );
+      setSettingNotice(`已成功將「開放時段」拖曳移動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
+    }
+
+    setDraggedCard(null);
+    setTimeout(() => setSettingNotice(null), 4000);
+  };
+
+  const handleConfirmMoveCardModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!moveCardItem) return;
+
+    handleDropOnCell(moveTargetDayKey, moveTargetBlockKey);
+    setMoveCardItem(null);
+  };
+
   const formatTimeRange = (startIso: string, endIso: string) => {
     const s = new Date(startIso).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
     const e = new Date(endIso).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -266,7 +404,7 @@ export default function TeacherSchedulePage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表與開放時段</h1>
           <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-            一週 (週一～週日) × 3大時段 矩陣視圖 · 開放日期月日星期幾呈現與課表即時連動
+            一週 (週一～週日) × 3大時段 矩陣視圖 · 支援自由輸入學生姓名紀錄與 HTML5 卡片拖曳移動
           </p>
         </div>
 
@@ -279,8 +417,8 @@ export default function TeacherSchedulePage() {
         </button>
       </div>
 
-      {/* TOP BLOCK: 課表設定 (1. 常態課表  2. 開放時段  3. 課程異動) */}
-      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-5 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
+      {/* TOP BLOCK: 課表設定 (1. 常態課表  2. 開放時段  3. 課程異動 & 已記錄常態課表區塊) */}
+      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-6 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EADFC9]/80 pb-4">
           <div className="flex items-center gap-2">
             <Sliders className="w-5 h-5 text-[#8C6D53]" />
@@ -344,22 +482,28 @@ export default function TeacherSchedulePage() {
 
         {/* Dynamic Form according to Mode */}
         {scheduleMode === 'recurring' ? (
-          /* Mode 1: 1. 常態課表 Form */
+          /* Mode 1: 1. 常態課表 Form (Supports Custom Typing & Selecting) */
           <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
             <div>
               <label className="block text-xs font-bold text-[#332C27] mb-1">
-                1. 學生對象
+                1. 學生姓名 (可自由輸入或點選)
               </label>
-              <select
+              <input
+                type="text"
+                required
+                list="student-suggestions"
                 value={recurringStudent}
                 onChange={(e) => setRecurringStudent(e.target.value)}
+                placeholder="請輸入或選擇學生姓名..."
                 className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-              >
-                <option value="小明">小明</option>
-                <option value="小華">小華</option>
-                <option value="小美">小美</option>
-                <option value="常態班學生">常態班學生</option>
-              </select>
+              />
+              <datalist id="student-suggestions">
+                <option value="小明" />
+                <option value="小華" />
+                <option value="小美" />
+                <option value="小王" />
+                <option value="常態班學生" />
+              </datalist>
             </div>
 
             <div>
@@ -527,7 +671,7 @@ export default function TeacherSchedulePage() {
             </div>
           </form>
         ) : (
-          /* Mode 3: 3. 課程異動 Form (Teacher Direct Reschedule Form) */
+          /* Mode 3: 3. 課程異動 Form */
           <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
             <div>
               <label className="block text-xs font-bold text-[#1565C0] mb-1">
@@ -623,6 +767,48 @@ export default function TeacherSchedulePage() {
             </div>
           </form>
         )}
+
+        {/* Dedicated Registered Recurring Schedules Log Panel Inside "課表設定" Section */}
+        <div className="pt-4 border-t border-[#EADFC9]/80 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-extrabold text-[#8C6D53] flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 text-[#8C6D53]" />
+              已記錄的常態課表 (Registered Recurring Schedules)
+            </span>
+            <span className="text-[11px] text-[#7A736E] font-bold">
+              共 {recurringLogs.length} 筆常態紀錄
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {recurringLogs.map((log) => {
+              const cardStyle = getStudentCardStyle(log.studentName);
+              return (
+                <div
+                  key={log.id}
+                  className={`p-3 rounded-2xl border flex items-center justify-between gap-2 shadow-xs ${cardStyle}`}
+                >
+                  <div className="space-y-0.5">
+                    <div className="font-extrabold text-xs">
+                      {log.studentName} (常態課)
+                    </div>
+                    <div className="font-mono text-[11px] opacity-90">
+                      {log.monthDay} {log.dayLabel} · {log.startTime}-{log.endTime}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRecurringLog(log.id)}
+                    className="p-1.5 rounded-xl hover:bg-black/10 text-current opacity-70 hover:opacity-100 transition-all"
+                    title="刪除此筆常態課表紀錄"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Global Year & Week Navigation Header Bar */}
@@ -668,12 +854,12 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED 7x3 Grid Schedule Matrix Table (Full Text Visibility, No Truncation) */}
+      {/* ENLARGED 7x3 Grid Schedule Matrix Table with HTML5 Drag & Drop Support */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
             <span>張老師 7x3 課表總覽</span>
-            <span className="text-xs text-[#7A736E] font-normal">（學生姓名與上下課時間100%完全顯示 · 課表設定實時連動）</span>
+            <span className="text-xs text-[#7A736E] font-normal">（可拖曳或按移動鍵切換卡片至任一天的格子內）</span>
           </h2>
           <div className="flex items-center gap-3 text-xs font-bold">
             <span className="flex items-center gap-1 text-[#2E7D32]">
@@ -693,7 +879,7 @@ export default function TeacherSchedulePage() {
 
         {/* 7x3 Responsive Enlarged Grid System (Min Width 1150px) */}
         <div className="min-w-[1150px]">
-          {/* Header Row: Month/Day on Top, Day-of-Week Underneath with Today Highlight */}
+          {/* Header Row */}
           <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
             <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
               時段 / 日期
@@ -715,11 +901,9 @@ export default function TeacherSchedulePage() {
                       ★ 今天
                     </span>
                   )}
-                  {/* Top Line: Month/Day */}
                   <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
                     {d.monthDay}
                   </div>
-                  {/* Bottom Line: Day of Week */}
                   <div className="font-extrabold text-xs text-[#332C27]">
                     {d.dayLabel} ({d.short})
                   </div>
@@ -740,16 +924,14 @@ export default function TeacherSchedulePage() {
                   <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
                 </div>
 
-                {/* 7 Day Cells for this block (Min Height 140px) */}
+                {/* 7 Day Cells with Drop Handler */}
                 {weekDates.map((d) => {
-                  // Booked Appointments
                   const dayApps = appointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
                     return appDay === d.key && isTimeInBlock(appHour, block.key);
                   });
 
-                  // Available Open Slots
                   const daySlots = scheduleSlots.filter((slot) => {
                     if (!slot.is_available) return false;
                     const slotDay = getSlotDayOfWeek(slot.start_time);
@@ -760,37 +942,71 @@ export default function TeacherSchedulePage() {
                   return (
                     <div
                       key={d.key}
-                      className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#D3C9BE] transition-all"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => handleDropOnCell(d.key, block.key)}
+                      className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#8C6D53]/60 transition-all group"
                     >
                       <div className="space-y-2">
-                        {/* Student Appointment Cards (Stacked 2-line layout, FULL Student Name & FULL Time Range) */}
+                        {/* Draggable Student Appointment Cards */}
                         {dayApps.map((app) => {
                           const cardStyle = getStudentCardStyle(app.student_name || '');
                           const titleText = app.status === 'rescheduled' ? `${app.student_name || '學生'} (異動)` : (app.student_name || '學生');
                           return (
                             <div
                               key={app.id}
-                              className={`p-2.5 rounded-xl border flex flex-col gap-0.5 ${cardStyle}`}
+                              draggable
+                              onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
+                              className={`p-2.5 rounded-xl border flex flex-col gap-1 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
                             >
-                              <div className="font-black text-xs leading-snug">
-                                {titleText}
+                              <div className="flex items-center justify-between">
+                                <div className="font-black text-xs leading-snug flex items-center gap-1">
+                                  <GripVertical className="w-3 h-3 opacity-60" />
+                                  {titleText}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMoveCardItem({ type: 'appointment', id: app.id, name: app.student_name || '學生' });
+                                  }}
+                                  className="p-1 rounded-md hover:bg-black/10 text-current text-[10px] font-bold flex items-center gap-0.5"
+                                  title="快捷移動時段"
+                                >
+                                  <Move className="w-3 h-3" /> 移動
+                                </button>
                               </div>
-                              <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold">
+                              <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4">
                                 {formatTimeRange(app.start_time, app.end_time)}
                               </div>
                             </div>
                           );
                         })}
 
-                        {/* Unbooked Open Slots (Pastel Mint Green, Stacked 2-line layout) */}
+                        {/* Draggable Unbooked Open Slots */}
                         {daySlots.map((slot) => (
                           <div
                             key={slot.id}
-                            onClick={() => toggleSlotAvailability(slot.id)}
-                            className="p-2.5 rounded-xl cursor-pointer flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-all"
+                            draggable
+                            onDragStart={() => setDraggedCard({ type: 'slot', id: slot.id })}
+                            className="p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:scale-[1.02] flex flex-col gap-1 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-transform"
                           >
-                            <div className="font-black text-xs leading-snug">開放時段</div>
-                            <div className="font-mono text-[11px] tracking-tight font-bold">
+                            <div className="flex items-center justify-between font-black text-xs leading-snug">
+                              <span className="flex items-center gap-1">
+                                <GripVertical className="w-3 h-3 opacity-60" /> 開放時段
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMoveCardItem({ type: 'slot', id: slot.id, name: '開放時段' });
+                                }}
+                                className="p-1 rounded-md hover:bg-black/10 text-current text-[10px] font-bold flex items-center gap-0.5"
+                                title="快捷移動開放時段"
+                              >
+                                <Move className="w-3 h-3" /> 移動
+                              </button>
+                            </div>
+                            <div className="font-mono text-[11px] tracking-tight font-bold pl-4">
                               {formatTimeRange(slot.start_time, slot.end_time)}
                             </div>
                           </div>
@@ -812,6 +1028,76 @@ export default function TeacherSchedulePage() {
           })}
         </div>
       </div>
+
+      {/* Quick Move Card Modal Window */}
+      {moveCardItem && (
+        <div className="fixed inset-0 z-50 bg-[#332C27]/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md p-6 sm:p-8 rounded-3xl border border-[#EFECE6] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
+              <h3 className="font-bold text-lg text-[#332C27] flex items-center gap-2">
+                <Move className="w-5 h-5 text-[#8C6D53]" />
+                移動時段窗格：{moveCardItem.name}
+              </h3>
+              <button
+                onClick={() => setMoveCardItem(null)}
+                className="text-[#7A736E] hover:text-[#332C27]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmMoveCardModal} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#332C27] mb-1">目標日期 (Date)</label>
+                  <select
+                    value={moveTargetDayKey}
+                    onChange={(e) => setMoveTargetDayKey(parseInt(e.target.value, 10))}
+                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                  >
+                    {weekDates.map((w) => (
+                      <option key={w.key} value={w.key}>
+                        {w.monthDay} ({w.dayLabel})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#332C27] mb-1">目標時段</label>
+                  <select
+                    value={moveTargetBlockKey}
+                    onChange={(e) => setMoveTargetBlockKey(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                  >
+                    {TIME_BLOCKS.map((b) => (
+                      <option key={b.key} value={b.key}>
+                        {b.label} ({b.sub})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMoveCardItem(null)}
+                  className="px-4 py-2 rounded-full text-xs font-bold text-[#7A736E] hover:text-[#332C27]"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs shadow-md shadow-[#8C6D53]/20"
+                >
+                  確認移動
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Single Add Slot Modal */}
       {showAddModal && (
