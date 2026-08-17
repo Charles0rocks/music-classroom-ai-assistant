@@ -996,11 +996,7 @@ export default function TeacherSchedulePage() {
                       key={d.key}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => handleDropOnCell(d.key, block.key)}
-                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all group z-10 ${
-                        isToday
-                          ? 'bg-[#FFFDF3]/90 border border-[#E88D67]/40 shadow-xs hover:border-[#E88D67]'
-                          : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#8C6D53]/60'
-                      }`}
+                      className="min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all group z-10 bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-xs"
                     >
                       <div className="space-y-2">
                         {/* Draggable Student Appointment Cards (Sorted Chronologically) */}
@@ -1051,11 +1047,7 @@ export default function TeacherSchedulePage() {
                       {/* Quick Add Button */}
                       <button
                         onClick={() => handleOpenAddModal(d.key, block.key)}
-                        className={`w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition-all ${
-                          isToday
-                            ? 'bg-[#FFE8A3] hover:bg-[#FDD980] border border-[#E88D67]/50 text-[#734A26]'
-                            : 'bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]'
-                        }`}
+                        className="w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition-all bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]"
                       >
                         <Plus className="w-3.5 h-3.5" /> 開設此時段
                       </button>

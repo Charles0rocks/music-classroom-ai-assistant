@@ -314,11 +314,7 @@ export default function StudentSchedulePage() {
                   return (
                     <div
                       key={d.key}
-                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all z-10 ${
-                        isToday
-                          ? 'bg-[#FFFDF3]/90 border border-[#E88D67]/40 shadow-xs hover:border-[#E88D67]'
-                          : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40'
-                      }`}
+                      className="min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all z-10 bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40 shadow-xs"
                     >
                       <div className="space-y-2">
                         {/* Confirmed Student Appointments (Ocean Light Blue Cards) */}
