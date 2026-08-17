@@ -914,18 +914,18 @@ export default function TeacherSchedulePage() {
         </div>
 
         {/* Outer Container with 100% Precise Math Overlay for Today */}
-        <div className="min-w-[1150px] relative space-y-3.5 pt-4 pb-1">
-          {/* Today's Single Big Orange Border Container Overlay (Enlarged & Semi-Transparent Beautified) */}
+        <div className="min-w-[1150px] relative space-y-3.5 pt-5 pb-1">
+          {/* Today's Single Big Orange Border Container Overlay (Transparent Fill, Crisp Orange Border) */}
           {todayColIdx !== -1 && (
             <div
-              className="absolute -top-3.5 -bottom-2.5 border-[3px] border-[#E88D67] bg-[#FFF3CD]/45 backdrop-blur-[2px] rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
+              className="absolute -top-3.5 -bottom-2.5 border-[3px] border-[#E88D67] bg-transparent rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
               style={{
                 left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
                 width: `calc((100% - 98px) / 8 + 16px)`,
               }}
             >
-              {/* Floating Badge Header on top of Orange Frame */}
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider">
+              {/* Floating Badge Header on top of Orange Frame (Enlarged by 50%) */}
+              <div className="absolute -top-4.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[15px] font-black px-4.5 py-1 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
                 ★ 今天 (TODAY)
               </div>
             </div>
