@@ -222,21 +222,34 @@ export default function StudentSchedulePage() {
             <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
               時段 / 日期
             </div>
-            {weekDates.map((d) => (
-              <div
-                key={d.key}
-                className="p-3.5 text-center bg-[#FCEADE]/40 rounded-2xl border border-[#F6D0B8] space-y-1 shadow-xs"
-              >
-                {/* Top Line: Month/Day */}
-                <div className="font-mono font-black text-base text-[#B85536] tracking-wide">
-                  {d.monthDay}
+            {weekDates.map((d) => {
+              const todayDateStr = new Date().toISOString().split('T')[0];
+              const isToday = d.fullDateStr === todayDateStr;
+              return (
+                <div
+                  key={d.key}
+                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 ${
+                    isToday
+                      ? 'bg-[#FFF9E6] border-2 border-[#E88D67]/70 shadow-md ring-2 ring-[#E88D67]/20 relative overflow-hidden'
+                      : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
+                  }`}
+                >
+                  {isToday && (
+                    <span className="text-[10px] bg-[#E88D67] text-white px-2 py-0.5 rounded-full font-bold inline-block mb-1 shadow-xs">
+                      ★ 今天
+                    </span>
+                  )}
+                  {/* Top Line: Month/Day */}
+                  <div className="font-mono font-black text-base text-[#B85536] tracking-wide">
+                    {d.monthDay}
+                  </div>
+                  {/* Bottom Line: Day of Week */}
+                  <div className="font-extrabold text-xs text-[#332C27]">
+                    {d.dayLabel} ({d.short})
+                  </div>
                 </div>
-                {/* Bottom Line: Day of Week */}
-                <div className="font-extrabold text-xs text-[#332C27]">
-                  {d.dayLabel} ({d.short})
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* 3 Time Block Rows */}

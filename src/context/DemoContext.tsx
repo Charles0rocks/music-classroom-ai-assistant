@@ -217,6 +217,7 @@ interface DemoContextType {
   studentProfile: Student;
   scheduleSlots: ScheduleSlot[];
   appointments: Appointment[];
+  setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;
   rescheduleRequests: RescheduleRequest[];
   lessonRecords: LessonRecord[];
   demoVideos: TeacherDemoVideo[];
@@ -385,6 +386,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         studentProfile: MOCK_STUDENT,
         scheduleSlots,
         appointments,
+        setAppointments,
         rescheduleRequests,
         lessonRecords,
         demoVideos,

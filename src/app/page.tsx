@@ -62,11 +62,7 @@ export default function RoleSelectorPage() {
     if (res.success) {
       setSuccessMsg(res.message);
       setTimeout(() => {
-        if (activeTab === 'student') {
-          router.push('/student/schedule');
-        } else {
-          router.push('/teacher/schedule');
-        }
+        router.push('/'); // Always land on P0 role homepage after login
       }, 600);
     } else {
       setErrorMsg(res.message);
@@ -304,57 +300,71 @@ export default function RoleSelectorPage() {
             </p>
 
             {currentRole === 'teacher' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
                 <Link
                   href="/teacher/schedule"
-                  className="p-4 rounded-2xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex items-center gap-3 font-bold text-xs text-[#332C27] shadow-sm transition-all"
+                  className="p-8 sm:p-10 rounded-3xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-base sm:text-lg text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
                 >
-                  <Calendar className="w-5 h-5 text-[#8C6D53]" />
-                  P1 7x3週課表矩陣
+                  <div className="w-16 h-16 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] flex items-center justify-center text-[#8C6D53] group-hover:scale-110 transition-transform">
+                    <Calendar className="w-9 h-9" />
+                  </div>
+                  <span>週課表與開放時段 (P1)</span>
                 </Link>
                 <Link
                   href="/teacher/recorder"
-                  className="p-4 rounded-2xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex items-center gap-3 font-bold text-xs text-[#332C27] shadow-sm transition-all"
+                  className="p-8 sm:p-10 rounded-3xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-base sm:text-lg text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
                 >
-                  <Mic className="w-5 h-5 text-[#8C6D53]" />
-                  P2 課堂錄音 AI 淨化
+                  <div className="w-16 h-16 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] flex items-center justify-center text-[#8C6D53] group-hover:scale-110 transition-transform">
+                    <Mic className="w-9 h-9" />
+                  </div>
+                  <span>課堂錄音 AI 淨化 (P2)</span>
                 </Link>
                 <Link
                   href="/teacher/demos"
-                  className="p-4 rounded-2xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex items-center gap-3 font-bold text-xs text-[#332C27] shadow-sm transition-all"
+                  className="p-8 sm:p-10 rounded-3xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-base sm:text-lg text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
                 >
-                  <Video className="w-5 h-5 text-[#8C6D53]" />
-                  P7 範例影片庫微調
+                  <div className="w-16 h-16 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] flex items-center justify-center text-[#8C6D53] group-hover:scale-110 transition-transform">
+                    <Video className="w-9 h-9" />
+                  </div>
+                  <span>範例影片庫微調 (P7)</span>
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-4">
                 <Link
                   href="/student/schedule"
-                  className="p-3.5 rounded-2xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center text-center font-bold text-xs text-[#332C27] shadow-sm transition-all space-y-1"
+                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
                 >
-                  <Calendar className="w-5 h-5 text-[#E88D67]" />
-                  <span>P3 7x3 智慧調課矩陣</span>
+                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
+                    <Calendar className="w-8 h-8" />
+                  </div>
+                  <span>個人課表 (P3)</span>
                 </Link>
                 <Link
                   href="/student/practice"
-                  className="p-3.5 rounded-2xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center text-center font-bold text-xs text-[#332C27] shadow-sm transition-all space-y-1"
+                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
                 >
-                  <BookOpen className="w-5 h-5 text-[#E88D67]" />
-                  <span>P4 作業學習中心</span>
+                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
+                    <BookOpen className="w-8 h-8" />
+                  </div>
+                  <span>作業學習中心 (P4)</span>
                 </Link>
                 <Link
                   href="/student/summary/lesson-1"
-                  className="p-3.5 rounded-2xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center text-center font-bold text-xs text-[#332C27] shadow-sm transition-all space-y-1"
+                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
                 >
-                  <Sparkles className="w-5 h-5 text-[#E88D67]" />
-                  <span>P5 AI紙質筆記</span>
+                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-8 h-8" />
+                  </div>
+                  <span>P5 AI筆記</span>
                 </Link>
                 <Link
                   href="/student/compare/practice-1"
-                  className="p-3.5 rounded-2xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center text-center font-bold text-xs text-[#332C27] shadow-sm transition-all space-y-1"
+                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
                 >
-                  <Video className="w-5 h-5 text-[#E88D67]" />
+                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
+                    <Video className="w-8 h-8" />
+                  </div>
                   <span>P6 雙圖比對</span>
                 </Link>
               </div>

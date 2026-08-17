@@ -22,6 +22,7 @@ import {
   Sliders,
   Layers,
   BookOpen,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 
@@ -41,7 +42,7 @@ const TIME_BLOCKS = [
   { key: 'evening', label: '晚間', sub: '19:00 - 22:00', icon: Moon, startHour: 19, endHour: 22 },
 ];
 
-type ScheduleMode = 'recurring' | 'openSlot';
+type ScheduleMode = 'recurring' | 'openSlot' | 'reschedule';
 
 // Student Color Mapping Rules:
 // 🎓 小明 (Ming)：海洋天藍色 (bg-[#E3F2FD] text-[#1565C0])
@@ -67,6 +68,7 @@ export default function TeacherSchedulePage() {
     toggleSlotAvailability,
     addScheduleSlot,
     appointments,
+    setAppointments,
     teacherProfile,
   } = useDemoContext();
 
@@ -92,6 +94,13 @@ export default function TeacherSchedulePage() {
   const [openBlockKey, setOpenBlockKey] = useState<string>('afternoon');
   const [openStartTime, setOpenStartTime] = useState('14:00');
   const [openEndTime, setOpenEndTime] = useState('15:00');
+
+  // Form State for Mode 3: 3. 課程異動
+  const [rescheduleAppId, setRescheduleAppId] = useState<string>(appointments[0]?.id || '');
+  const [rescheduleDayKey, setRescheduleDayKey] = useState<number>(4);
+  const [rescheduleBlockKey, setRescheduleBlockKey] = useState<string>('morning');
+  const [rescheduleStartTime, setRescheduleStartTime] = useState('10:00');
+  const [rescheduleEndTime, setRescheduleEndTime] = useState('11:00');
 
   const [settingNotice, setSettingNotice] = useState<string | null>(null);
 
@@ -191,7 +200,7 @@ export default function TeacherSchedulePage() {
 
       addScheduleSlot(startIso, endIso);
       setSettingNotice(`已成功新增「1. 常態課表」：${recurringStudent} · ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
-    } else {
+    } else if (scheduleMode === 'openSlot') {
       const targetDayObj = weekDates.find((w) => w.key === openDayKey);
       const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
 
@@ -200,6 +209,31 @@ export default function TeacherSchedulePage() {
 
       addScheduleSlot(startIso, endIso);
       setSettingNotice(`已成功新增「2. 開放時段」：${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${openStartTime}-${openEndTime}！`);
+    } else {
+      // Mode 3: 3. 課程異動
+      const targetApp = appointments.find((a) => a.id === rescheduleAppId);
+      if (!targetApp) return;
+
+      const targetDayObj = weekDates.find((w) => w.key === rescheduleDayKey);
+      const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
+
+      const newStartIso = new Date(`${datePrefix}T${rescheduleStartTime}`).toISOString();
+      const newEndIso = new Date(`${datePrefix}T${rescheduleEndTime}`).toISOString();
+
+      setAppointments((prev) =>
+        prev.map((app) =>
+          app.id === rescheduleAppId
+            ? {
+                ...app,
+                start_time: newStartIso,
+                end_time: newEndIso,
+                status: 'rescheduled',
+              }
+            : app
+        )
+      );
+
+      setSettingNotice(`已成功協助【${targetApp.student_name}】完成「3. 課程異動」，調整至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${rescheduleStartTime}-${rescheduleEndTime}！`);
     }
 
     setTimeout(() => {
@@ -211,6 +245,14 @@ export default function TeacherSchedulePage() {
     const s = new Date(startIso).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
     const e = new Date(endIso).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
     return `${s} - ${e}`;
+  };
+
+  const formatFullDateStr = (isoString: string) => {
+    const d = new Date(isoString);
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const date = String(d.getDate()).padStart(2, '0');
+    const dayName = DAYS.find((item) => item.key === d.getDay())?.label || '';
+    return `${m}/${date} ${dayName}`;
   };
 
   return (
@@ -237,7 +279,7 @@ export default function TeacherSchedulePage() {
         </button>
       </div>
 
-      {/* TOP BLOCK: 課表設定 (1. 常態課表  2. 開放時段) */}
+      {/* TOP BLOCK: 課表設定 (1. 常態課表  2. 開放時段  3. 課程異動) */}
       <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-5 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EADFC9]/80 pb-4">
           <div className="flex items-center gap-2">
@@ -248,11 +290,11 @@ export default function TeacherSchedulePage() {
           </div>
 
           {/* Mode Switcher Tabs */}
-          <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#EADFC9]">
+          <div className="flex flex-wrap items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#EADFC9]">
             <button
               type="button"
               onClick={() => setScheduleMode('recurring')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                 scheduleMode === 'recurring'
                   ? 'bg-[#8C6D53] text-white shadow-sm'
                   : 'text-[#7A736E] hover:text-[#332C27]'
@@ -265,7 +307,7 @@ export default function TeacherSchedulePage() {
             <button
               type="button"
               onClick={() => setScheduleMode('openSlot')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                 scheduleMode === 'openSlot'
                   ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] shadow-sm font-extrabold'
                   : 'text-[#7A736E] hover:text-[#332C27]'
@@ -273,6 +315,22 @@ export default function TeacherSchedulePage() {
             >
               <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
               2. 開放時段
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setScheduleMode('reschedule');
+                if (appointments.length > 0) setRescheduleAppId(appointments[0].id);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                scheduleMode === 'reschedule'
+                  ? 'bg-[#E3F2FD] text-[#1565C0] border border-[#BBDEFB] shadow-sm font-extrabold'
+                  : 'text-[#7A736E] hover:text-[#332C27]'
+              }`}
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5 text-[#1565C0]" />
+              3. 課程異動
             </button>
           </div>
         </div>
@@ -380,7 +438,7 @@ export default function TeacherSchedulePage() {
               </button>
             </div>
           </form>
-        ) : (
+        ) : scheduleMode === 'openSlot' ? (
           /* Mode 2: 2. 開放時段 Form */
           <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
             <div>
@@ -468,6 +526,102 @@ export default function TeacherSchedulePage() {
               </button>
             </div>
           </form>
+        ) : (
+          /* Mode 3: 3. 課程異動 Form (Teacher Direct Reschedule Form) */
+          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
+            <div>
+              <label className="block text-xs font-bold text-[#1565C0] mb-1">
+                3. 欲異動之課程
+              </label>
+              <select
+                value={rescheduleAppId}
+                onChange={(e) => setRescheduleAppId(e.target.value)}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
+              >
+                {appointments.map((app) => (
+                  <option key={app.id} value={app.id}>
+                    {app.student_name} · {formatFullDateStr(app.start_time)} ({formatTimeRange(app.start_time, app.end_time)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                異動新日期
+              </label>
+              <select
+                value={rescheduleDayKey}
+                onChange={(e) => setRescheduleDayKey(parseInt(e.target.value, 10))}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
+              >
+                {weekDates.map((d) => (
+                  <option key={d.key} value={d.key}>
+                    {d.monthDay} {d.dayLabel}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                異動新時段
+              </label>
+              <select
+                value={rescheduleBlockKey}
+                onChange={(e) => {
+                  const bKey = e.target.value;
+                  setRescheduleBlockKey(bKey);
+                  if (bKey === 'morning') {
+                    setRescheduleStartTime('10:00');
+                    setRescheduleEndTime('11:00');
+                  } else if (bKey === 'afternoon') {
+                    setRescheduleStartTime('14:00');
+                    setRescheduleEndTime('15:00');
+                  } else {
+                    setRescheduleStartTime('19:00');
+                    setRescheduleEndTime('20:00');
+                  }
+                }}
+                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
+              >
+                <option value="morning">☀️ 上午</option>
+                <option value="afternoon">🌤️ 下午</option>
+                <option value="evening">🌙 晚間</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#332C27] mb-1">
+                異動新時間
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="time"
+                  value={rescheduleStartTime}
+                  onChange={(e) => setRescheduleStartTime(e.target.value)}
+                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                />
+                <span className="text-xs text-[#7A736E] font-bold">-</span>
+                <input
+                  type="time"
+                  value={rescheduleEndTime}
+                  onChange={(e) => setRescheduleEndTime(e.target.value)}
+                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-full bg-[#1565C0] hover:bg-[#0D47A1] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#1565C0]/20 transition-all"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+                確認異動課程
+              </button>
+            </div>
+          </form>
         )}
       </div>
 
@@ -479,7 +633,7 @@ export default function TeacherSchedulePage() {
           </div>
           <div>
             <span className="text-xs font-extrabold text-[#8C6D53] uppercase tracking-wider block">
-              全域年份與週別區間 (Year & Week Banner)
+              全域年份與週別區間 (YEAR & WEEK BANNER)
             </span>
             <span className="text-lg font-black text-[#332C27] font-mono">
               {yearBanner}
@@ -539,26 +693,39 @@ export default function TeacherSchedulePage() {
 
         {/* 7x3 Responsive Enlarged Grid System (Min Width 1150px) */}
         <div className="min-w-[1150px]">
-          {/* Header Row: Month/Day on Top, Day-of-Week Underneath */}
+          {/* Header Row: Month/Day on Top, Day-of-Week Underneath with Today Highlight */}
           <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
             <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
               時段 / 日期
             </div>
-            {weekDates.map((d) => (
-              <div
-                key={d.key}
-                className="p-3.5 text-center bg-[#FAF2EC] rounded-2xl border border-[#E8D4C5] space-y-1 shadow-xs"
-              >
-                {/* Top Line: Month/Day */}
-                <div className="font-mono font-black text-base text-[#8C6D53] tracking-wide">
-                  {d.monthDay}
+            {weekDates.map((d) => {
+              const todayDateStr = new Date().toISOString().split('T')[0];
+              const isToday = d.fullDateStr === todayDateStr;
+              return (
+                <div
+                  key={d.key}
+                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 ${
+                    isToday
+                      ? 'bg-[#FFF9E6] border-2 border-[#E88D67]/70 shadow-md ring-2 ring-[#E88D67]/20 relative overflow-hidden'
+                      : 'bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs'
+                  }`}
+                >
+                  {isToday && (
+                    <span className="text-[10px] bg-[#E88D67] text-white px-2 py-0.5 rounded-full font-bold inline-block mb-1 shadow-xs">
+                      ★ 今天
+                    </span>
+                  )}
+                  {/* Top Line: Month/Day */}
+                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
+                    {d.monthDay}
+                  </div>
+                  {/* Bottom Line: Day of Week */}
+                  <div className="font-extrabold text-xs text-[#332C27]">
+                    {d.dayLabel} ({d.short})
+                  </div>
                 </div>
-                {/* Bottom Line: Day of Week */}
-                <div className="font-extrabold text-xs text-[#332C27]">
-                  {d.dayLabel} ({d.short})
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* 3 Time Block Rows */}
@@ -599,7 +766,7 @@ export default function TeacherSchedulePage() {
                         {/* Student Appointment Cards (Stacked 2-line layout, FULL Student Name & FULL Time Range) */}
                         {dayApps.map((app) => {
                           const cardStyle = getStudentCardStyle(app.student_name || '');
-                          const titleText = app.status === 'rescheduled' ? `${app.student_name || '學生'} (調課)` : (app.student_name || '學生');
+                          const titleText = app.status === 'rescheduled' ? `${app.student_name || '學生'} (異動)` : (app.student_name || '學生');
                           return (
                             <div
                               key={app.id}
