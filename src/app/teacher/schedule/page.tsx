@@ -289,6 +289,7 @@ export default function TeacherSchedulePage() {
       const origTime = targetApp.original_start_time || targetApp.start_time;
       const isRestored = new Date(newStartIso).getTime() === new Date(origTime).getTime();
 
+      // 1. Update appointment
       setAppointments((prev) =>
         prev.map((app) =>
           app.id === rescheduleAppId
@@ -300,6 +301,21 @@ export default function TeacherSchedulePage() {
               }
             : app
         )
+      );
+
+      // 2. Automatically remove conflicting open slots in the target cell time range!
+      setScheduleSlots((prev) =>
+        prev.filter((slot) => {
+          const slotDatePrefix = slot.start_time.split('T')[0];
+          if (slotDatePrefix === datePrefix) {
+            const slotHour = new Date(slot.start_time).getHours();
+            const newHour = new Date(newStartIso).getHours();
+            if (Math.abs(slotHour - newHour) < 2) {
+              return false; // Remove conflicting open slot
+            }
+          }
+          return true;
+        })
       );
 
       if (isRestored) {
@@ -344,6 +360,7 @@ export default function TeacherSchedulePage() {
       const origTime = targetApp?.original_start_time || targetApp?.start_time;
       const isRestored = origTime && new Date(newStartIso).getTime() === new Date(origTime).getTime();
 
+      // 1. Update appointment start & end time, and set status
       setAppointments((prev) =>
         prev.map((app) =>
           app.id === draggedCard.id
@@ -357,10 +374,25 @@ export default function TeacherSchedulePage() {
         )
       );
 
+      // 2. Automatically remove/consume any overlapping open slot on this target date & time!
+      setScheduleSlots((prev) =>
+        prev.filter((slot) => {
+          const slotDatePrefix = slot.start_time.split('T')[0];
+          if (slotDatePrefix === datePrefix) {
+            const slotHour = new Date(slot.start_time).getHours();
+            const newHour = new Date(newStartIso).getHours();
+            if (Math.abs(slotHour - newHour) < 2) {
+              return false; // Consume conflicting open slot!
+            }
+          }
+          return true;
+        })
+      );
+
       if (isRestored) {
         setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${defaultStartTime}-${defaultEndTime})！`);
       } else {
-        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳移動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
+        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳異動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})，已自動清除原開放時段！`);
       }
     } else if (draggedCard.type === 'slot') {
       setScheduleSlots((prev) =>
@@ -856,7 +888,7 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED Grid Schedule Matrix Table with HTML5 Drag & Drop Support (Clean Layout without Move Buttons) */}
+      {/* ENLARGED Grid Schedule Matrix Table with Prominent Golden Amber Today Column & Chronological Sorting */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
@@ -894,19 +926,19 @@ export default function TeacherSchedulePage() {
                   key={d.key}
                   className={`p-3.5 text-center rounded-2xl transition-all space-y-1 ${
                     isToday
-                      ? 'bg-[#FFF9E6] border-2 border-[#E88D67]/70 shadow-md ring-2 ring-[#E88D67]/20 relative overflow-hidden'
+                      ? 'bg-[#FFE8B3] border-2 border-[#E88D67] shadow-md ring-2 ring-[#E88D67]/40 relative overflow-hidden font-black text-[#8C6D53]'
                       : 'bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs'
                   }`}
                 >
                   {isToday && (
-                    <span className="text-[10px] bg-[#E88D67] text-white px-2 py-0.5 rounded-full font-bold inline-block mb-1 shadow-xs">
-                      ★ 今天
+                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-1 shadow-xs uppercase tracking-wider">
+                      ★ 今天 (Today)
                     </span>
                   )}
                   <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
                     {d.monthDay}
                   </div>
-                  <div className="font-extrabold text-xs text-[#332C27]">
+                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
                     {d.dayLabel} ({d.short})
                   </div>
                 </div>
@@ -928,6 +960,9 @@ export default function TeacherSchedulePage() {
 
                 {/* 7 Day Cells with Drop Handler */}
                 {weekDates.map((d) => {
+                  const todayDateStr = new Date().toISOString().split('T')[0];
+                  const isToday = d.fullDateStr === todayDateStr;
+
                   const dayApps = appointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
@@ -941,16 +976,28 @@ export default function TeacherSchedulePage() {
                     return slotDay === d.key && isTimeInBlock(slotHour, block.key);
                   });
 
+                  // Chronological order sorting by start time
+                  const sortedDayApps = [...dayApps].sort(
+                    (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                  );
+                  const sortedDaySlots = [...daySlots].sort(
+                    (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                  );
+
                   return (
                     <div
                       key={d.key}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => handleDropOnCell(d.key, block.key)}
-                      className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#8C6D53]/60 transition-all group"
+                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all group ${
+                        isToday
+                          ? 'bg-[#FFF8E7] border-2 border-[#E88D67]/80 shadow-sm ring-1 ring-[#E88D67]/20 hover:border-[#E88D67]'
+                          : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#8C6D53]/60'
+                      }`}
                     >
                       <div className="space-y-2">
-                        {/* Draggable Student Appointment Cards */}
-                        {dayApps.map((app) => {
+                        {/* Draggable Student Appointment Cards (Sorted Chronologically) */}
+                        {sortedDayApps.map((app) => {
                           const cardStyle = getStudentCardStyle(app.student_name || '');
                           const titleText =
                             app.status === 'rescheduled'
@@ -976,8 +1023,8 @@ export default function TeacherSchedulePage() {
                           );
                         })}
 
-                        {/* Draggable Unbooked Open Slots */}
-                        {daySlots.map((slot) => (
+                        {/* Draggable Unbooked Open Slots (Sorted Chronologically) */}
+                        {sortedDaySlots.map((slot) => (
                           <div
                             key={slot.id}
                             draggable
@@ -994,10 +1041,14 @@ export default function TeacherSchedulePage() {
                         ))}
                       </div>
 
-                      {/* Quick Add Button in Soft Pale Warm Yellow */}
+                      {/* Quick Add Button */}
                       <button
                         onClick={() => handleOpenAddModal(d.key, block.key)}
-                        className="w-full py-1.5 rounded-xl bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-xs font-bold text-[#8C6D53] flex items-center justify-center gap-1 shadow-sm transition-all"
+                        className={`w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition-all ${
+                          isToday
+                            ? 'bg-[#FFE8B3] hover:bg-[#FDE096] border border-[#E88D67]/40 text-[#8C6D53]'
+                            : 'bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]'
+                        }`}
                       >
                         <Plus className="w-3.5 h-3.5" /> 開設此時段
                       </button>

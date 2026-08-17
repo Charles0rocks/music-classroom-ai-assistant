@@ -230,21 +230,21 @@ export default function StudentSchedulePage() {
                   key={d.key}
                   className={`p-3.5 text-center rounded-2xl transition-all space-y-1 ${
                     isToday
-                      ? 'bg-[#FFF9E6] border-2 border-[#E88D67]/70 shadow-md ring-2 ring-[#E88D67]/20 relative overflow-hidden'
+                      ? 'bg-[#FFE8B3] border-2 border-[#E88D67] shadow-md ring-2 ring-[#E88D67]/40 relative overflow-hidden font-black text-[#8C6D53]'
                       : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
                   }`}
                 >
                   {isToday && (
-                    <span className="text-[10px] bg-[#E88D67] text-white px-2 py-0.5 rounded-full font-bold inline-block mb-1 shadow-xs">
-                      ★ 今天
+                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-1 shadow-xs uppercase tracking-wider">
+                      ★ 今天 (Today)
                     </span>
                   )}
                   {/* Top Line: Month/Day */}
-                  <div className="font-mono font-black text-base text-[#B85536] tracking-wide">
+                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
                     {d.monthDay}
                   </div>
                   {/* Bottom Line: Day of Week */}
-                  <div className="font-extrabold text-xs text-[#332C27]">
+                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
                     {d.dayLabel} ({d.short})
                   </div>
                 </div>
@@ -266,6 +266,9 @@ export default function StudentSchedulePage() {
 
                 {/* 7 Day Cells */}
                 {weekDates.map((d) => {
+                  const todayDateStr = new Date().toISOString().split('T')[0];
+                  const isToday = d.fullDateStr === todayDateStr;
+
                   const cellAppointments = myAppointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
@@ -279,10 +282,21 @@ export default function StudentSchedulePage() {
                     return slotDay === d.key && isTimeInBlock(slotHour, block.key);
                   });
 
+                  const sortedAppointments = [...cellAppointments].sort(
+                    (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                  );
+                  const sortedAvailableSlots = [...cellAvailableSlots].sort(
+                    (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                  );
+
                   return (
                     <div
                       key={d.key}
-                      className="min-h-[140px] p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col justify-between space-y-2.5 hover:border-[#E88D67]/40 transition-all"
+                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all ${
+                        isToday
+                          ? 'bg-[#FFF8E7] border-2 border-[#E88D67]/80 shadow-sm ring-1 ring-[#E88D67]/20 hover:border-[#E88D67]'
+                          : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40'
+                      }`}
                     >
                       <div className="space-y-2">
                         {/* Confirmed Student Appointments (Ocean Light Blue Cards) */}
