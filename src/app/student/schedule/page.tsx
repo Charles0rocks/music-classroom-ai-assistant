@@ -215,60 +215,65 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* Enlarged Matrix Grid Container (Min Width 1150px) */}
-        <div className="min-w-[1150px]">
-          {/* Header Row: Month/Day on Top, Day-of-Week Underneath */}
-          <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
-            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
+        {/* 8-Column Layout System: Today is ENCLOSED in ONE BIG UNIFIED ORANGE BORDER CARD */}
+        <div className="grid grid-cols-8 gap-3.5 min-w-[1150px] items-start">
+          {/* Column 0: Left Header & 3 Time Block Labels */}
+          <div className="flex flex-col gap-3.5">
+            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px]">
               時段 / 日期
             </div>
-            {weekDates.map((d) => {
-              const todayDateStr = new Date().toISOString().split('T')[0];
-              const isToday = d.fullDateStr === todayDateStr;
+            {TIME_BLOCKS.map((block) => {
+              const BlockIcon = block.icon;
               return (
                 <div
-                  key={d.key}
-                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 ${
-                    isToday
-                      ? 'bg-[#FFE8B3] border-2 border-[#E88D67] shadow-md ring-2 ring-[#E88D67]/40 relative overflow-hidden font-black text-[#8C6D53]'
-                      : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
-                  }`}
+                  key={block.key}
+                  className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5"
                 >
-                  {isToday && (
-                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-1 shadow-xs uppercase tracking-wider">
-                      ★ 今天 (Today)
-                    </span>
-                  )}
-                  {/* Top Line: Month/Day */}
-                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
-                    {d.monthDay}
-                  </div>
-                  {/* Bottom Line: Day of Week */}
-                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
-                    {d.dayLabel} ({d.short})
-                  </div>
+                  <BlockIcon className="w-6 h-6 text-[#E88D67]" />
+                  <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
+                  <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
                 </div>
               );
             })}
           </div>
 
-          {/* 3 Time Block Rows */}
-          {TIME_BLOCKS.map((block) => {
-            const BlockIcon = block.icon;
+          {/* Columns 1 to 7: Monday to Sunday */}
+          {weekDates.map((d) => {
+            const todayDateStr = new Date().toISOString().split('T')[0];
+            const isToday = d.fullDateStr === todayDateStr;
+
             return (
-              <div key={block.key} className="grid grid-cols-8 gap-3.5 mb-4.5">
-                {/* Left Label Cell */}
-                <div className="p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5">
-                  <BlockIcon className="w-6 h-6 text-[#E88D67]" />
-                  <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
-                  <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
+              <div
+                key={d.key}
+                className={`flex flex-col gap-3.5 transition-all ${
+                  isToday
+                    ? 'p-2 rounded-3xl border-2 border-[#E88D67] bg-[#FFE8B3]/60 shadow-md ring-2 ring-[#E88D67]/30'
+                    : ''
+                }`}
+              >
+                {/* Date Header Box (Shares background color with all 3 cells inside Today) */}
+                <div
+                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center ${
+                    isToday
+                      ? 'bg-[#FFE8B3] border border-[#E88D67]/40 font-black text-[#8C6D53]'
+                      : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
+                  }`}
+                >
+                  {isToday && (
+                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-0.5 shadow-xs uppercase tracking-wider">
+                      ★ 今天 (Today)
+                    </span>
+                  )}
+                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
+                    {d.monthDay}
+                  </div>
+                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                    {d.dayLabel} ({d.short})
+                  </div>
                 </div>
 
-                {/* 7 Day Cells */}
-                {weekDates.map((d) => {
-                  const todayDateStr = new Date().toISOString().split('T')[0];
-                  const isToday = d.fullDateStr === todayDateStr;
-
+                {/* 3 Time Block Cells */}
+                {TIME_BLOCKS.map((block) => {
                   const cellAppointments = myAppointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
@@ -291,16 +296,16 @@ export default function StudentSchedulePage() {
 
                   return (
                     <div
-                      key={d.key}
+                      key={block.key}
                       className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all ${
                         isToday
-                          ? 'bg-[#FFF8E7] border-2 border-[#E88D67]/80 shadow-sm ring-1 ring-[#E88D67]/20 hover:border-[#E88D67]'
+                          ? 'bg-[#FFE8B3] border border-[#E88D67]/30 shadow-xs'
                           : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40'
                       }`}
                     >
                       <div className="space-y-2">
                         {/* Confirmed Student Appointments (Ocean Light Blue Cards) */}
-                        {cellAppointments.map((app) => {
+                        {sortedAppointments.map((app) => {
                           const locked24h = isWithin24Hours(app.start_time);
                           return (
                             <div
@@ -329,19 +334,20 @@ export default function StudentSchedulePage() {
                           );
                         })}
 
-                        {/* Teacher's Open Slots ("張老師開放時段" - Clickable to open Reschedule Modal) */}
-                        {cellAvailableSlots.map((slot) => (
+                        {/* Teacher's Open Slots ("張老師開放時段") */}
+                        {sortedAvailableSlots.map((slot) => (
                           <div
                             key={slot.id}
                             onClick={() => handleOpenSlotClick(slot)}
-                            className="p-2.5 rounded-xl cursor-pointer bg-[#E8F5E9] border border-[#C8E6C9] text-[#2E7D32] hover:bg-[#C8E6C9] flex flex-col gap-0.5 shadow-xs transition-all"
-                            title="點擊預約/將課程調整至此時段"
+                            className="p-2.5 rounded-xl cursor-pointer flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-all group"
                           >
-                            <div className="font-black text-xs flex items-center justify-between">
+                            <div className="font-black text-xs leading-snug flex items-center justify-between">
                               <span>張老師開放時段</span>
-                              <Sparkles className="w-3 h-3 text-[#2E7D32]" />
+                              <span className="text-[10px] bg-[#2E7D32] text-white px-1.5 py-0.5 rounded-md font-bold group-hover:scale-105 transition-transform">
+                                可調課
+                              </span>
                             </div>
-                            <div className="font-mono text-[11px] font-bold tracking-tight">
+                            <div className="font-mono text-[11px] tracking-tight font-bold">
                               {formatTimeRange(slot.start_time, slot.end_time)}
                             </div>
                           </div>

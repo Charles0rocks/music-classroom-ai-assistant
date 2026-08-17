@@ -286,7 +286,8 @@ export default function TeacherSchedulePage() {
       const newStartIso = new Date(`${datePrefix}T${rescheduleStartTime}`).toISOString();
       const newEndIso = new Date(`${datePrefix}T${rescheduleEndTime}`).toISOString();
 
-      const origTime = targetApp.original_start_time || targetApp.start_time;
+      const oldStartIso = targetApp.start_time;
+      const origTime = targetApp.original_start_time || oldStartIso;
       const isRestored = new Date(newStartIso).getTime() === new Date(origTime).getTime();
 
       // 1. Update appointment
@@ -303,18 +304,16 @@ export default function TeacherSchedulePage() {
         )
       );
 
-      // 2. Automatically remove conflicting open slots in the target cell time range!
+      // 2. Open Slots Sync: Disable target slot, re-enable old slot
       setScheduleSlots((prev) =>
-        prev.filter((slot) => {
-          const slotDatePrefix = slot.start_time.split('T')[0];
-          if (slotDatePrefix === datePrefix) {
-            const slotHour = new Date(slot.start_time).getHours();
-            const newHour = new Date(newStartIso).getHours();
-            if (Math.abs(slotHour - newHour) < 2) {
-              return false; // Remove conflicting open slot
-            }
+        prev.map((s) => {
+          if (new Date(s.start_time).getTime() === new Date(newStartIso).getTime()) {
+            return { ...s, is_available: false };
           }
-          return true;
+          if (new Date(s.start_time).getTime() === new Date(oldStartIso).getTime()) {
+            return { ...s, is_available: true };
+          }
+          return s;
         })
       );
 
@@ -357,7 +356,8 @@ export default function TeacherSchedulePage() {
 
     if (draggedCard.type === 'appointment') {
       const targetApp = appointments.find((a) => a.id === draggedCard.id);
-      const origTime = targetApp?.original_start_time || targetApp?.start_time;
+      const oldStartIso = targetApp?.start_time || newStartIso;
+      const origTime = targetApp?.original_start_time || oldStartIso;
       const isRestored = origTime && new Date(newStartIso).getTime() === new Date(origTime).getTime();
 
       // 1. Update appointment start & end time, and set status
@@ -374,25 +374,23 @@ export default function TeacherSchedulePage() {
         )
       );
 
-      // 2. Automatically remove/consume any overlapping open slot on this target date & time!
+      // 2. Open Slots Sync: Disable target open slot, Re-enable old open slot if restored/moved
       setScheduleSlots((prev) =>
-        prev.filter((slot) => {
-          const slotDatePrefix = slot.start_time.split('T')[0];
-          if (slotDatePrefix === datePrefix) {
-            const slotHour = new Date(slot.start_time).getHours();
-            const newHour = new Date(newStartIso).getHours();
-            if (Math.abs(slotHour - newHour) < 2) {
-              return false; // Consume conflicting open slot!
-            }
+        prev.map((s) => {
+          if (new Date(s.start_time).getTime() === new Date(newStartIso).getTime()) {
+            return { ...s, is_available: false };
           }
-          return true;
+          if (new Date(s.start_time).getTime() === new Date(oldStartIso).getTime()) {
+            return { ...s, is_available: true };
+          }
+          return s;
         })
       );
 
       if (isRestored) {
-        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${defaultStartTime}-${defaultEndTime})！`);
+        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${defaultStartTime}-${defaultEndTime})，原本的開放時段已自動顯示！`);
       } else {
-        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳異動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})，已自動清除原開放時段！`);
+        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳異動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
       }
     } else if (draggedCard.type === 'slot') {
       setScheduleSlots((prev) =>
@@ -888,7 +886,7 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED Grid Schedule Matrix Table with Prominent Golden Amber Today Column & Chronological Sorting */}
+      {/* ENLARGED Grid Schedule Matrix Table with Column-Based Unified Orange Frame for Today */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
@@ -911,27 +909,52 @@ export default function TeacherSchedulePage() {
           </div>
         </div>
 
-        {/* Responsive Matrix Grid System (Min Width 1150px) */}
-        <div className="min-w-[1150px]">
-          {/* Header Row */}
-          <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
-            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6]">
+        {/* 8-Column Layout System: Today is ENCLOSED in ONE BIG UNIFIED ORANGE BORDER CARD */}
+        <div className="grid grid-cols-8 gap-3.5 min-w-[1150px] items-start">
+          {/* Column 0: Left Header & 3 Time Block Labels */}
+          <div className="flex flex-col gap-3.5">
+            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px]">
               時段 / 日期
             </div>
-            {weekDates.map((d) => {
-              const todayDateStr = new Date().toISOString().split('T')[0];
-              const isToday = d.fullDateStr === todayDateStr;
+            {TIME_BLOCKS.map((block) => {
+              const BlockIcon = block.icon;
               return (
                 <div
-                  key={d.key}
-                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 ${
+                  key={block.key}
+                  className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5"
+                >
+                  <BlockIcon className="w-6 h-6 text-[#8C6D53]" />
+                  <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
+                  <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Columns 1 to 7: Monday to Sunday */}
+          {weekDates.map((d) => {
+            const todayDateStr = new Date().toISOString().split('T')[0];
+            const isToday = d.fullDateStr === todayDateStr;
+
+            return (
+              <div
+                key={d.key}
+                className={`flex flex-col gap-3.5 transition-all ${
+                  isToday
+                    ? 'p-2 rounded-3xl border-2 border-[#E88D67] bg-[#FFE8B3]/60 shadow-md ring-2 ring-[#E88D67]/30'
+                    : ''
+                }`}
+              >
+                {/* Date Header Box (Shares background color with all 3 cells inside Today) */}
+                <div
+                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center ${
                     isToday
-                      ? 'bg-[#FFE8B3] border-2 border-[#E88D67] shadow-md ring-2 ring-[#E88D67]/40 relative overflow-hidden font-black text-[#8C6D53]'
+                      ? 'bg-[#FFE8B3] border border-[#E88D67]/40 font-black text-[#8C6D53]'
                       : 'bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs'
                   }`}
                 >
                   {isToday && (
-                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-1 shadow-xs uppercase tracking-wider">
+                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-0.5 shadow-xs uppercase tracking-wider">
                       ★ 今天 (Today)
                     </span>
                   )}
@@ -942,27 +965,9 @@ export default function TeacherSchedulePage() {
                     {d.dayLabel} ({d.short})
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* 3 Time Block Rows */}
-          {TIME_BLOCKS.map((block) => {
-            const BlockIcon = block.icon;
-            return (
-              <div key={block.key} className="grid grid-cols-8 gap-3.5 mb-4.5">
-                {/* Left Label Cell */}
-                <div className="p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5">
-                  <BlockIcon className="w-6 h-6 text-[#8C6D53]" />
-                  <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
-                  <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
-                </div>
-
-                {/* 7 Day Cells with Drop Handler */}
-                {weekDates.map((d) => {
-                  const todayDateStr = new Date().toISOString().split('T')[0];
-                  const isToday = d.fullDateStr === todayDateStr;
-
+                {/* 3 Time Block Cells */}
+                {TIME_BLOCKS.map((block) => {
                   const dayApps = appointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
@@ -986,12 +991,12 @@ export default function TeacherSchedulePage() {
 
                   return (
                     <div
-                      key={d.key}
+                      key={block.key}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => handleDropOnCell(d.key, block.key)}
                       className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all group ${
                         isToday
-                          ? 'bg-[#FFF8E7] border-2 border-[#E88D67]/80 shadow-sm ring-1 ring-[#E88D67]/20 hover:border-[#E88D67]'
+                          ? 'bg-[#FFE8B3] border border-[#E88D67]/30 shadow-xs'
                           : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#8C6D53]/60'
                       }`}
                     >
@@ -1046,7 +1051,7 @@ export default function TeacherSchedulePage() {
                         onClick={() => handleOpenAddModal(d.key, block.key)}
                         className={`w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition-all ${
                           isToday
-                            ? 'bg-[#FFE8B3] hover:bg-[#FDE096] border border-[#E88D67]/40 text-[#8C6D53]'
+                            ? 'bg-[#FFF2D6] hover:bg-[#FFE3A3] border border-[#E88D67]/40 text-[#8C6D53]'
                             : 'bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]'
                         }`}
                       >

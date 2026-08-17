@@ -332,17 +332,27 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, message: '上課前 24 小時內不接受線上調課，請直接聯繫老師！' };
     }
 
-    // 1. Mark target slot as no longer available
+    const oldStartIso = targetApp.start_time;
+    const origTime = targetApp.original_start_time || oldStartIso;
+    const isRestored = new Date(targetSlot.start_time).getTime() === new Date(origTime).getTime();
+
+    // 1. Target slot becomes unavailable (consumed) & old open slot becomes available (restored)
     setScheduleSlots((prev) =>
-      prev.map((s) => (s.id === slotId ? { ...s, is_available: false } : s))
+      prev.map((s) => {
+        if (s.id === slotId) {
+          return { ...s, is_available: false };
+        }
+        if (new Date(s.start_time).getTime() === new Date(oldStartIso).getTime()) {
+          return { ...s, is_available: true };
+        }
+        return s;
+      })
     );
 
     // 2. Update appointment to target slot time & check if restored to original time
     setAppointments((prev) =>
       prev.map((app) => {
         if (app.id === appointmentId) {
-          const origTime = app.original_start_time || app.start_time;
-          const isRestored = new Date(targetSlot.start_time).getTime() === new Date(origTime).getTime();
           return {
             ...app,
             start_time: targetSlot.start_time,
