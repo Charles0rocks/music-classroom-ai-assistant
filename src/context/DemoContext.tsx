@@ -111,6 +111,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
     student_name: '小明',
     teacher_id: MOCK_TEACHER.id,
     start_time: getDynamicDate(1, 10), // Tomorrow 10:00 - 11:00 (Morning)
+    original_start_time: getDynamicDate(1, 10),
     end_time: getDynamicDate(1, 11),
     status: 'confirmed',
   },
@@ -120,6 +121,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
     student_name: '小華',
     teacher_id: MOCK_TEACHER.id,
     start_time: getDynamicDate(2, 15),
+    original_start_time: getDynamicDate(2, 15),
     end_time: getDynamicDate(2, 16),
     status: 'confirmed',
   },
@@ -129,6 +131,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
     student_name: '小明',
     teacher_id: MOCK_TEACHER.id,
     start_time: getDynamicDate(4, 19), // 4 days later 19:00 (Evening)
+    original_start_time: getDynamicDate(4, 19),
     end_time: getDynamicDate(4, 20),
     status: 'confirmed',
   },
@@ -334,18 +337,21 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       prev.map((s) => (s.id === slotId ? { ...s, is_available: false } : s))
     );
 
-    // 2. Update appointment to target slot time & set status to rescheduled
+    // 2. Update appointment to target slot time & check if restored to original time
     setAppointments((prev) =>
-      prev.map((app) =>
-        app.id === appointmentId
-          ? {
-              ...app,
-              start_time: targetSlot.start_time,
-              end_time: targetSlot.end_time,
-              status: 'rescheduled',
-            }
-          : app
-      )
+      prev.map((app) => {
+        if (app.id === appointmentId) {
+          const origTime = app.original_start_time || app.start_time;
+          const isRestored = new Date(targetSlot.start_time).getTime() === new Date(origTime).getTime();
+          return {
+            ...app,
+            start_time: targetSlot.start_time,
+            end_time: targetSlot.end_time,
+            status: isRestored ? 'restored' : 'rescheduled',
+          };
+        }
+        return app;
+      })
     );
 
     return { success: true, message: '調課成功！舊課程已成功移至新時段，全站與老師端課表已即時同步連動。' };

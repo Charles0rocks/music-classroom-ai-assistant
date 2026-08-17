@@ -25,7 +25,6 @@ import {
   ArrowRightLeft,
   Trash2,
   GripVertical,
-  Move,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 
@@ -145,11 +144,6 @@ export default function TeacherSchedulePage() {
   // HTML5 Drag and Drop State
   const [draggedCard, setDraggedCard] = useState<{ type: 'appointment' | 'slot'; id: string } | null>(null);
 
-  // Quick Move Card Modal State (Touchscreen Support)
-  const [moveCardItem, setMoveCardItem] = useState<{ type: 'appointment' | 'slot'; id: string; name: string } | null>(null);
-  const [moveTargetDayKey, setMoveTargetDayKey] = useState<number>(4);
-  const [moveTargetBlockKey, setMoveTargetBlockKey] = useState<string>('afternoon');
-
   // Modal State for Single Quick Add
   const [selectedDayKey, setSelectedDayKey] = useState<number>(3);
   const [selectedBlockKey, setSelectedBlockKey] = useState<string>('afternoon');
@@ -252,6 +246,7 @@ export default function TeacherSchedulePage() {
         student_name: studentNameInput,
         teacher_id: teacherProfile.id,
         start_time: startIso,
+        original_start_time: startIso,
         end_time: endIso,
         status: 'confirmed',
       };
@@ -291,6 +286,9 @@ export default function TeacherSchedulePage() {
       const newStartIso = new Date(`${datePrefix}T${rescheduleStartTime}`).toISOString();
       const newEndIso = new Date(`${datePrefix}T${rescheduleEndTime}`).toISOString();
 
+      const origTime = targetApp.original_start_time || targetApp.start_time;
+      const isRestored = new Date(newStartIso).getTime() === new Date(origTime).getTime();
+
       setAppointments((prev) =>
         prev.map((app) =>
           app.id === rescheduleAppId
@@ -298,13 +296,17 @@ export default function TeacherSchedulePage() {
                 ...app,
                 start_time: newStartIso,
                 end_time: newEndIso,
-                status: 'rescheduled',
+                status: isRestored ? 'restored' : 'rescheduled',
               }
             : app
         )
       );
 
-      setSettingNotice(`已成功協助【${targetApp.student_name}】完成「3. 課程異動」，調整至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${rescheduleStartTime}-${rescheduleEndTime}！`);
+      if (isRestored) {
+        setSettingNotice(`已成功協助【${targetApp.student_name}】恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${rescheduleStartTime}-${rescheduleEndTime})！`);
+      } else {
+        setSettingNotice(`已成功協助【${targetApp.student_name}】完成「3. 課程異動」，調整至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${rescheduleStartTime}-${rescheduleEndTime}！`);
+      }
     }
 
     setTimeout(() => {
@@ -339,6 +341,9 @@ export default function TeacherSchedulePage() {
 
     if (draggedCard.type === 'appointment') {
       const targetApp = appointments.find((a) => a.id === draggedCard.id);
+      const origTime = targetApp?.original_start_time || targetApp?.start_time;
+      const isRestored = origTime && new Date(newStartIso).getTime() === new Date(origTime).getTime();
+
       setAppointments((prev) =>
         prev.map((app) =>
           app.id === draggedCard.id
@@ -346,12 +351,17 @@ export default function TeacherSchedulePage() {
                 ...app,
                 start_time: newStartIso,
                 end_time: newEndIso,
-                status: 'rescheduled',
+                status: isRestored ? 'restored' : 'rescheduled',
               }
             : app
         )
       );
-      setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳移動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
+
+      if (isRestored) {
+        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${defaultStartTime}-${defaultEndTime})！`);
+      } else {
+        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳移動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
+      }
     } else if (draggedCard.type === 'slot') {
       setScheduleSlots((prev) =>
         prev.map((slot) =>
@@ -369,14 +379,6 @@ export default function TeacherSchedulePage() {
 
     setDraggedCard(null);
     setTimeout(() => setSettingNotice(null), 4000);
-  };
-
-  const handleConfirmMoveCardModal = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!moveCardItem) return;
-
-    handleDropOnCell(moveTargetDayKey, moveTargetBlockKey);
-    setMoveCardItem(null);
   };
 
   const formatTimeRange = (startIso: string, endIso: string) => {
@@ -854,12 +856,12 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED 7x3 Grid Schedule Matrix Table with HTML5 Drag & Drop Support */}
+      {/* ENLARGED Grid Schedule Matrix Table with HTML5 Drag & Drop Support (Clean Layout without Move Buttons) */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
-            <span>張老師 7x3 課表總覽</span>
-            <span className="text-xs text-[#7A736E] font-normal">（可拖曳或按移動鍵切換卡片至任一天的格子內）</span>
+            <span>張老師 課表總覽</span>
+            <span className="text-xs text-[#7A736E] font-normal">（可以直接用滑鼠拖曳卡片至任一天的格子內）</span>
           </h2>
           <div className="flex items-center gap-3 text-xs font-bold">
             <span className="flex items-center gap-1 text-[#2E7D32]">
@@ -877,7 +879,7 @@ export default function TeacherSchedulePage() {
           </div>
         </div>
 
-        {/* 7x3 Responsive Enlarged Grid System (Min Width 1150px) */}
+        {/* Responsive Matrix Grid System (Min Width 1150px) */}
         <div className="min-w-[1150px]">
           {/* Header Row */}
           <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
@@ -950,30 +952,22 @@ export default function TeacherSchedulePage() {
                         {/* Draggable Student Appointment Cards */}
                         {dayApps.map((app) => {
                           const cardStyle = getStudentCardStyle(app.student_name || '');
-                          const titleText = app.status === 'rescheduled' ? `${app.student_name || '學生'} (異動)` : (app.student_name || '學生');
+                          const titleText =
+                            app.status === 'rescheduled'
+                              ? `${app.student_name || '學生'} (異動)`
+                              : app.status === 'restored'
+                              ? `${app.student_name || '學生'} (恢復)`
+                              : (app.student_name || '學生');
                           return (
                             <div
                               key={app.id}
                               draggable
                               onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
-                              className={`p-2.5 rounded-xl border flex flex-col gap-1 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
+                              className={`p-2.5 rounded-xl border flex flex-col gap-0.5 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
                             >
-                              <div className="flex items-center justify-between">
-                                <div className="font-black text-xs leading-snug flex items-center gap-1">
-                                  <GripVertical className="w-3 h-3 opacity-60" />
-                                  {titleText}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMoveCardItem({ type: 'appointment', id: app.id, name: app.student_name || '學生' });
-                                  }}
-                                  className="p-1 rounded-md hover:bg-black/10 text-current text-[10px] font-bold flex items-center gap-0.5"
-                                  title="快捷移動時段"
-                                >
-                                  <Move className="w-3 h-3" /> 移動
-                                </button>
+                              <div className="font-black text-xs leading-snug flex items-center gap-1">
+                                <GripVertical className="w-3 h-3 opacity-60" />
+                                {titleText}
                               </div>
                               <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4">
                                 {formatTimeRange(app.start_time, app.end_time)}
@@ -988,23 +982,10 @@ export default function TeacherSchedulePage() {
                             key={slot.id}
                             draggable
                             onDragStart={() => setDraggedCard({ type: 'slot', id: slot.id })}
-                            className="p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:scale-[1.02] flex flex-col gap-1 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-transform"
+                            className="p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:scale-[1.02] flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-transform"
                           >
-                            <div className="flex items-center justify-between font-black text-xs leading-snug">
-                              <span className="flex items-center gap-1">
-                                <GripVertical className="w-3 h-3 opacity-60" /> 開放時段
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMoveCardItem({ type: 'slot', id: slot.id, name: '開放時段' });
-                                }}
-                                className="p-1 rounded-md hover:bg-black/10 text-current text-[10px] font-bold flex items-center gap-0.5"
-                                title="快捷移動開放時段"
-                              >
-                                <Move className="w-3 h-3" /> 移動
-                              </button>
+                            <div className="font-black text-xs leading-snug flex items-center gap-1">
+                              <GripVertical className="w-3 h-3 opacity-60" /> 開放時段
                             </div>
                             <div className="font-mono text-[11px] tracking-tight font-bold pl-4">
                               {formatTimeRange(slot.start_time, slot.end_time)}
@@ -1028,76 +1009,6 @@ export default function TeacherSchedulePage() {
           })}
         </div>
       </div>
-
-      {/* Quick Move Card Modal Window */}
-      {moveCardItem && (
-        <div className="fixed inset-0 z-50 bg-[#332C27]/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md p-6 sm:p-8 rounded-3xl border border-[#EFECE6] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
-              <h3 className="font-bold text-lg text-[#332C27] flex items-center gap-2">
-                <Move className="w-5 h-5 text-[#8C6D53]" />
-                移動時段窗格：{moveCardItem.name}
-              </h3>
-              <button
-                onClick={() => setMoveCardItem(null)}
-                className="text-[#7A736E] hover:text-[#332C27]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleConfirmMoveCardModal} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#332C27] mb-1">目標日期 (Date)</label>
-                  <select
-                    value={moveTargetDayKey}
-                    onChange={(e) => setMoveTargetDayKey(parseInt(e.target.value, 10))}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-                  >
-                    {weekDates.map((w) => (
-                      <option key={w.key} value={w.key}>
-                        {w.monthDay} ({w.dayLabel})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#332C27] mb-1">目標時段</label>
-                  <select
-                    value={moveTargetBlockKey}
-                    onChange={(e) => setMoveTargetBlockKey(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-                  >
-                    {TIME_BLOCKS.map((b) => (
-                      <option key={b.key} value={b.key}>
-                        {b.label} ({b.sub})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setMoveCardItem(null)}
-                  className="px-4 py-2 rounded-full text-xs font-bold text-[#7A736E] hover:text-[#332C27]"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs shadow-md shadow-[#8C6D53]/20"
-                >
-                  確認移動
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Single Add Slot Modal */}
       {showAddModal && (

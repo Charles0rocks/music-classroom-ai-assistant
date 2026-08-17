@@ -202,7 +202,7 @@ export default function StudentSchedulePage() {
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
-            <span>小明同學 7x3 上課週課表矩陣</span>
+            <span>小明同學 週課表矩陣</span>
             <span className="text-xs text-[#7A736E] font-normal">（天藍色: 我的課程 · 清新粉綠: 張老師開放時段）</span>
           </h2>
           <div className="flex items-center gap-4 text-xs font-bold">
@@ -215,7 +215,7 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* 7x3 Enlarged Matrix Grid Container (Min Width 1150px) */}
+        {/* Enlarged Matrix Grid Container (Min Width 1150px) */}
         <div className="min-w-[1150px]">
           {/* Header Row: Month/Day on Top, Day-of-Week Underneath */}
           <div className="grid grid-cols-8 gap-3.5 mb-3.5 sticky top-12 bg-white/95 backdrop-blur-md z-10 py-1.5">
@@ -294,7 +294,13 @@ export default function StudentSchedulePage() {
                               className="p-2.5 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] text-[#1565C0] flex flex-col gap-1 shadow-xs"
                             >
                               <div className="flex items-center justify-between text-xs font-black">
-                                <span>{app.status === 'rescheduled' ? '我的課程 (調課)' : '我的課程'}</span>
+                                <span>
+                                  {app.status === 'rescheduled'
+                                    ? '我的課程 (異動)'
+                                    : app.status === 'restored'
+                                    ? '我的課程 (恢復)'
+                                    : '我的課程'}
+                                </span>
                               </div>
                               <div className="font-mono text-[11px] font-bold tracking-tight">
                                 {formatTimeRange(app.start_time, app.end_time)}

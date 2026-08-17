@@ -29,7 +29,7 @@ export interface ScheduleSlot {
   is_available: boolean;
 }
 
-export type AppointmentStatus = 'confirmed' | 'cancelled' | 'rescheduled';
+export type AppointmentStatus = 'confirmed' | 'cancelled' | 'rescheduled' | 'restored';
 
 export interface Appointment {
   id: string;
@@ -37,6 +37,7 @@ export interface Appointment {
   student_name?: string;
   teacher_id: string;
   start_time: string;
+  original_start_time?: string;
   end_time: string;
   status: AppointmentStatus;
 }
