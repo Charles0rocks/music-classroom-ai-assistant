@@ -914,14 +914,14 @@ export default function TeacherSchedulePage() {
         </div>
 
         {/* Outer Container with 100% Precise Math Overlay for Today */}
-        <div className="min-w-[1150px] relative space-y-3.5">
-          {/* Today's Single Big Orange Border Container Overlay */}
+        <div className="min-w-[1150px] relative space-y-3.5 py-1">
+          {/* Today's Single Big Orange Border Container Overlay (Enlarged & Semi-Transparent Beautified) */}
           {todayColIdx !== -1 && (
             <div
-              className="absolute top-0 bottom-0 border-2 border-[#E88D67] bg-[#FFF9EA] rounded-3xl shadow-md ring-4 ring-[#E88D67]/20 pointer-events-none z-0 transition-all"
+              className="absolute -top-2.5 -bottom-2.5 border-[3px] border-[#E88D67] bg-[#FFF3CD]/45 backdrop-blur-[2px] rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
               style={{
-                left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 4px)`,
-                width: `calc((100% - 98px) / 8 + 8px)`,
+                left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
+                width: `calc((100% - 98px) / 8 + 16px)`,
               }}
             />
           )}
@@ -938,7 +938,7 @@ export default function TeacherSchedulePage() {
                   key={d.key}
                   className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center z-10 ${
                     isToday
-                      ? 'bg-[#FFF3CD] border border-[#E88D67]/60 shadow-xs font-black text-[#8C6D53]'
+                      ? 'bg-[#FFE8B3]/90 border border-[#E88D67]/60 shadow-xs font-black text-[#8C6D53]'
                       : 'bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs'
                   }`}
                 >
@@ -1002,7 +1002,7 @@ export default function TeacherSchedulePage() {
                       onDrop={() => handleDropOnCell(d.key, block.key)}
                       className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all group z-10 ${
                         isToday
-                          ? 'bg-[#FFF5D6] border border-[#E88D67]/40 shadow-xs hover:border-[#E88D67]'
+                          ? 'bg-[#FFFDF3]/90 border border-[#E88D67]/40 shadow-xs hover:border-[#E88D67]'
                           : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#8C6D53]/60'
                       }`}
                     >
