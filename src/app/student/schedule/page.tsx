@@ -235,16 +235,21 @@ export default function StudentSchedulePage() {
         </div>
 
         {/* Outer Container with 100% Precise Math Overlay for Today */}
-        <div className="min-w-[1150px] relative space-y-3.5 py-1">
+        <div className="min-w-[1150px] relative space-y-3.5 pt-4 pb-1">
           {/* Today's Single Big Orange Border Container Overlay (Enlarged & Semi-Transparent Beautified) */}
           {todayColIdx !== -1 && (
             <div
-              className="absolute -top-2.5 -bottom-2.5 border-[3px] border-[#E88D67] bg-[#FFF3CD]/45 backdrop-blur-[2px] rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
+              className="absolute -top-3.5 -bottom-2.5 border-[3px] border-[#E88D67] bg-[#FFF3CD]/45 backdrop-blur-[2px] rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
               style={{
                 left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
                 width: `calc((100% - 98px) / 8 + 16px)`,
               }}
-            />
+            >
+              {/* Floating Badge Header on top of Orange Frame */}
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider">
+                ★ 今天 (TODAY)
+              </div>
+            </div>
           )}
 
           {/* ROW 0: Date Header Row */}
@@ -257,17 +262,12 @@ export default function StudentSchedulePage() {
               return (
                 <div
                   key={d.key}
-                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center z-10 ${
+                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center items-center z-10 ${
                     isToday
                       ? 'bg-[#FFE8B3]/90 border border-[#E88D67]/60 shadow-xs font-black text-[#8C6D53]'
                       : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
                   }`}
                 >
-                  {isToday && (
-                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-0.5 shadow-xs uppercase tracking-wider self-center">
-                      ★ 今天 (Today)
-                    </span>
-                  )}
                   <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
                     {d.monthDay}
                   </div>
