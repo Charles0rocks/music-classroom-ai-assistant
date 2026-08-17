@@ -245,8 +245,8 @@ export default function StudentSchedulePage() {
                 width: `calc((100% - 98px) / 8 + 16px)`,
               }}
             >
-              {/* Floating Badge Header on top of Orange Frame (Sleek 70% scale) */}
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
+              {/* Badge Header resting snugly on top border line of Orange Frame */}
+              <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3.5 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
                 ★ 今天 (TODAY)
               </div>
             </div>
