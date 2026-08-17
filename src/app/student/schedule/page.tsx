@@ -239,7 +239,7 @@ export default function StudentSchedulePage() {
           {/* Today's Single Big Orange Border Container Overlay */}
           {todayColIdx !== -1 && (
             <div
-              className="absolute top-0 bottom-0 border-2 border-[#E88D67] bg-[#FFE8B3] rounded-3xl shadow-md ring-2 ring-[#E88D67]/30 pointer-events-none z-0 transition-all"
+              className="absolute top-0 bottom-0 border-2 border-[#E88D67] bg-[#FFF9EA] rounded-3xl shadow-md ring-4 ring-[#E88D67]/20 pointer-events-none z-0 transition-all"
               style={{
                 left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 4px)`,
                 width: `calc((100% - 98px) / 8 + 8px)`,
@@ -259,7 +259,7 @@ export default function StudentSchedulePage() {
                   key={d.key}
                   className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center z-10 ${
                     isToday
-                      ? 'bg-[#FFE8B3] font-black text-[#8C6D53]'
+                      ? 'bg-[#FFF3CD] border border-[#E88D67]/60 shadow-xs font-black text-[#8C6D53]'
                       : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
                   }`}
                 >
@@ -320,7 +320,7 @@ export default function StudentSchedulePage() {
                       key={d.key}
                       className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all z-10 ${
                         isToday
-                          ? 'bg-[#FFE8B3]'
+                          ? 'bg-[#FFF5D6] border border-[#E88D67]/40 shadow-xs hover:border-[#E88D67]'
                           : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40'
                       }`}
                     >
