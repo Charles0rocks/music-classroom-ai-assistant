@@ -5,22 +5,20 @@ import { useDemoContext } from '@/context/DemoContext';
 import {
   Calendar as CalendarIcon,
   Clock,
-  ArrowRightLeft,
-  ShieldCheck,
-  CheckCircle2,
+  Check,
+  X,
   AlertCircle,
   Lock,
-  Sparkles,
-  X,
-  User,
-  Sun,
-  Sunset,
-  Moon,
   ChevronLeft,
   ChevronRight,
-  Info,
+  Sparkles,
+  RotateCcw,
+  CheckCircle2,
+  Sliders,
+  Layers,
+  BookOpen,
 } from 'lucide-react';
-import { ScheduleSlot, Appointment } from '@/types';
+import { Appointment, ScheduleSlot } from '@/types';
 
 const DAYS = [
   { key: 1, label: '週一', short: 'Mon' },
@@ -33,21 +31,25 @@ const DAYS = [
 ];
 
 const TIME_BLOCKS = [
-  { key: 'morning', label: '上午', sub: '09:00 - 12:00', icon: Sun },
-  { key: 'afternoon', label: '下午', sub: '13:00 - 18:00', icon: Sunset },
-  { key: 'evening', label: '晚間', sub: '19:00 - 22:00', icon: Moon },
+  { key: 'morning', label: '上午', sub: '09:00 - 12:00', icon: Clock, startHour: 9, endHour: 12 },
+  { key: 'afternoon', label: '下午', sub: '13:00 - 18:00', icon: Clock, startHour: 13, endHour: 18 },
+  { key: 'evening', label: '晚間', sub: '19:00 - 22:00', icon: Clock, startHour: 19, endHour: 22 },
 ];
 
 export default function StudentSchedulePage() {
-  const { appointments, studentProfile, teacherProfile, scheduleSlots, requestReschedule } = useDemoContext();
+  const {
+    studentProfile,
+    appointments,
+    scheduleSlots,
+    requestReschedule,
+  } = useDemoContext();
+  const currentStudentId = studentProfile?.id || 's-1';
 
   const [weekOffset, setWeekOffset] = useState<number>(0);
-  
-  // Interactive Modal State for clicking "張老師開放時段"
-  const [selectedTargetSlot, setSelectedTargetSlot] = useState<ScheduleSlot | null>(null);
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>('');
-  const [rescheduleReason, setRescheduleReason] = useState('');
-  const [feedbackMsg, setFeedbackMsg] = useState<{ success: boolean; text: string } | null>(null);
+  const [selectedSlotForReschedule, setSelectedSlotForReschedule] = useState<ScheduleSlot | null>(null);
+  const [showRescheduleModal, setShowRescheduleModal] = useState<boolean>(false);
+  const [selectedAppToMove, setSelectedAppToMove] = useState<string>('');
+  const [modalNotice, setModalNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
   // Compute Current Week Dates relative to Monday
   const getWeekDates = (offset: number) => {
@@ -84,8 +86,10 @@ export default function StudentSchedulePage() {
 
   const { weekDates, yearBanner } = getWeekDates(weekOffset);
 
-  // Filter student's own appointments
-  const myAppointments = appointments.filter((app) => app.student_id === studentProfile.id);
+  // Filter Student Appointments
+  const myAppointments = appointments.filter(
+    (app) => app.student_id === currentStudentId && app.status !== 'cancelled'
+  );
 
   const getSlotDayOfWeek = (isoString: string) => new Date(isoString).getDay();
   const getSlotHour = (isoString: string) => new Date(isoString).getHours();
@@ -94,6 +98,46 @@ export default function StudentSchedulePage() {
     if (blockKey === 'morning') return hour >= 8 && hour < 12;
     if (blockKey === 'afternoon') return hour >= 12 && hour < 18;
     return hour >= 18 && hour < 23;
+  };
+
+  const isWithin24Hours = (isoString: string) => {
+    const now = new Date().getTime();
+    const target = new Date(isoString).getTime();
+    const diffHours = (target - now) / (1000 * 60 * 60);
+    return diffHours < 24 && diffHours > 0;
+  };
+
+  const handleOpenSlotClick = (slot: ScheduleSlot) => {
+    setSelectedSlotForReschedule(slot);
+    setModalNotice(null);
+
+    // Auto-select first non-locked appointment if available
+    const movableApps = myAppointments.filter((a) => !isWithin24Hours(a.start_time));
+    if (movableApps.length > 0) {
+      setSelectedAppToMove(movableApps[0].id);
+    } else if (myAppointments.length > 0) {
+      setSelectedAppToMove(myAppointments[0].id);
+    }
+
+    setShowRescheduleModal(true);
+  };
+
+  const handleConfirmReschedule = () => {
+    if (!selectedSlotForReschedule || !selectedAppToMove) {
+      setModalNotice({ type: 'error', message: '請選擇欲移動的舊課程！' });
+      return;
+    }
+
+    const result = requestReschedule(selectedAppToMove, selectedSlotForReschedule.id);
+    if (!result.success) {
+      setModalNotice({ type: 'error', message: result.message });
+    } else {
+      setModalNotice({ type: 'success', message: result.message });
+      setTimeout(() => {
+        setShowRescheduleModal(false);
+        setSelectedSlotForReschedule(null);
+      }, 1800);
+    }
   };
 
   const formatTimeRange = (startIso: string, endIso: string) => {
@@ -110,60 +154,35 @@ export default function StudentSchedulePage() {
     return `${m}/${date} ${dayName}`;
   };
 
-  // Check 24-hour advance restriction rule
-  const isWithin24Hours = (startTimeIso: string) => {
-    const now = new Date().getTime();
-    const lessonTime = new Date(startTimeIso).getTime();
-    const diffHours = (lessonTime - now) / (1000 * 60 * 60);
-    return diffHours < 24;
-  };
-
-  const handleOpenSlotClick = (slot: ScheduleSlot) => {
-    setSelectedTargetSlot(slot);
-    setFeedbackMsg(null);
-    if (myAppointments.length > 0) {
-      setSelectedAppointmentId(myAppointments[0].id);
-    }
-  };
-
-  const handleSubmitReschedule = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTargetSlot || !selectedAppointmentId) return;
-
-    const result = requestReschedule(selectedAppointmentId, selectedTargetSlot.id, rescheduleReason);
-    setFeedbackMsg({ success: result.success, text: result.message });
-
-    if (result.success) {
-      setTimeout(() => {
-        setSelectedTargetSlot(null);
-        setFeedbackMsg(null);
-      }, 2000);
-    }
-  };
+  // Find index of Today in weekDates
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayColIdx = weekDates.findIndex((d) => d.fullDateStr === todayDateStr);
 
   return (
     <div className="space-y-8">
       {/* Header Banner */}
-      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm bg-gradient-to-r from-white to-[#FCEADE]">
-        <div className="flex items-center gap-2 text-[#E88D67] text-xs font-bold uppercase tracking-wider mb-1">
-          <CalendarIcon className="w-4 h-4" />
-          Student Portal (P3)
+      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm bg-gradient-to-r from-white to-[#FAF2EC] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-[#E88D67] text-xs font-bold uppercase tracking-wider mb-1">
+            <CalendarIcon className="w-4 h-4" />
+            Student Portal (P3)
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">我的個人課表與可調時段</h1>
+          <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
+            一週 (週一～週日) × 3大時段 矩陣視圖 · 點選張老師開放時段即可快速進行線上自主調課
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">個人課表</h1>
-        <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-          點擊「張老師開放時段」即可直接調課 · 預防上課前 24 小時急迫調課保護
-        </p>
       </div>
 
       {/* Global Year & Week Navigation Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FAF7F2] p-4.5 rounded-3xl border border-[#EFECE6]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67]">
+          <div className="w-10 h-10 rounded-2xl bg-[#FCEADE]/60 border border-[#F6D0B8] flex items-center justify-center text-[#E88D67]">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
             <span className="text-xs font-extrabold text-[#E88D67] uppercase tracking-wider block">
-              全域年份與週別區間 (Year & Week Banner)
+              全域年份與週別區間 (YEAR & WEEK BANNER)
             </span>
             <span className="text-lg font-black text-[#332C27] font-mono">
               {yearBanner}
@@ -198,12 +217,12 @@ export default function StudentSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED 7x3 Grid Schedule Matrix Table for Student */}
+      {/* Synchronized 4-Row x 8-Column Grid Matrix Container */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
-            <span>小明同學 週課表矩陣</span>
-            <span className="text-xs text-[#7A736E] font-normal">（天藍色: 我的課程 · 清新粉綠: 張老師開放時段）</span>
+            <span>學生端 課表總覽</span>
+            <span className="text-xs text-[#7A736E] font-normal">（點選「張老師開放時段」即可申請將個人課程調整至該時段）</span>
           </h2>
           <div className="flex items-center gap-4 text-xs font-bold">
             <span className="flex items-center gap-1.5 text-[#1565C0]">
@@ -215,65 +234,68 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* 8-Column Layout System: Today is ENCLOSED in ONE BIG UNIFIED ORANGE BORDER CARD */}
-        <div className="grid grid-cols-8 gap-3.5 min-w-[1150px] items-start">
-          {/* Column 0: Left Header & 3 Time Block Labels */}
-          <div className="flex flex-col gap-3.5">
-            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px]">
-              時段 / 日期
-            </div>
-            {TIME_BLOCKS.map((block) => {
-              const BlockIcon = block.icon;
-              return (
-                <div
-                  key={block.key}
-                  className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5"
-                >
+        {/* Synchronized CSS Grid Matrix Container */}
+        <div className="grid grid-cols-8 gap-3.5 min-w-[1150px] relative items-stretch">
+          {/* Today's Unified Big Orange Border Container Overlay */}
+          {todayColIdx !== -1 && (
+            <div
+              className="border-2 border-[#E88D67] bg-[#FFE8B3] rounded-3xl shadow-md ring-2 ring-[#E88D67]/30 pointer-events-none z-0 transition-all"
+              style={{
+                gridColumnStart: todayColIdx + 2,
+                gridColumnEnd: todayColIdx + 3,
+                gridRowStart: 1,
+                gridRowEnd: 5,
+                margin: '-6px',
+              }}
+            />
+          )}
+
+          {/* ROW 1: Date Headers */}
+          <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px] z-10">
+            時段 / 日期
+          </div>
+          {weekDates.map((d) => {
+            const isToday = d.fullDateStr === todayDateStr;
+            return (
+              <div
+                key={d.key}
+                className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center z-10 ${
+                  isToday
+                    ? 'bg-[#FFE8B3] font-black text-[#8C6D53]'
+                    : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
+                }`}
+              >
+                {isToday && (
+                  <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-0.5 shadow-xs uppercase tracking-wider self-center">
+                    ★ 今天 (Today)
+                  </span>
+                )}
+                <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
+                  {d.monthDay}
+                </div>
+                <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                  {d.dayLabel} ({d.short})
+                </div>
+              </div>
+            );
+          })}
+
+          {/* ROW 2, 3, 4: Time Blocks (Morning, Afternoon, Evening) */}
+          {TIME_BLOCKS.map((block) => {
+            const BlockIcon = block.icon;
+            return (
+              <React.Fragment key={block.key}>
+                {/* Left Label Cell for this Block */}
+                <div className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5 z-10">
                   <BlockIcon className="w-6 h-6 text-[#E88D67]" />
                   <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
                   <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Columns 1 to 7: Monday to Sunday */}
-          {weekDates.map((d) => {
-            const todayDateStr = new Date().toISOString().split('T')[0];
-            const isToday = d.fullDateStr === todayDateStr;
+                {/* 7 Day Cells for this Block (Synchronized Row Heights across all 7 Days) */}
+                {weekDates.map((d) => {
+                  const isToday = d.fullDateStr === todayDateStr;
 
-            return (
-              <div
-                key={d.key}
-                className={`flex flex-col gap-3.5 transition-all ${
-                  isToday
-                    ? 'p-2 rounded-3xl border-2 border-[#E88D67] bg-[#FFE8B3]/60 shadow-md ring-2 ring-[#E88D67]/30'
-                    : ''
-                }`}
-              >
-                {/* Date Header Box (Shares background color with all 3 cells inside Today) */}
-                <div
-                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center ${
-                    isToday
-                      ? 'bg-[#FFE8B3] border border-[#E88D67]/40 font-black text-[#8C6D53]'
-                      : 'bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs'
-                  }`}
-                >
-                  {isToday && (
-                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-0.5 shadow-xs uppercase tracking-wider">
-                      ★ 今天 (Today)
-                    </span>
-                  )}
-                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
-                    {d.monthDay}
-                  </div>
-                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
-                    {d.dayLabel} ({d.short})
-                  </div>
-                </div>
-
-                {/* 3 Time Block Cells */}
-                {TIME_BLOCKS.map((block) => {
                   const cellAppointments = myAppointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
@@ -296,10 +318,10 @@ export default function StudentSchedulePage() {
 
                   return (
                     <div
-                      key={block.key}
-                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all ${
+                      key={d.key}
+                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all z-10 ${
                         isToday
-                          ? 'bg-[#FFE8B3] border border-[#E88D67]/30 shadow-xs'
+                          ? 'bg-[#FFE8B3]'
                           : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40'
                       }`}
                     >
@@ -329,25 +351,28 @@ export default function StudentSchedulePage() {
                                 <div className="mt-1 text-[10px] text-[#B85536] bg-[#FCEADE] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-[#F6D0B8]">
                                   <Lock className="w-3 h-3 shrink-0" /> 24h內不可線上調課
                                 </div>
-                              ) : null}
+                              ) : (
+                                <div className="mt-0.5 text-[10px] text-[#1565C0]/80 font-bold">
+                                  可進行線上調課
+                                </div>
+                              )}
                             </div>
                           );
                         })}
 
-                        {/* Teacher's Open Slots ("張老師開放時段") */}
+                        {/* Teacher's Open Slots ("張老師開放時段" - Clickable to open Reschedule Modal) */}
                         {sortedAvailableSlots.map((slot) => (
                           <div
                             key={slot.id}
                             onClick={() => handleOpenSlotClick(slot)}
-                            className="p-2.5 rounded-xl cursor-pointer flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-all group"
+                            className="p-2.5 rounded-xl cursor-pointer bg-[#E8F5E9] border border-[#C8E6C9] text-[#2E7D32] hover:bg-[#C8E6C9] flex flex-col gap-0.5 shadow-xs transition-all group"
+                            title="點擊預約/將課程調整至此時段"
                           >
-                            <div className="font-black text-xs leading-snug flex items-center justify-between">
+                            <div className="font-black text-xs flex items-center justify-between">
                               <span>張老師開放時段</span>
-                              <span className="text-[10px] bg-[#2E7D32] text-white px-1.5 py-0.5 rounded-md font-bold group-hover:scale-105 transition-transform">
-                                可調課
-                              </span>
+                              <Sparkles className="w-3 h-3 text-[#2E7D32] group-hover:scale-110 transition-transform" />
                             </div>
-                            <div className="font-mono text-[11px] tracking-tight font-bold">
+                            <div className="font-mono text-[11px] font-bold tracking-tight">
                               {formatTimeRange(slot.start_time, slot.end_time)}
                             </div>
                           </div>
@@ -356,137 +381,93 @@ export default function StudentSchedulePage() {
                     </div>
                   );
                 })}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>
       </div>
 
-      {/* Interactive Reschedule Modal when clicking "張老師開放時段" */}
-      {selectedTargetSlot && (
+      {/* Online Reschedule Modal */}
+      {showRescheduleModal && selectedSlotForReschedule && (
         <div className="fixed inset-0 z-50 bg-[#332C27]/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md p-6 sm:p-8 rounded-3xl border border-[#EFECE6] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
-              <div className="flex items-center gap-2">
+              <h3 className="font-bold text-lg text-[#332C27] flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#E88D67]" />
-                <h3 className="font-bold text-lg text-[#332C27]">將課程調整至「張老師開放時段」</h3>
-              </div>
+                自主線上調課申請
+              </h3>
               <button
-                onClick={() => setSelectedTargetSlot(null)}
+                onClick={() => setShowRescheduleModal(false)}
                 className="text-[#7A736E] hover:text-[#332C27]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#E8F5E9] border border-[#C8E6C9] text-xs text-[#2E7D32] font-bold flex items-center justify-between">
-              <span>目標時段：</span>
-              <span className="font-mono font-black text-sm">
-                {formatFullDateStr(selectedTargetSlot.start_time)} {formatTimeRange(selectedTargetSlot.start_time, selectedTargetSlot.end_time)}
-              </span>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center gap-2 text-xs text-[#7A736E] font-medium">
-              <Info className="w-4 h-4 text-[#E88D67] shrink-0" />
-              <span>規則提醒：上課前 24 小時內之舊課程不受理線上調課。</span>
-            </div>
-
-            {feedbackMsg && (
-              <div
-                className={`p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 ${
-                  feedbackMsg.success
-                    ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]'
-                    : 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8]'
-                }`}
-              >
-                {feedbackMsg.success ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                {feedbackMsg.text}
+            <div className="space-y-4 text-xs">
+              <div className="p-3.5 rounded-2xl bg-[#E8F5E9] border border-[#C8E6C9] space-y-1">
+                <div className="text-[#2E7D32] font-extrabold text-xs">
+                  目標調整新時段 (Target Slot):
+                </div>
+                <div className="font-bold text-[#332C27] text-sm font-mono">
+                  {formatFullDateStr(selectedSlotForReschedule.start_time)} · {formatTimeRange(selectedSlotForReschedule.start_time, selectedSlotForReschedule.end_time)}
+                </div>
               </div>
-            )}
 
-            <form onSubmit={handleSubmitReschedule} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-[#332C27] mb-2">
-                  請問您想將哪一天的舊課程調整至此時段？
+                <label className="block font-bold text-[#332C27] mb-1.5">
+                  選擇欲移動的舊課程：
                 </label>
-
-                {myAppointments.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-[#7A736E] bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] font-bold">
-                    您目前沒有已排定的舊課程可供調課。
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                    {myAppointments.map((app) => {
-                      const timeStr = `${formatFullDateStr(app.start_time)} ${formatTimeRange(app.start_time, app.end_time)}`;
-                      const isLocked = isWithin24Hours(app.start_time);
-                      const isSelected = selectedAppointmentId === app.id;
-
-                      return (
-                        <div
-                          key={app.id}
-                          onClick={() => {
-                            if (!isLocked) setSelectedAppointmentId(app.id);
-                          }}
-                          className={`p-3.5 rounded-2xl border transition-all flex flex-col gap-1 ${
-                            isLocked
-                              ? 'bg-[#FAF7F2] border-[#EFECE6] opacity-60 cursor-not-allowed'
-                              : isSelected
-                              ? 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] cursor-pointer font-bold shadow-xs'
-                              : 'bg-white border-[#EFECE6] text-[#332C27] cursor-pointer hover:border-[#BBDEFB]'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-extrabold">
-                              我的課程 {app.status === 'rescheduled' ? '(先前已調課)' : ''}
-                            </span>
-                            {isLocked ? (
-                              <span className="text-[10px] text-[#B85536] bg-[#FCEADE] px-2 py-0.5 rounded-full font-bold border border-[#F6D0B8] flex items-center gap-1">
-                                <Lock className="w-3 h-3" /> 24h內不可線上調課
-                              </span>
-                            ) : isSelected ? (
-                              <span className="text-[10px] text-[#1565C0] bg-[#E3F2FD] px-2 py-0.5 rounded-full font-bold border border-[#BBDEFB]">
-                                已選擇此課程調課
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="font-mono text-xs font-bold text-[#7A736E]">
-                            {timeStr}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#332C27] mb-1">調課原因 (選填)</label>
-                <textarea
-                  rows={2}
-                  value={rescheduleReason}
-                  onChange={(e) => setRescheduleReason(e.target.value)}
-                  placeholder="例如：時間調整申請..."
-                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3.5 py-2 text-xs text-[#332C27] focus:outline-none focus:border-[#E88D67]"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedTargetSlot(null)}
-                  className="px-4 py-2 rounded-full text-xs font-bold text-[#7A736E] hover:text-[#332C27]"
+                <select
+                  value={selectedAppToMove}
+                  onChange={(e) => setSelectedAppToMove(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl p-3 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#E88D67]"
                 >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  disabled={!selectedAppointmentId || myAppointments.length === 0}
-                  className="px-5 py-2.5 rounded-full bg-[#E88D67] hover:bg-[#D67A53] text-white font-bold text-xs shadow-md shadow-[#E88D67]/20 disabled:opacity-50"
-                >
-                  確認調課至此時段
-                </button>
+                  {myAppointments.map((app) => {
+                    const locked = isWithin24Hours(app.start_time);
+                    return (
+                      <option key={app.id} value={app.id} disabled={locked}>
+                        {formatFullDateStr(app.start_time)} ({formatTimeRange(app.start_time, app.end_time)}) {locked ? ' [24h內不可調課]' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
-            </form>
+
+              {modalNotice && (
+                <div
+                  className={`p-3 rounded-2xl text-xs font-bold flex items-center gap-2 ${
+                    modalNotice.type === 'error'
+                      ? 'bg-[#FCEADE] text-[#B85536] border border-[#F6D0B8]'
+                      : 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]'
+                  }`}
+                >
+                  {modalNotice.type === 'error' ? (
+                    <AlertCircle className="w-4 h-4 shrink-0 text-[#B85536]" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2E7D32]" />
+                  )}
+                  {modalNotice.message}
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowRescheduleModal(false)}
+                className="px-4 py-2 rounded-full text-xs font-bold text-[#7A736E] hover:text-[#332C27]"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmReschedule}
+                className="px-5 py-2.5 rounded-full bg-[#E88D67] hover:bg-[#D47953] text-white font-bold text-xs shadow-md shadow-[#E88D67]/20"
+              >
+                確認送出調課
+              </button>
+            </div>
           </div>
         </div>
       )}

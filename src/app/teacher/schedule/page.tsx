@@ -318,7 +318,7 @@ export default function TeacherSchedulePage() {
       );
 
       if (isRestored) {
-        setSettingNotice(`已成功協助【${targetApp.student_name}】恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${rescheduleStartTime}-${rescheduleEndTime})！`);
+        setSettingNotice(`已成功協助【${targetApp.student_name}】恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${rescheduleStartTime}-${rescheduleEndTime})，原本的開放時段已自動恢復顯示！`);
       } else {
         setSettingNotice(`已成功協助【${targetApp.student_name}】完成「3. 課程異動」，調整至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${rescheduleStartTime}-${rescheduleEndTime}！`);
       }
@@ -388,7 +388,7 @@ export default function TeacherSchedulePage() {
       );
 
       if (isRestored) {
-        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${defaultStartTime}-${defaultEndTime})，原本的開放時段已自動顯示！`);
+        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${defaultStartTime}-${defaultEndTime})，原本的開放時段已自動恢復顯示！`);
       } else {
         setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳異動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
       }
@@ -424,6 +424,10 @@ export default function TeacherSchedulePage() {
     const dayName = DAYS.find((item) => item.key === d.getDay())?.label || '';
     return `${m}/${date} ${dayName}`;
   };
+
+  // Find index of Today in weekDates
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayColIdx = weekDates.findIndex((d) => d.fullDateStr === todayDateStr);
 
   return (
     <div className="space-y-8">
@@ -886,7 +890,7 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* ENLARGED Grid Schedule Matrix Table with Column-Based Unified Orange Frame for Today */}
+      {/* Synchronized 4-Row x 8-Column Grid System: 100% Perfect Row Alignment + Single Big Orange Container Overlay for Today */}
       <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
           <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
@@ -909,65 +913,68 @@ export default function TeacherSchedulePage() {
           </div>
         </div>
 
-        {/* 8-Column Layout System: Today is ENCLOSED in ONE BIG UNIFIED ORANGE BORDER CARD */}
-        <div className="grid grid-cols-8 gap-3.5 min-w-[1150px] items-start">
-          {/* Column 0: Left Header & 3 Time Block Labels */}
-          <div className="flex flex-col gap-3.5">
-            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px]">
-              時段 / 日期
-            </div>
-            {TIME_BLOCKS.map((block) => {
-              const BlockIcon = block.icon;
-              return (
-                <div
-                  key={block.key}
-                  className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5"
-                >
+        {/* Synchronized CSS Grid Matrix Container */}
+        <div className="grid grid-cols-8 gap-3.5 min-w-[1150px] relative items-stretch">
+          {/* Today's Unified Big Orange Border Container Overlay */}
+          {todayColIdx !== -1 && (
+            <div
+              className="border-2 border-[#E88D67] bg-[#FFE8B3] rounded-3xl shadow-md ring-2 ring-[#E88D67]/30 pointer-events-none z-0 transition-all"
+              style={{
+                gridColumnStart: todayColIdx + 2,
+                gridColumnEnd: todayColIdx + 3,
+                gridRowStart: 1,
+                gridRowEnd: 5,
+                margin: '-6px',
+              }}
+            />
+          )}
+
+          {/* ROW 1: Date Headers */}
+          <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px] z-10">
+            時段 / 日期
+          </div>
+          {weekDates.map((d) => {
+            const isToday = d.fullDateStr === todayDateStr;
+            return (
+              <div
+                key={d.key}
+                className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center z-10 ${
+                  isToday
+                    ? 'bg-[#FFE8B3] font-black text-[#8C6D53]'
+                    : 'bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs'
+                }`}
+              >
+                {isToday && (
+                  <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-0.5 shadow-xs uppercase tracking-wider self-center">
+                    ★ 今天 (Today)
+                  </span>
+                )}
+                <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
+                  {d.monthDay}
+                </div>
+                <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                  {d.dayLabel} ({d.short})
+                </div>
+              </div>
+            );
+          })}
+
+          {/* ROW 2, 3, 4: Time Blocks (Morning, Afternoon, Evening) */}
+          {TIME_BLOCKS.map((block) => {
+            const BlockIcon = block.icon;
+            return (
+              <React.Fragment key={block.key}>
+                {/* Left Label Cell for this Block */}
+                <div className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5 z-10">
                   <BlockIcon className="w-6 h-6 text-[#8C6D53]" />
                   <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
                   <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Columns 1 to 7: Monday to Sunday */}
-          {weekDates.map((d) => {
-            const todayDateStr = new Date().toISOString().split('T')[0];
-            const isToday = d.fullDateStr === todayDateStr;
+                {/* 7 Day Cells for this Block (Synchronized Row Heights across all 7 Days) */}
+                {weekDates.map((d) => {
+                  const isToday = d.fullDateStr === todayDateStr;
 
-            return (
-              <div
-                key={d.key}
-                className={`flex flex-col gap-3.5 transition-all ${
-                  isToday
-                    ? 'p-2 rounded-3xl border-2 border-[#E88D67] bg-[#FFE8B3]/60 shadow-md ring-2 ring-[#E88D67]/30'
-                    : ''
-                }`}
-              >
-                {/* Date Header Box (Shares background color with all 3 cells inside Today) */}
-                <div
-                  className={`p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center ${
-                    isToday
-                      ? 'bg-[#FFE8B3] border border-[#E88D67]/40 font-black text-[#8C6D53]'
-                      : 'bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs'
-                  }`}
-                >
-                  {isToday && (
-                    <span className="text-[10px] bg-[#E88D67] text-white px-2.5 py-0.5 rounded-full font-extrabold inline-block mb-0.5 shadow-xs uppercase tracking-wider">
-                      ★ 今天 (Today)
-                    </span>
-                  )}
-                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
-                    {d.monthDay}
-                  </div>
-                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
-                    {d.dayLabel} ({d.short})
-                  </div>
-                </div>
-
-                {/* 3 Time Block Cells */}
-                {TIME_BLOCKS.map((block) => {
                   const dayApps = appointments.filter((app) => {
                     const appDay = getSlotDayOfWeek(app.start_time);
                     const appHour = getSlotHour(app.start_time);
@@ -991,12 +998,12 @@ export default function TeacherSchedulePage() {
 
                   return (
                     <div
-                      key={block.key}
+                      key={d.key}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => handleDropOnCell(d.key, block.key)}
-                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all group ${
+                      className={`min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all group z-10 ${
                         isToday
-                          ? 'bg-[#FFE8B3] border border-[#E88D67]/30 shadow-xs'
+                          ? 'bg-[#FFE8B3]'
                           : 'bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#8C6D53]/60'
                       }`}
                     >
@@ -1060,7 +1067,7 @@ export default function TeacherSchedulePage() {
                     </div>
                   );
                 })}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>
