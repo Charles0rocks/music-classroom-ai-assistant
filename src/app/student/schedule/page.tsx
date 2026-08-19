@@ -229,11 +229,12 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* Unified 2D Grid Matrix: Single Grid Container Spanning All Rows for True 2D Sticky Freeze */}
+        {/* 2D Sticky Matrix Viewport Container */}
         <div
-          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-0"
+          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6] bg-[#FAF7F2]/30 p-2"
         >
-          <div className="min-w-[1150px] relative pt-9 pb-2">
+          {/* Outer Container with Today Frame Overlay */}
+          <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-2">
             {/* Today's Single Big Orange Border Container Overlay */}
             {todayColIdx !== -1 && (
               <div
@@ -243,32 +244,27 @@ export default function StudentSchedulePage() {
                   width: `calc((100% - 194px) / 7 + 12px)`,
                 }}
               >
+                {/* Badge Header INSIDE top of Orange Frame */}
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3.5 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
                   ★ 今天 (TODAY)
                 </div>
               </div>
             )}
 
-            {/* Single Grid Container Spanning Row 0 + Rows 1, 2, 3 */}
-            <div className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5 items-stretch relative">
-              {/* Column 0 Continuous Solid Backdrop: Covers Column 0 + ALL gaps between time blocks, eliminating gap leakage when scrolling right */}
-              <div
-                className="sticky left-0 top-0 z-25 bg-[#FAF7F2] border-r border-[#EFECE6] rounded-r-2xl shadow-sm pointer-events-none"
-                style={{ gridColumn: 1, gridRow: '1 / span 4' }}
-              />
-
+            {/* ROW 0: Date Header Row (Sticky Top & Corner, 100% Opaque Solid Fill) */}
+            <div className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5 sticky top-0 z-30 bg-[#FAF7F2] py-1">
               {/* Corner Cell: Sticky Top-Left */}
-              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-r-2xl border-y border-r border-[#EFECE6] h-[56px] sticky top-0 left-0 z-40 shadow-sm w-[96px] shrink-0">
+              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[56px] sticky left-0 z-40 shadow-xs w-[96px] shrink-0">
                 時段 / 日期
               </div>
 
-              {/* Date Header Cells: Sticky Top */}
+              {/* 7 Date Header Cells */}
               {weekDates.map((d) => {
                 const isToday = d.fullDateStr === todayDateStr;
                 return (
                   <div
                     key={d.key}
-                    className="p-2 text-center rounded-2xl transition-all space-y-0.5 h-[56px] flex flex-col justify-center items-center sticky top-0 z-30 bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
+                    className="p-2 text-center rounded-2xl transition-all space-y-0.5 h-[56px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
                   >
                     <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
                       {d.monthDay}
@@ -279,106 +275,106 @@ export default function StudentSchedulePage() {
                   </div>
                 );
               })}
+            </div>
 
-              {/* ROWS 1, 2, 3: 3 Time Block Rows */}
-              {TIME_BLOCKS.map((block) => {
-                const BlockIcon = block.icon;
-                return (
-                  <React.Fragment key={block.key}>
-                    {/* Left Label Cell: Sticky Left Column */}
-                    <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-r-2xl border-y border-r border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-20 shadow-sm w-[96px] shrink-0">
-                      <BlockIcon className="w-5 h-5 text-[#E88D67]" />
-                      <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
-                      <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
-                    </div>
+            {/* ROWS 1, 2, 3: 3 Time Block Rows (Left Label Cell: Sticky Left) */}
+            {TIME_BLOCKS.map((block) => {
+              const BlockIcon = block.icon;
+              return (
+                <div key={block.key} className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5 items-stretch">
+                  {/* Left Label Cell: Sticky Left Column (100% Opaque Cream Fill) */}
+                  <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-sm w-[96px] shrink-0">
+                    <BlockIcon className="w-5 h-5 text-[#E88D67]" />
+                    <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
+                    <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
+                  </div>
 
-                    {/* 7 Day Cells for this Row */}
-                    {weekDates.map((d) => {
-                      const cellAppointments = myAppointments.filter((app) => {
-                        const appDay = getSlotDayOfWeek(app.start_time);
-                        const appHour = getSlotHour(app.start_time);
-                        return appDay === d.key && isTimeInBlock(appHour, block.key);
-                      });
+                  {/* 7 Day Cells for this Row */}
+                  {weekDates.map((d) => {
+                    const cellAppointments = myAppointments.filter((app) => {
+                      const appDay = getSlotDayOfWeek(app.start_time);
+                      const appHour = getSlotHour(app.start_time);
+                      return appDay === d.key && isTimeInBlock(appHour, block.key);
+                    });
 
-                      const cellAvailableSlots = scheduleSlots.filter((slot) => {
-                        if (!slot.is_available) return false;
-                        const slotDay = getSlotDayOfWeek(slot.start_time);
-                        const slotHour = getSlotHour(slot.start_time);
-                        return slotDay === d.key && isTimeInBlock(slotHour, block.key);
-                      });
+                    const cellAvailableSlots = scheduleSlots.filter((slot) => {
+                      if (!slot.is_available) return false;
+                      const slotDay = getSlotDayOfWeek(slot.start_time);
+                      const slotHour = getSlotHour(slot.start_time);
+                      return slotDay === d.key && isTimeInBlock(slotHour, block.key);
+                    });
 
-                      const sortedAppointments = [...cellAppointments].sort(
-                        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-                      );
-                      const sortedAvailableSlots = [...cellAvailableSlots].sort(
-                        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-                      );
+                    const sortedAppointments = [...cellAppointments].sort(
+                      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                    );
+                    const sortedAvailableSlots = [...cellAvailableSlots].sort(
+                      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                    );
 
-                      return (
-                        <div
-                          key={d.key}
-                          className="min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all z-10 bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40 shadow-xs"
-                        >
-                          <div className="space-y-2">
-                            {/* Confirmed Student Appointments */}
-                            {sortedAppointments.map((app) => {
-                              const locked24h = isWithin24Hours(app.start_time);
-                              return (
-                                <div
-                                  key={app.id}
-                                  className="p-2.5 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] border-l-4 border-l-[#1565C0] text-[#1565C0] flex flex-col gap-1 shadow-xs"
-                                >
-                                  <div className="flex items-center justify-between text-xs font-black">
-                                    <span>
-                                      {app.status === 'rescheduled'
-                                        ? '我的課程 (異動)'
-                                        : app.status === 'restored'
-                                        ? '我的課程 (恢復)'
-                                        : '我的課程'}
-                                    </span>
-                                  </div>
-                                  <div className="font-mono text-[11px] font-bold tracking-tight">
-                                    {formatTimeRange(app.start_time, app.end_time)}
-                                  </div>
-
-                                  {locked24h ? (
-                                    <div className="mt-1 text-[10px] text-[#B85536] bg-[#FCEADE] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-[#F6D0B8]">
-                                      <Lock className="w-3 h-3 shrink-0" /> 24h內不可線上調課
-                                    </div>
-                                  ) : (
-                                    <div className="mt-0.5 text-[10px] text-[#1565C0]/80 font-bold">
-                                      可進行線上調課
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-
-                            {/* Teacher's Open Slots ("張老師開放時段" - Clickable with iOS Green Left Accent) */}
-                            {sortedAvailableSlots.map((slot) => (
+                    return (
+                      <div
+                        key={d.key}
+                        className="min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all z-10 bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40 shadow-xs"
+                      >
+                        <div className="space-y-2">
+                          {/* Confirmed Student Appointments */}
+                          {sortedAppointments.map((app) => {
+                            const locked24h = isWithin24Hours(app.start_time);
+                            return (
                               <div
-                                key={slot.id}
-                                onClick={() => handleOpenSlotClick(slot)}
-                                className="p-2.5 rounded-xl cursor-pointer bg-[#E8F5E9] border border-[#C8E6C9] border-l-4 border-l-[#2E7D32] text-[#2E7D32] hover:bg-[#C8E6C9] flex flex-col gap-0.5 shadow-xs transition-all group"
-                                title="點擊預約/將課程調整至此時段"
+                                key={app.id}
+                                className="p-2.5 rounded-xl bg-[#E3F2FD] border border-[#BBDEFB] border-l-4 border-l-[#1565C0] text-[#1565C0] flex flex-col gap-1 shadow-xs"
                               >
-                                <div className="font-black text-xs flex items-center justify-between">
-                                  <span>張老師開放時段</span>
-                                  <Sparkles className="w-3 h-3 text-[#2E7D32] group-hover:scale-110 transition-transform" />
+                                <div className="flex items-center justify-between text-xs font-black">
+                                  <span>
+                                    {app.status === 'rescheduled'
+                                      ? '我的課程 (異動)'
+                                      : app.status === 'restored'
+                                      ? '我的課程 (恢復)'
+                                      : '我的課程'}
+                                  </span>
                                 </div>
                                 <div className="font-mono text-[11px] font-bold tracking-tight">
-                                  {formatTimeRange(slot.start_time, slot.end_time)}
+                                  {formatTimeRange(app.start_time, app.end_time)}
                                 </div>
+
+                                {locked24h ? (
+                                  <div className="mt-1 text-[10px] text-[#B85536] bg-[#FCEADE] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-[#F6D0B8]">
+                                    <Lock className="w-3 h-3 shrink-0" /> 24h內不可線上調課
+                                  </div>
+                                ) : (
+                                  <div className="mt-0.5 text-[10px] text-[#1565C0]/80 font-bold">
+                                    可進行線上調課
+                                  </div>
+                                )}
                               </div>
-                            ))}
-                          </div>
+                            );
+                          })}
+
+                          {/* Teacher's Open Slots */}
+                          {sortedAvailableSlots.map((slot) => (
+                            <div
+                              key={slot.id}
+                              onClick={() => handleOpenSlotClick(slot)}
+                              className="p-2.5 rounded-xl cursor-pointer bg-[#E8F5E9] border border-[#C8E6C9] border-l-4 border-l-[#2E7D32] text-[#2E7D32] hover:bg-[#C8E6C9] flex flex-col gap-0.5 shadow-xs transition-all group"
+                              title="點擊預約/將課程調整至此時段"
+                            >
+                              <div className="font-black text-xs flex items-center justify-between">
+                                <span>張老師開放時段</span>
+                                <Sparkles className="w-3 h-3 text-[#2E7D32] group-hover:scale-110 transition-transform" />
+                              </div>
+                              <div className="font-mono text-[11px] font-bold tracking-tight">
+                                {formatTimeRange(slot.start_time, slot.end_time)}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      );
-                    })}
-                  </React.Fragment>
-                );
-              })}
-            </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
