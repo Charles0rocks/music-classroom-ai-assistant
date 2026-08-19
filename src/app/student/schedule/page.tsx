@@ -229,10 +229,11 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* Outer Container with 100% Precise Math Overlay for Today & Opaque 2D Sticky Freeze */}
+        {/* 2D Sticky Matrix Viewport Container (Zero Text Leakage Opaque Freeze) */}
         <div
-          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2.5 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-2"
+          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-0"
         >
+          {/* Outer Container with 100% Precise Math Overlay for Today & Opaque 2D Sticky Freeze */}
           <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-2">
             {/* Today's Single Big Orange Border Container Overlay */}
             {todayColIdx !== -1 && (
@@ -250,9 +251,9 @@ export default function StudentSchedulePage() {
               </div>
             )}
 
-            {/* ROW 0: Date Header Row with 2D Opaque Sticky Top & Corner (Height Reduced to 56px) */}
+            {/* ROW 0: Date Header Row with 2D Opaque Sticky Top & Corner (Height Reduced to 56px, Zero Leakage) */}
             <div className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5">
-              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[56px] sticky top-0 left-0 z-40 shadow-xs">
+              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-r-2xl border-y border-r border-[#EFECE6] h-[56px] sticky top-0 left-0 z-40 shadow-sm w-[96px] shrink-0">
                 時段 / 日期
               </div>
               {weekDates.map((d) => {
@@ -260,7 +261,7 @@ export default function StudentSchedulePage() {
                 return (
                   <div
                     key={d.key}
-                    className="p-2 text-center rounded-2xl transition-all space-y-0.5 h-[56px] flex flex-col justify-center items-center sticky top-0 z-30 bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
+                    className="p-2 text-center rounded-2xl transition-all space-y-0.5 h-[56px] flex flex-col justify-center items-center sticky top-0 z-20 bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
                   >
                     <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
                       {d.monthDay}
@@ -273,13 +274,13 @@ export default function StudentSchedulePage() {
               })}
             </div>
 
-            {/* ROWS 1, 2, 3: 3 Time Block Rows with 2D Opaque Sticky Left Column (Width Narrowed to 96px) */}
+            {/* ROWS 1, 2, 3: 3 Time Block Rows with 100% Opaque Flush Sticky Left Column (Width 96px, Zero Leakage) */}
             {TIME_BLOCKS.map((block) => {
               const BlockIcon = block.icon;
               return (
                 <div key={block.key} className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5 items-stretch">
-                  {/* Left Label Cell with 100% Opaque 2D Sticky Left Column */}
-                  <div className="min-h-[140px] p-2 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-xs">
+                  {/* Left Label Cell with 100% Flush Opaque Solid Sticky Left Column */}
+                  <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-r-2xl border-y border-r border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-sm w-[96px] shrink-0">
                     <BlockIcon className="w-5 h-5 text-[#E88D67]" />
                     <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
                     <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
