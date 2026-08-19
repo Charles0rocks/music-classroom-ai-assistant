@@ -235,17 +235,17 @@ export default function StudentSchedulePage() {
         >
           {/* Outer Container with Today Frame Overlay */}
           <div className="min-w-[1100px] relative space-y-3 pt-8 pb-3">
-            {/* Today's Single Big Orange Border Container Overlay */}
+            {/* Today's Single Big Orange Border Container Overlay (z-60 on Top Layer) */}
             {todayColIdx !== -1 && (
               <div
-                className="absolute top-0 -bottom-1 border-[3px] border-[#E88D67] bg-transparent rounded-[24px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-5 transition-all"
+                className="absolute top-0 -bottom-1 border-[3px] border-[#E88D67] bg-transparent rounded-[24px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-60 transition-all"
                 style={{
                   left: `calc(108px + ${todayColIdx} * ((100% - 116px) / 7))`,
                   width: `calc((100% - 116px) / 7)`,
                 }}
               >
                 {/* Badge Header INSIDE top of Orange Frame */}
-                <div className="absolute top-1.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1 z-60">
                   ★ 今天 (TODAY)
                 </div>
               </div>
