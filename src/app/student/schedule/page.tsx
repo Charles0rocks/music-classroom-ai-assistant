@@ -174,33 +174,33 @@ export default function StudentSchedulePage() {
         </div>
       </div>
 
-      {/* Global Year & Week Navigation Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FAF7F2] p-4.5 rounded-3xl border border-[#EFECE6]">
+      {/* Top Banner: Global Year & Week Segment Banner */}
+      <div className="warm-card p-4 sm:p-6 rounded-3xl border border-[#EFECE6] shadow-warm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FCEADE]/60 border border-[#F6D0B8] flex items-center justify-center text-[#E88D67]">
+          <div className="w-10 h-10 rounded-2xl bg-[#FCEADE]/40 border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] shrink-0">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-xs font-extrabold text-[#E88D67] uppercase tracking-wider block">
-              全域年份與週別區間 (YEAR & WEEK BANNER)
-            </span>
-            <span className="text-lg font-black text-[#332C27] font-mono">
+            <div className="text-[10px] font-extrabold text-[#7A736E] uppercase tracking-wider">
+              全域年份與週別區間 (Year & Week Banner)
+            </div>
+            <span className="text-base sm:text-lg font-black text-[#332C27] font-mono">
               {yearBanner}
             </span>
           </div>
         </div>
 
         {/* Week Switcher Controls */}
-        <div className="flex items-center gap-2 bg-white p-1 rounded-full border border-[#EFECE6] shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-white p-1 rounded-full border border-[#EFECE6] shadow-xs w-full sm:w-auto justify-between sm:justify-start">
           <button
             onClick={() => setWeekOffset((prev) => prev - 1)}
-            className="px-3.5 py-1.5 rounded-full hover:bg-[#FAF7F2] text-xs font-bold text-[#7A736E] hover:text-[#332C27] flex items-center gap-1 transition-all"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-full hover:bg-[#FAF7F2] text-xs font-bold text-[#7A736E] hover:text-[#332C27] flex items-center gap-1 transition-all"
           >
             <ChevronLeft className="w-4 h-4" /> 上一週
           </button>
           <button
             onClick={() => setWeekOffset(0)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+            className={`px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
               weekOffset === 0
                 ? 'bg-[#E88D67] text-white shadow-xs'
                 : 'text-[#7A736E] hover:bg-[#FAF7F2]'
@@ -210,7 +210,7 @@ export default function StudentSchedulePage() {
           </button>
           <button
             onClick={() => setWeekOffset((prev) => prev + 1)}
-            className="px-3.5 py-1.5 rounded-full hover:bg-[#FAF7F2] text-xs font-bold text-[#7A736E] hover:text-[#332C27] flex items-center gap-1 transition-all"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-full hover:bg-[#FAF7F2] text-xs font-bold text-[#7A736E] hover:text-[#332C27] flex items-center gap-1 transition-all"
           >
             下一週 <ChevronRight className="w-4 h-4" />
           </button>
@@ -218,13 +218,19 @@ export default function StudentSchedulePage() {
       </div>
 
       {/* Synchronized Row-Grid Matrix Container */}
-      <div className="warm-card p-6 sm:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-6 overflow-x-auto max-h-[850px] overflow-y-auto scrollbar-thin">
-        <div className="flex items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1">
-          <h2 className="text-lg font-bold text-[#332C27] flex items-center gap-2">
+      <div className="warm-card p-3.5 sm:p-6 lg:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4 sm:space-y-6 max-h-[850px] overflow-y-auto scrollbar-thin">
+        {/* Mobile Horizontal Scroll Prompt Banner */}
+        <div className="md:hidden flex items-center justify-between text-xs font-extrabold text-[#785338] bg-[#FFF3CD]/90 border border-[#E88D67]/40 px-3.5 py-2 rounded-2xl shadow-xs">
+          <span>📱 手機檢視提示：左右滑動查看 7 天課表</span>
+          <span className="font-mono text-xs font-black">👈 ↔ 👉</span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1 gap-3">
+          <h2 className="text-base sm:text-lg font-bold text-[#332C27] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
             <span>學生端 課表總覽</span>
             <span className="text-xs text-[#7A736E] font-normal">（點選「張老師開放時段」即可申請將個人課程調整至該時段）</span>
           </h2>
-          <div className="flex items-center gap-4 text-xs font-bold">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
             <span className="flex items-center gap-1.5 text-[#1565C0]">
               <span className="w-3 h-3 rounded-full bg-[#E3F2FD] border border-[#BBDEFB]" /> 我的課程 (海洋天藍)
             </span>
@@ -234,46 +240,47 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* Outer Container with 100% Precise Math Overlay for Today */}
-        <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-1">
-          {/* Today's Single Big Orange Border Container Overlay */}
-          {todayColIdx !== -1 && (
-            <div
-              className="absolute top-0 -bottom-2.5 border-[3px] border-[#E88D67] bg-transparent rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
-              style={{
-                left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
-                width: `calc((100% - 98px) / 8 + 16px)`,
-              }}
-            >
-              {/* Badge Header INSIDE top of Orange Frame, NOT touching/pressing top border line */}
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3.5 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
-                ★ 今天 (TODAY)
-              </div>
-            </div>
-          )}
-
-          {/* ROW 0: Date Header Row (All 7 Date Header Boxes share 100% IDENTICAL background color) */}
-          <div className="grid grid-cols-8 gap-3.5">
-            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px] z-10">
-              時段 / 日期
-            </div>
-            {weekDates.map((d) => {
-              const isToday = d.fullDateStr === todayDateStr;
-              return (
-                <div
-                  key={d.key}
-                  className="p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center items-center z-10 bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs"
-                >
-                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
-                    {d.monthDay}
-                  </div>
-                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
-                    {d.dayLabel} ({d.short})
-                  </div>
+        <div className="overflow-x-auto pb-2 scrollbar-thin touch-pan-x">
+          {/* Outer Container with 100% Precise Math Overlay for Today */}
+          <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-1">
+            {/* Today's Single Big Orange Border Container Overlay */}
+            {todayColIdx !== -1 && (
+              <div
+                className="absolute top-0 -bottom-2.5 border-[3px] border-[#E88D67] bg-transparent rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
+                style={{
+                  left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
+                  width: `calc((100% - 98px) / 8 + 16px)`,
+                }}
+              >
+                {/* Badge Header INSIDE top of Orange Frame, NOT touching/pressing top border line */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3.5 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
+                  ★ 今天 (TODAY)
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            )}
+
+            {/* ROW 0: Date Header Row */}
+            <div className="grid grid-cols-8 gap-3.5">
+              <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px] z-10">
+                時段 / 日期
+              </div>
+              {weekDates.map((d) => {
+                const isToday = d.fullDateStr === todayDateStr;
+                return (
+                  <div
+                    key={d.key}
+                    className="p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center items-center z-10 bg-[#FCEADE]/40 border border-[#F6D0B8] shadow-xs"
+                  >
+                    <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
+                      {d.monthDay}
+                    </div>
+                    <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                      {d.dayLabel} ({d.short})
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
           {/* ROWS 1, 2, 3: 3 Time Block Rows */}
           {TIME_BLOCKS.map((block) => {
@@ -377,6 +384,7 @@ export default function StudentSchedulePage() {
           })}
         </div>
       </div>
+    </div>
 
       {/* Online Reschedule Modal */}
       {showRescheduleModal && selectedSlotForReschedule && (
