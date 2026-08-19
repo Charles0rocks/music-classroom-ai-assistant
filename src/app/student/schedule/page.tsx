@@ -231,17 +231,17 @@ export default function StudentSchedulePage() {
 
         {/* 2D Sticky Matrix Viewport Container (Zero Leakage, Perfect 2D Freeze Hierarchy) */}
         <div
-          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6] bg-[#FAF7F2] p-0 shadow-sm"
+          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6] bg-[#FAF7F2] p-0 shadow-sm relative"
         >
-          {/* Outer Container with Today Frame Overlay */}
-          <div className="min-w-[1100px] relative space-y-3 pt-8 pb-3">
+          {/* Single Unified 32-Cell 2D Grid Matrix */}
+          <div className="grid grid-cols-[100px_repeat(7,_minmax(140px,_1fr))] gap-3 p-3 min-w-[1080px] bg-[#FAF7F2] relative">
             {/* Today's Single Big Orange Border Container Overlay (z-60 on Top Layer) */}
             {todayColIdx !== -1 && (
               <div
-                className="absolute top-0 -bottom-1 border-[3px] border-[#E88D67] bg-transparent rounded-[24px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-60 transition-all"
+                className="absolute top-0 bottom-0 border-[3px] border-[#E88D67] bg-transparent rounded-[24px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-60 transition-all"
                 style={{
-                  left: `calc(108px + ${todayColIdx} * ((100% - 116px) / 7))`,
-                  width: `calc((100% - 116px) / 7)`,
+                  left: `calc(112px + ${todayColIdx} * ((100% - 124px) / 7))`,
+                  width: `calc((100% - 124px) / 7)`,
                 }}
               >
                 {/* Badge Header INSIDE top of Orange Frame */}
@@ -251,45 +251,42 @@ export default function StudentSchedulePage() {
               </div>
             )}
 
-            {/* ROW 0: Date Header Row (Sticky Top z-50 so Time Labels z-30 pass UNDER it when scrolling down) */}
-            <div className="grid grid-cols-[100px_repeat(7,_minmax(0,_1fr))] gap-3 sticky top-0 z-50 bg-[#FAF7F2] py-1 px-2 border-b border-[#EFECE6] shadow-2xs">
-              {/* Corner Cell: Sticky Top-Left (z-50) */}
-              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-xl border border-[#EFECE6] h-[52px] sticky left-0 z-50 shadow-xs w-[100px] shrink-0">
-                時段 / 日期
-              </div>
-
-              {/* 7 Date Header Cells (z-50) */}
-              {weekDates.map((d) => {
-                const isToday = d.fullDateStr === todayDateStr;
-                return (
-                  <div
-                    key={d.key}
-                    className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs z-50"
-                  >
-                    <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
-                      {d.monthDay}
-                    </div>
-                    <div className={`font-extrabold text-[11px] ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
-                      {d.dayLabel} ({d.short})
-                    </div>
-                  </div>
-                );
-              })}
+            {/* CELL 0: Corner Cell (Sticky Top-0 Left-0 z-50) */}
+            <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-xl border border-[#EFECE6] h-[52px] sticky top-0 left-0 z-50 shadow-xs w-[100px] shrink-0">
+              時段 / 日期
             </div>
 
-            {/* ROWS 1, 2, 3: 3 Time Block Rows (Left Label Cell: Sticky Left z-30, passing UNDER Row 0 z-50) */}
+            {/* CELLS 1..7: 7 Date Header Cells (Sticky Top-0 z-40) */}
+            {weekDates.map((d) => {
+              const isToday = d.fullDateStr === todayDateStr;
+              return (
+                <div
+                  key={d.key}
+                  className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs sticky top-0 z-40"
+                >
+                  <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
+                    {d.monthDay}
+                  </div>
+                  <div className={`font-extrabold text-[11px] ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                    {d.dayLabel} ({d.short})
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* ROWS 1, 2, 3: 3 Time Block Rows */}
             {TIME_BLOCKS.map((block) => {
               const BlockIcon = block.icon;
               return (
-                <div key={block.key} className="grid grid-cols-[100px_repeat(7,_minmax(0,_1fr))] gap-3 px-2 items-stretch">
-                  {/* Left Label Cell: Sticky Left Column (z-30, 100% Opaque Cream Fill) */}
+                <React.Fragment key={block.key}>
+                  {/* Left Label Cell: Sticky Left-0 Column (z-30) */}
                   <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-xs w-[100px] shrink-0">
                     <BlockIcon className="w-5 h-5 text-[#E88D67]" />
                     <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
                     <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
                   </div>
 
-                  {/* 7 Day Content Cells (z-10) */}
+                  {/* 7 Day Content Cells for this Row (z-10) */}
                   {weekDates.map((d) => {
                     const cellAppointments = myAppointments.filter((app) => {
                       const appDay = getSlotDayOfWeek(app.start_time);
@@ -372,7 +369,7 @@ export default function StudentSchedulePage() {
                       </div>
                     );
                   })}
-                </div>
+                </React.Fragment>
               );
             })}
           </div>
