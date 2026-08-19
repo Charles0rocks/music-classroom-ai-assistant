@@ -251,20 +251,20 @@ export default function StudentSchedulePage() {
               </div>
             )}
 
-            {/* ROW 0: Date Header Row (Sticky Top z-30, Corner Cell z-50, 100% Opaque Solid Fill) */}
-            <div className="grid grid-cols-[100px_repeat(7,_minmax(0,_1fr))] gap-3 sticky top-0 z-30 bg-[#FAF7F2] py-1 px-2 border-b border-[#EFECE6] shadow-2xs">
+            {/* ROW 0: Date Header Row (Sticky Top z-50 so Time Labels z-30 pass UNDER it when scrolling down) */}
+            <div className="grid grid-cols-[100px_repeat(7,_minmax(0,_1fr))] gap-3 sticky top-0 z-50 bg-[#FAF7F2] py-1 px-2 border-b border-[#EFECE6] shadow-2xs">
               {/* Corner Cell: Sticky Top-Left (z-50) */}
               <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-xl border border-[#EFECE6] h-[52px] sticky left-0 z-50 shadow-xs w-[100px] shrink-0">
                 時段 / 日期
               </div>
 
-              {/* 7 Date Header Cells (z-30) */}
+              {/* 7 Date Header Cells (z-50) */}
               {weekDates.map((d) => {
                 const isToday = d.fullDateStr === todayDateStr;
                 return (
                   <div
                     key={d.key}
-                    className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
+                    className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs z-50"
                   >
                     <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
                       {d.monthDay}
@@ -277,13 +277,13 @@ export default function StudentSchedulePage() {
               })}
             </div>
 
-            {/* ROWS 1, 2, 3: 3 Time Block Rows (Left Label Cell: Sticky Left z-40) */}
+            {/* ROWS 1, 2, 3: 3 Time Block Rows (Left Label Cell: Sticky Left z-30, passing UNDER Row 0 z-50) */}
             {TIME_BLOCKS.map((block) => {
               const BlockIcon = block.icon;
               return (
                 <div key={block.key} className="grid grid-cols-[100px_repeat(7,_minmax(0,_1fr))] gap-3 px-2 items-stretch">
-                  {/* Left Label Cell: Sticky Left Column (z-40, 100% Opaque Cream Fill) */}
-                  <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-40 shadow-xs w-[100px] shrink-0">
+                  {/* Left Label Cell: Sticky Left Column (z-30, 100% Opaque Cream Fill) */}
+                  <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-xs w-[100px] shrink-0">
                     <BlockIcon className="w-5 h-5 text-[#E88D67]" />
                     <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
                     <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
