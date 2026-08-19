@@ -1026,7 +1026,7 @@ export default function TeacherSchedulePage() {
                           key={d.key}
                           onDragOver={(e) => e.preventDefault()}
                           onDrop={() => handleDropOnCell(d.key, block.key)}
-                          className={`h-[140px] p-2.5 rounded-xl flex flex-col justify-between space-y-2 transition-all group z-10 overflow-y-auto ${
+                          className={`min-h-[140px] p-2 rounded-xl flex flex-col justify-between space-y-1.5 transition-all group z-10 overflow-hidden ${
                             isToday
                               ? 'bg-[#FFF8F3] border-2 border-[#E88D67] ring-2 ring-[#E88D67]/20 shadow-sm'
                               : 'bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs'
