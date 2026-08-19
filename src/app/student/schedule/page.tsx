@@ -46,7 +46,6 @@ export default function StudentSchedulePage() {
   const currentStudentId = studentProfile?.id || 's-1';
 
   const [weekOffset, setWeekOffset] = useState<number>(0);
-  const matrixScrollRef = React.useRef<HTMLDivElement>(null);
   const [selectedSlotForReschedule, setSelectedSlotForReschedule] = useState<ScheduleSlot | null>(null);
   const [showRescheduleModal, setShowRescheduleModal] = useState<boolean>(false);
   const [selectedAppToMove, setSelectedAppToMove] = useState<string>('');
@@ -157,13 +156,6 @@ export default function StudentSchedulePage() {
 
   const todayDateStr = new Date().toISOString().split('T')[0];
   const todayColIdx = weekDates.findIndex((d) => d.fullDateStr === todayDateStr);
-  const scrollToDayColumn = (index: number) => {
-    if (matrixScrollRef.current) {
-      const container = matrixScrollRef.current;
-      const targetScroll = (index / 7) * (container.scrollWidth - container.clientWidth);
-      container.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -237,38 +229,8 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-1.5 bg-[#FAF7F2] p-2 sm:p-2.5 rounded-2xl border border-[#EFECE6] overflow-x-auto scrollbar-none shadow-xs">
-          <div className="text-[11px] font-black text-[#E88D67] px-2 shrink-0 hidden sm:block">
-            📅 iOS 週日曆快捷列：
-          </div>
-          <div className="flex items-center justify-between gap-1.5 w-full">
-            {weekDates.map((d, idx) => {
-              const isToday = d.fullDateStr === todayDateStr;
-              return (
-                <button
-                  key={d.key}
-                  onClick={() => scrollToDayColumn(idx)}
-                  className={`flex-1 min-w-[42px] py-1.5 sm:py-2 px-1 text-center rounded-xl transition-all flex flex-col items-center justify-center space-y-0.5 active:scale-95 ${
-                    isToday
-                      ? 'bg-[#E88D67] text-white shadow-xs font-black ring-2 ring-[#E88D67]/30'
-                      : 'bg-white border border-[#EFECE6] hover:bg-[#FAF2EC] text-[#332C27]'
-                  }`}
-                  title={`快速定位至 ${d.monthDay} (${d.dayLabel})`}
-                >
-                  <span className={`text-[10px] font-bold ${isToday ? 'text-white/90' : 'text-[#7A736E]'}`}>
-                    {d.short}
-                  </span>
-                  <span className="font-mono text-xs font-extrabold tracking-tight">
-                    {d.monthDay.split('/')[1]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
+        {/* 2D Sticky Matrix Viewport Container (Frozen at Monday Morning) */}
         <div
-          ref={matrixScrollRef}
           className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2.5 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-2"
         >
           <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-2">
