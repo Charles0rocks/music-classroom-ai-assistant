@@ -25,6 +25,8 @@ import {
   ArrowRightLeft,
   Trash2,
   GripVertical,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 
@@ -93,6 +95,7 @@ export default function TeacherSchedulePage() {
   }, [currentRole, router]);
 
   const [weekOffset, setWeekOffset] = useState<number>(0);
+  const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>('recurring');
 
   // Form State for Mode 1: 1. 常態課表 (Supports Custom Typing!)
@@ -891,14 +894,41 @@ export default function TeacherSchedulePage() {
       </div>
 
       {/* Rock-Solid Matrix Table with 4 Row-Grid Divs & Absolute Precise Math Overlay for Today */}
-      <div className="warm-card p-3.5 sm:p-6 lg:p-10 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4 sm:space-y-6 max-h-[850px] overflow-y-auto scrollbar-thin">
-        {/* Mobile Horizontal Scroll Prompt Banner */}
-        <div className="md:hidden flex items-center justify-between text-xs font-extrabold text-[#785338] bg-[#FFF3CD]/90 border border-[#E88D67]/40 px-3.5 py-2 rounded-2xl shadow-xs">
-          <span>📱 手機檢視提示：左右滑動查看 7 天課表</span>
-          <span className="font-mono text-xs font-black">👈 ↔ 👉</span>
+      <div className="warm-card p-3.5 sm:p-6 lg:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4 sm:space-y-5">
+        {/* Mobile & Desktop Viewport Toolbar: Zoom In/Out & Dual-Axis X/Y Scrollbar Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF7F2] p-3 rounded-2xl border border-[#EFECE6]">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-[#785338]">
+            <Sliders className="w-4 h-4 text-[#E88D67]" />
+            <span>課表視窗與縮放：</span>
+            <span className="text-[11px] text-[#7A736E] font-medium hidden sm:inline">(支援 X/Y 雙軸滑軌拉動與比例調整)</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setZoomLevel((prev) => Math.max(60, prev - 15))}
+              className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] text-xs font-extrabold flex items-center gap-1 shadow-xs transition-all active:scale-95"
+              title="縮小課表視窗 (方便手機單頁檢視)"
+            >
+              <ZoomOut className="w-3.5 h-3.5" /> 縮小
+            </button>
+            <button
+              onClick={() => setZoomLevel(100)}
+              className="px-2.5 py-1 rounded-xl bg-[#8C6D53] text-white text-xs font-mono font-bold shadow-xs hover:bg-[#765942] transition-all"
+              title="重置為 100% 預設比例"
+            >
+              {zoomLevel}%
+            </button>
+            <button
+              onClick={() => setZoomLevel((prev) => Math.min(160, prev + 15))}
+              className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] text-xs font-extrabold flex items-center gap-1 shadow-xs transition-all active:scale-95"
+              title="放大課表視窗"
+            >
+              <ZoomIn className="w-3.5 h-3.5" /> 放大
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-4 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-3 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1 gap-3">
           <h2 className="text-base sm:text-lg font-bold text-[#332C27] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
             <span>張老師 課表總覽</span>
             <span className="text-xs text-[#7A736E] font-normal">（可以直接用滑鼠拖曳卡片至任一天的格子內）</span>
@@ -919,8 +949,15 @@ export default function TeacherSchedulePage() {
           </div>
         </div>
 
-        {/* Outer Container with 100% Precise Math Overlay for Today */}
-        <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-1">
+        {/* Dual X & Y Axis Scrollbar Viewport Container */}
+        <div className="overflow-x-auto overflow-y-auto max-h-[68vh] sm:max-h-[750px] pb-3 pr-2.5 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-2">
+          {/* Outer Container with 100% Precise Math Overlay for Today & Scalable Min Width */}
+          <div
+            className="relative space-y-3.5 pt-9 pb-2 transition-all duration-200"
+            style={{
+              minWidth: `${Math.round(1150 * (zoomLevel / 100))}px`,
+            }}
+          >
           {/* Today's Single Big Orange Border Container Overlay */}
           {todayColIdx !== -1 && (
             <div
@@ -1065,6 +1102,7 @@ export default function TeacherSchedulePage() {
           })}
         </div>
       </div>
+    </div>
 
       {/* Single Add Slot Modal */}
       {showAddModal && (
