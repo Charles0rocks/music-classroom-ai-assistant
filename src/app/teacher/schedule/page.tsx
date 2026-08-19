@@ -917,15 +917,15 @@ export default function TeacherSchedulePage() {
         <div
           className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2.5 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-2"
         >
-          {/* Outer Container with 100% Precise Math Overlay for Today */}
+          {/* Outer Container with 100% Precise Math Overlay for Today & Opaque 2D Sticky Freeze */}
           <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-2">
             {/* Today's Single Big Orange Border Container Overlay */}
             {todayColIdx !== -1 && (
               <div
                 className="absolute top-0 -bottom-2.5 border-[3px] border-[#E88D67] bg-transparent rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
                 style={{
-                  left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
-                  width: `calc((100% - 98px) / 8 + 16px)`,
+                  left: `calc(96px + 14px + ${todayColIdx} * ((100% - 194px) / 7 + 14px) - 6px)`,
+                  width: `calc((100% - 194px) / 7 + 12px)`,
                 }}
               >
                 {/* Badge Header INSIDE top of Orange Frame, NOT touching/pressing top border line */}
@@ -935,9 +935,9 @@ export default function TeacherSchedulePage() {
               </div>
             )}
 
-            {/* ROW 0: Date Header Row with 2D Sticky Top & Corner */}
-            <div className="grid grid-cols-8 gap-3.5">
-              <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px] sticky top-0 left-0 z-40 shadow-xs">
+            {/* ROW 0: Date Header Row with 2D Opaque Sticky Top & Corner (Height Reduced to 56px) */}
+            <div className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5">
+              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[56px] sticky top-0 left-0 z-40 shadow-xs">
                 時段 / 日期
               </div>
               {weekDates.map((d) => {
@@ -945,12 +945,12 @@ export default function TeacherSchedulePage() {
                 return (
                   <div
                     key={d.key}
-                    className="p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center items-center sticky top-0 z-30 bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs"
+                    className="p-2 text-center rounded-2xl transition-all space-y-0.5 h-[56px] flex flex-col justify-center items-center sticky top-0 z-30 bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs"
                   >
-                    <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
+                    <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
                       {d.monthDay}
                     </div>
-                    <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                    <div className={`font-extrabold text-[11px] ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
                       {d.dayLabel} ({d.short})
                     </div>
                   </div>
@@ -958,16 +958,16 @@ export default function TeacherSchedulePage() {
               })}
             </div>
 
-            {/* ROWS 1, 2, 3: 3 Time Block Rows */}
+            {/* ROWS 1, 2, 3: 3 Time Block Rows with 2D Opaque Sticky Left Column (Width Narrowed to 96px) */}
             {TIME_BLOCKS.map((block) => {
               const BlockIcon = block.icon;
               return (
-                <div key={block.key} className="grid grid-cols-8 gap-3.5 items-stretch">
-                  {/* Left Label Cell with 2D Sticky Left Column */}
-                  <div className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5 sticky left-0 z-30 shadow-xs">
-                    <BlockIcon className="w-6 h-6 text-[#8C6D53]" />
-                    <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
-                    <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
+                <div key={block.key} className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5 items-stretch">
+                  {/* Left Label Cell with 100% Opaque 2D Sticky Left Column */}
+                  <div className="min-h-[140px] p-2 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-xs">
+                    <BlockIcon className="w-5 h-5 text-[#8C6D53]" />
+                    <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
+                    <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
                   </div>
 
                   {/* 7 Day Cells for this Row (Synchronized Row Height Across All Days) */}
