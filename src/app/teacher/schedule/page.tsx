@@ -25,8 +25,6 @@ import {
   ArrowRightLeft,
   Trash2,
   GripVertical,
-  ZoomIn,
-  ZoomOut,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 
@@ -59,18 +57,18 @@ interface RecurringScheduleLog {
   endTime: string;
 }
 
-// Student Color Mapping Rules:
+// Student Color Mapping Rules (iOS Calendar Style Left Accent Border):
 const getStudentCardStyle = (studentName: string) => {
   if (studentName.includes('小明')) {
-    return 'bg-[#E3F2FD] border-[#BBDEFB] text-[#1565C0] shadow-xs';
+    return 'bg-[#E3F2FD] border-[#BBDEFB] border-l-4 border-l-[#1565C0] text-[#1565C0] shadow-xs';
   } else if (studentName.includes('小華')) {
-    return 'bg-[#EDE7F6] border-[#D1C4E9] text-[#4527A0] shadow-xs';
+    return 'bg-[#EDE7F6] border-[#D1C4E9] border-l-4 border-l-[#4527A0] text-[#4527A0] shadow-xs';
   } else if (studentName.includes('小美')) {
-    return 'bg-[#FCE4EC] border-[#F8BBD0] text-[#C2185B] shadow-xs';
+    return 'bg-[#FCE4EC] border-[#F8BBD0] border-l-4 border-l-[#C2185B] text-[#C2185B] shadow-xs';
   } else if (studentName.includes('小王')) {
-    return 'bg-[#FFF3E0] border-[#FFE0B2] text-[#E65100] shadow-xs';
+    return 'bg-[#FFF3E0] border-[#FFE0B2] border-l-4 border-l-[#E65100] text-[#E65100] shadow-xs';
   } else {
-    return 'bg-[#E8EAF6] border-[#C5CAE9] text-[#283593] shadow-xs';
+    return 'bg-[#E8EAF6] border-[#C5CAE9] border-l-4 border-l-[#283593] text-[#283593] shadow-xs';
   }
 };
 
@@ -95,7 +93,7 @@ export default function TeacherSchedulePage() {
   }, [currentRole, router]);
 
   const [weekOffset, setWeekOffset] = useState<number>(0);
-  const [zoomLevel, setZoomLevel] = useState<number>(100);
+  const matrixScrollRef = React.useRef<HTMLDivElement>(null);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>('recurring');
 
   // Form State for Mode 1: 1. 常態課表 (Supports Custom Typing!)
@@ -431,6 +429,14 @@ export default function TeacherSchedulePage() {
   // Find index of Today in weekDates
   const todayDateStr = new Date().toISOString().split('T')[0];
   const todayColIdx = weekDates.findIndex((d) => d.fullDateStr === todayDateStr);
+
+  const scrollToDayColumn = (index: number) => {
+    if (matrixScrollRef.current) {
+      const container = matrixScrollRef.current;
+      const targetScroll = (index / 7) * (container.scrollWidth - container.clientWidth);
+      container.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -893,41 +899,8 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* Rock-Solid Matrix Table with 4 Row-Grid Divs & Absolute Precise Math Overlay for Today */}
-      <div className="warm-card p-3.5 sm:p-6 lg:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4 sm:space-y-5">
-        {/* Mobile & Desktop Viewport Toolbar: Zoom In/Out & Dual-Axis X/Y Scrollbar Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF7F2] p-3 rounded-2xl border border-[#EFECE6]">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-[#785338]">
-            <Sliders className="w-4 h-4 text-[#E88D67]" />
-            <span>課表視窗與縮放：</span>
-            <span className="text-[11px] text-[#7A736E] font-medium hidden sm:inline">(支援 X/Y 雙軸滑軌拉動與比例調整)</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setZoomLevel((prev) => Math.max(60, prev - 15))}
-              className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] text-xs font-extrabold flex items-center gap-1 shadow-xs transition-all active:scale-95"
-              title="縮小課表視窗 (方便手機單頁檢視)"
-            >
-              <ZoomOut className="w-3.5 h-3.5" /> 縮小
-            </button>
-            <button
-              onClick={() => setZoomLevel(100)}
-              className="px-2.5 py-1 rounded-xl bg-[#8C6D53] text-white text-xs font-mono font-bold shadow-xs hover:bg-[#765942] transition-all"
-              title="重置為 100% 預設比例"
-            >
-              {zoomLevel}%
-            </button>
-            <button
-              onClick={() => setZoomLevel((prev) => Math.min(160, prev + 15))}
-              className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] text-xs font-extrabold flex items-center gap-1 shadow-xs transition-all active:scale-95"
-              title="放大課表視窗"
-            >
-              <ZoomIn className="w-3.5 h-3.5" /> 放大
-            </button>
-          </div>
-        </div>
-
+      {/* Rock-Solid Matrix Table with iPhone Calendar Style Top Date Strip & 2D Sticky Matrix */}
+      <div className="warm-card p-3.5 sm:p-6 lg:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-3 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1 gap-3">
           <h2 className="text-base sm:text-lg font-bold text-[#332C27] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
             <span>張老師 課表總覽</span>
@@ -949,68 +922,97 @@ export default function TeacherSchedulePage() {
           </div>
         </div>
 
-        {/* Dual X & Y Axis Scrollbar Viewport Container */}
-        <div className="overflow-x-auto overflow-y-auto max-h-[68vh] sm:max-h-[750px] pb-3 pr-2.5 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-2">
-          {/* Outer Container with 100% Precise Math Overlay for Today & Scalable Min Width */}
-          <div
-            className="relative space-y-3.5 pt-9 pb-2 transition-all duration-200"
-            style={{
-              minWidth: `${Math.round(1150 * (zoomLevel / 100))}px`,
-            }}
-          >
-          {/* Today's Single Big Orange Border Container Overlay */}
-          {todayColIdx !== -1 && (
-            <div
-              className="absolute top-0 -bottom-2.5 border-[3px] border-[#E88D67] bg-transparent rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
-              style={{
-                left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
-                width: `calc((100% - 98px) / 8 + 16px)`,
-              }}
-            >
-              {/* Badge Header INSIDE top of Orange Frame, NOT touching/pressing top border line */}
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3.5 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
-                ★ 今天 (TODAY)
-              </div>
-            </div>
-          )}
-
-          {/* ROW 0: Date Header Row (All 7 Date Header Boxes share 100% IDENTICAL background color) */}
-          <div className="grid grid-cols-8 gap-3.5">
-            <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px] z-10">
-              時段 / 日期
-            </div>
-            {weekDates.map((d) => {
+        {/* iPhone Calendar Style Top Week Date Strip Bar */}
+        <div className="flex items-center justify-between gap-1.5 bg-[#FAF7F2] p-2 sm:p-2.5 rounded-2xl border border-[#EFECE6] overflow-x-auto scrollbar-none shadow-xs">
+          <div className="text-[11px] font-black text-[#8C6D53] px-2 shrink-0 hidden sm:block">
+            📅 iOS 週日曆快捷列：
+          </div>
+          <div className="flex items-center justify-between gap-1.5 w-full">
+            {weekDates.map((d, idx) => {
               const isToday = d.fullDateStr === todayDateStr;
               return (
-                <div
+                <button
                   key={d.key}
-                  className="p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center items-center z-10 bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs"
+                  onClick={() => scrollToDayColumn(idx)}
+                  className={`flex-1 min-w-[42px] py-1.5 sm:py-2 px-1 text-center rounded-xl transition-all flex flex-col items-center justify-center space-y-0.5 active:scale-95 ${
+                    isToday
+                      ? 'bg-[#E88D67] text-white shadow-xs font-black ring-2 ring-[#E88D67]/30'
+                      : 'bg-white border border-[#EFECE6] hover:bg-[#FAF2EC] text-[#332C27]'
+                  }`}
+                  title={`快速定位至 ${d.monthDay} (${d.dayLabel})`}
                 >
-                  <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
-                    {d.monthDay}
-                  </div>
-                  <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
-                    {d.dayLabel} ({d.short})
-                  </div>
-                </div>
+                  <span className={`text-[10px] font-bold ${isToday ? 'text-white/90' : 'text-[#7A736E]'}`}>
+                    {d.short}
+                  </span>
+                  <span className="font-mono text-xs font-extrabold tracking-tight">
+                    {d.monthDay.split('/')[1]}
+                  </span>
+                </button>
               );
             })}
           </div>
+        </div>
 
-          {/* ROWS 1, 2, 3: 3 Time Block Rows */}
-          {TIME_BLOCKS.map((block) => {
-            const BlockIcon = block.icon;
-            return (
-              <div key={block.key} className="grid grid-cols-8 gap-3.5 items-stretch">
-                {/* Left Label Cell */}
-                <div className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5 z-10">
-                  <BlockIcon className="w-6 h-6 text-[#8C6D53]" />
-                  <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
-                  <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
+        {/* iPhone Calendar 2D Sticky Matrix Viewport Container */}
+        <div
+          ref={matrixScrollRef}
+          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2.5 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6]/80 bg-[#FAF7F2]/30 p-2"
+        >
+          {/* Outer Container with 100% Precise Math Overlay for Today */}
+          <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-2">
+            {/* Today's Single Big Orange Border Container Overlay */}
+            {todayColIdx !== -1 && (
+              <div
+                className="absolute top-0 -bottom-2.5 border-[3px] border-[#E88D67] bg-transparent rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
+                style={{
+                  left: `calc(${todayColIdx + 1} * (100% + 14px) / 8 - 8px)`,
+                  width: `calc((100% - 98px) / 8 + 16px)`,
+                }}
+              >
+                {/* Badge Header INSIDE top of Orange Frame, NOT touching/pressing top border line */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3.5 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
+                  ★ 今天 (TODAY)
                 </div>
+              </div>
+            )}
 
-                {/* 7 Day Cells for this Row (Synchronized Row Height Across All Days) */}
-                {weekDates.map((d) => {
+            {/* ROW 0: Date Header Row with 2D Sticky Top & Corner */}
+            <div className="grid grid-cols-8 gap-3.5">
+              <div className="p-3.5 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[92px] sticky top-0 left-0 z-40 shadow-xs">
+                時段 / 日期
+              </div>
+              {weekDates.map((d) => {
+                const isToday = d.fullDateStr === todayDateStr;
+                return (
+                  <div
+                    key={d.key}
+                    className="p-3.5 text-center rounded-2xl transition-all space-y-1 h-[92px] flex flex-col justify-center items-center sticky top-0 z-30 bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs"
+                  >
+                    <div className={`font-mono font-black text-base tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
+                      {d.monthDay}
+                    </div>
+                    <div className={`font-extrabold text-xs ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                      {d.dayLabel} ({d.short})
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ROWS 1, 2, 3: 3 Time Block Rows */}
+            {TIME_BLOCKS.map((block) => {
+              const BlockIcon = block.icon;
+              return (
+                <div key={block.key} className="grid grid-cols-8 gap-3.5 items-stretch">
+                  {/* Left Label Cell with 2D Sticky Left Column */}
+                  <div className="min-h-[140px] p-3.5 bg-[#FDFBF7] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1.5 sticky left-0 z-30 shadow-xs">
+                    <BlockIcon className="w-6 h-6 text-[#8C6D53]" />
+                    <div className="font-extrabold text-sm text-[#332C27]">{block.label}</div>
+                    <div className="text-[10px] text-[#7A736E] font-mono">{block.sub}</div>
+                  </div>
+
+                  {/* 7 Day Cells for this Row (Synchronized Row Height Across All Days) */}
+                  {weekDates.map((d) => {
                   const isToday = d.fullDateStr === todayDateStr;
 
                   const dayApps = appointments.filter((app) => {
