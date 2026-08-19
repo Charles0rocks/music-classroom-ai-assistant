@@ -229,42 +229,42 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* 2D Sticky Matrix Viewport Container */}
+        {/* 2D Sticky Matrix Viewport Container (Zero Leakage, Perfect 2D Freeze Hierarchy) */}
         <div
-          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] pb-3 pr-2 scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6] bg-[#FAF7F2]/30 p-2"
+          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6] bg-[#FAF7F2] p-0 shadow-sm"
         >
           {/* Outer Container with Today Frame Overlay */}
-          <div className="min-w-[1150px] relative space-y-3.5 pt-9 pb-2">
+          <div className="min-w-[1100px] relative space-y-3 pt-8 pb-3">
             {/* Today's Single Big Orange Border Container Overlay */}
             {todayColIdx !== -1 && (
               <div
-                className="absolute top-0 -bottom-2.5 border-[3px] border-[#E88D67] bg-transparent rounded-[28px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-0 transition-all"
+                className="absolute top-0 -bottom-1 border-[3px] border-[#E88D67] bg-transparent rounded-[24px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-5 transition-all"
                 style={{
-                  left: `calc(96px + 14px + ${todayColIdx} * ((100% - 194px) / 7 + 14px) - 6px)`,
-                  width: `calc((100% - 194px) / 7 + 12px)`,
+                  left: `calc(108px + ${todayColIdx} * ((100% - 116px) / 7))`,
+                  width: `calc((100% - 116px) / 7)`,
                 }}
               >
                 {/* Badge Header INSIDE top of Orange Frame */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[11px] font-black px-3.5 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
+                <div className="absolute top-1.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1">
                   ★ 今天 (TODAY)
                 </div>
               </div>
             )}
 
-            {/* ROW 0: Date Header Row (Sticky Top & Corner, 100% Opaque Solid Fill) */}
-            <div className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5 sticky top-0 z-30 bg-[#FAF7F2] py-1">
-              {/* Corner Cell: Sticky Top-Left */}
-              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] h-[56px] sticky left-0 z-40 shadow-xs w-[96px] shrink-0">
+            {/* ROW 0: Date Header Row (Sticky Top z-30, Corner Cell z-50, 100% Opaque Solid Fill) */}
+            <div className="grid grid-cols-[100px_repeat(7,_minmax(0,_1fr))] gap-3 sticky top-0 z-30 bg-[#FAF7F2] py-1 px-2 border-b border-[#EFECE6] shadow-2xs">
+              {/* Corner Cell: Sticky Top-Left (z-50) */}
+              <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-xl border border-[#EFECE6] h-[52px] sticky left-0 z-50 shadow-xs w-[100px] shrink-0">
                 時段 / 日期
               </div>
 
-              {/* 7 Date Header Cells */}
+              {/* 7 Date Header Cells (z-30) */}
               {weekDates.map((d) => {
                 const isToday = d.fullDateStr === todayDateStr;
                 return (
                   <div
                     key={d.key}
-                    className="p-2 text-center rounded-2xl transition-all space-y-0.5 h-[56px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
+                    className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
                   >
                     <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
                       {d.monthDay}
@@ -277,19 +277,19 @@ export default function StudentSchedulePage() {
               })}
             </div>
 
-            {/* ROWS 1, 2, 3: 3 Time Block Rows (Left Label Cell: Sticky Left) */}
+            {/* ROWS 1, 2, 3: 3 Time Block Rows (Left Label Cell: Sticky Left z-40) */}
             {TIME_BLOCKS.map((block) => {
               const BlockIcon = block.icon;
               return (
-                <div key={block.key} className="grid grid-cols-[96px_repeat(7,_minmax(0,_1fr))] gap-3.5 items-stretch">
-                  {/* Left Label Cell: Sticky Left Column (100% Opaque Cream Fill) */}
-                  <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-2xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-sm w-[96px] shrink-0">
+                <div key={block.key} className="grid grid-cols-[100px_repeat(7,_minmax(0,_1fr))] gap-3 px-2 items-stretch">
+                  {/* Left Label Cell: Sticky Left Column (z-40, 100% Opaque Cream Fill) */}
+                  <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-40 shadow-xs w-[100px] shrink-0">
                     <BlockIcon className="w-5 h-5 text-[#E88D67]" />
                     <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
                     <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
                   </div>
 
-                  {/* 7 Day Cells for this Row */}
+                  {/* 7 Day Content Cells (z-10) */}
                   {weekDates.map((d) => {
                     const cellAppointments = myAppointments.filter((app) => {
                       const appDay = getSlotDayOfWeek(app.start_time);
@@ -314,7 +314,7 @@ export default function StudentSchedulePage() {
                     return (
                       <div
                         key={d.key}
-                        className="min-h-[140px] p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 transition-all z-10 bg-[#FAF7F2] border border-[#EFECE6] hover:border-[#E88D67]/40 shadow-xs"
+                        className="min-h-[140px] p-2.5 rounded-xl flex flex-col justify-between space-y-2 transition-all z-10 bg-white/70 border border-[#EFECE6] hover:border-[#E88D67]/40 shadow-2xs"
                       >
                         <div className="space-y-2">
                           {/* Confirmed Student Appointments */}
