@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import {
@@ -425,9 +425,24 @@ export default function TeacherSchedulePage() {
     return `${m}/${date} ${dayName}`;
   };
 
-  // Find index of Today in weekDates
   const todayDateStr = new Date().toISOString().split('T')[0];
   const todayColIdx = weekDates.findIndex((d) => d.fullDateStr === todayDateStr);
+
+  // Synchronized scroll refs for 2D Split Pane (Requirements 1 & 2)
+  const headerRef = useRef<HTMLDivElement>(null);
+  const leftColRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  const handleBodyScroll = () => {
+    if (bodyRef.current) {
+      if (headerRef.current) {
+        headerRef.current.scrollLeft = bodyRef.current.scrollLeft;
+      }
+      if (leftColRef.current) {
+        leftColRef.current.scrollTop = bodyRef.current.scrollTop;
+      }
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -913,152 +928,182 @@ export default function TeacherSchedulePage() {
           </div>
         </div>
 
-        {/* 2D Sticky Matrix Viewport Container (X/Y Scrollbars flush on bottom & right edges) */}
-        <div
-          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] touch-pan-x touch-pan-y rounded-2xl border-2 border-[#EFECE6] bg-[#FAF7F2] p-0 shadow-sm relative"
-        >
-          {/* Single Unified 32-Cell 2D Grid Matrix */}
-          <div className="grid grid-cols-[100px_repeat(7,_minmax(140px,_1fr))] gap-3 p-1 min-w-[1080px] bg-[#FAF7F2] relative">
-            {/* Today's Single Big Orange Border Container Overlay (z-60 on Top Layer) */}
-            {todayColIdx !== -1 && (
-              <div
-                className="absolute top-0 bottom-0 border-[3px] border-[#E88D67] bg-transparent rounded-[24px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-60 transition-all"
-                style={{
-                  left: `calc(104px + ${todayColIdx} * ((100% - 108px) / 7))`,
-                  width: `calc((100% - 108px) / 7)`,
-                }}
-              >
-                {/* Badge Header INSIDE top of Orange Frame */}
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1 z-60">
-                  ★ 今天 (TODAY)
-                </div>
-              </div>
-            )}
-
-            {/* CELL 0: Corner Cell (Sticky Top-0 Left-0 z-50) */}
-            <div className="p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-xl border border-[#EFECE6] h-[52px] sticky top-0 left-0 z-50 shadow-xs w-[100px] shrink-0">
+        {/* 2D Split Pane Matrix Container (Requirement 1: Unclipped Today Badge z-60, Requirement 2: Blue-Line Scrollbars!) */}
+        <div className="rounded-2xl border-2 border-[#EFECE6] bg-[#FAF7F2] p-2.5 sm:p-3.5 shadow-sm space-y-3 relative">
+          {/* ROW 0: TOP HEADER PANEL (Corner Cell + Date Headers Row) */}
+          <div className="flex gap-3">
+            {/* Corner Cell: Fixed Top-Left */}
+            <div className="w-[100px] shrink-0 p-2 font-extrabold text-xs text-[#7A736E] uppercase flex items-center justify-center bg-[#FAF7F2] rounded-xl border border-[#EFECE6] h-[52px] shadow-xs">
               時段 / 日期
             </div>
 
-            {/* CELLS 1..7: 7 Date Header Cells (Sticky Top-0 z-40) */}
-            {weekDates.map((d) => {
-              const isToday = d.fullDateStr === todayDateStr;
-              return (
+            {/* Top Date Headers Panel: Synchronized with bodyRef horizontal scroll */}
+            <div ref={headerRef} className="overflow-x-hidden flex-1 relative pt-5 pb-0.5">
+              {/* Today Frame Top Header Overlay (z-60) */}
+              {todayColIdx !== -1 && (
                 <div
-                  key={d.key}
-                  className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs sticky top-0 z-40"
+                  className="absolute top-5 bottom-0 border-t-[3px] border-x-[3px] border-[#E88D67] bg-transparent rounded-t-[24px] pointer-events-none z-60 transition-all"
+                  style={{
+                    left: `calc(${todayColIdx} * ((100% - 72px) / 7 + 12px))`,
+                    width: `calc((100% - 72px) / 7)`,
+                  }}
                 >
-                  <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
-                    {d.monthDay}
-                  </div>
-                  <div className={`font-extrabold text-[11px] ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
-                    {d.dayLabel} ({d.short})
+                  {/* Badge Header INSIDE top of Orange Frame */}
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1 z-60">
+                    ★ 今天 (TODAY)
                   </div>
                 </div>
-              );
-            })}
+              )}
 
-            {/* ROWS 1, 2, 3: 3 Time Block Rows */}
-            {TIME_BLOCKS.map((block) => {
-              const BlockIcon = block.icon;
-              return (
-                <React.Fragment key={block.key}>
-                  {/* Left Label Cell: Sticky Left-0 Column (z-30) */}
-                  <div className="min-h-[140px] p-2 bg-[#FAF7F2] rounded-xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 sticky left-0 z-30 shadow-xs w-[100px] shrink-0">
+              <div className="grid grid-cols-7 gap-3 min-w-[980px]">
+                {weekDates.map((d) => {
+                  const isToday = d.fullDateStr === todayDateStr;
+                  return (
+                    <div
+                      key={d.key}
+                      className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs"
+                    >
+                      <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#8C6D53]'}`}>
+                        {d.monthDay}
+                      </div>
+                      <div className={`font-extrabold text-[11px] ${isToday ? 'text-[#5C3C24]' : 'text-[#332C27]'}`}>
+                        {d.dayLabel} ({d.short})
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* MAIN MATRIX BODY (Rows 1..3): Left Time Column + Content Body with Blue-Line Scrollbars! */}
+          <div className="flex gap-3 items-stretch">
+            {/* Column 0: Left Time Labels Column (Synchronized with bodyRef vertical scroll) */}
+            <div ref={leftColRef} className="w-[100px] shrink-0 overflow-y-hidden space-y-3">
+              {TIME_BLOCKS.map((block) => {
+                const BlockIcon = block.icon;
+                return (
+                  <div
+                    key={block.key}
+                    className="h-[140px] p-2 bg-[#FAF7F2] rounded-xl border border-[#EFECE6] flex flex-col items-center justify-center text-center space-y-1 shadow-xs shrink-0"
+                  >
                     <BlockIcon className="w-5 h-5 text-[#8C6D53]" />
                     <div className="font-extrabold text-xs sm:text-sm text-[#332C27]">{block.label}</div>
                     <div className="text-[9px] text-[#7A736E] font-mono font-bold">{block.sub}</div>
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* 7 Day Content Cells for this Time Block (z-10) */}
-                  {weekDates.map((d) => {
-                    const dayApps = appointments.filter((app) => {
-                      const appDay = getSlotDayOfWeek(app.start_time);
-                      const appHour = getSlotHour(app.start_time);
-                      return appDay === d.key && isTimeInBlock(appHour, block.key);
-                    });
+            {/* Content Body Viewport: THE EXACT BLUE LINE SCROLLBAR LOCATION IN IMAGE 3! */}
+            <div
+              ref={bodyRef}
+              onScroll={handleBodyScroll}
+              className="flex-1 overflow-x-auto overflow-y-auto max-h-[520px] touch-pan-x touch-pan-y rounded-xl border border-[#EFECE6] bg-[#FAF7F2] p-1 shadow-inner relative"
+            >
+              {/* Today Frame Body Overlay */}
+              {todayColIdx !== -1 && (
+                <div
+                  className="absolute top-1 bottom-1 border-b-[3px] border-x-[3px] border-[#E88D67] bg-transparent rounded-b-[24px] pointer-events-none z-60 transition-all"
+                  style={{
+                    left: `calc(4px + ${todayColIdx} * ((100% - 76px) / 7 + 12px))`,
+                    width: `calc((100% - 76px) / 7)`,
+                  }}
+                />
+              )}
 
-                    const daySlots = scheduleSlots.filter((slot) => {
-                      if (!slot.is_available) return false;
-                      const slotDay = getSlotDayOfWeek(slot.start_time);
-                      const slotHour = getSlotHour(slot.start_time);
-                      return slotDay === d.key && isTimeInBlock(slotHour, block.key);
-                    });
+              <div className="space-y-3 min-w-[980px]">
+                {TIME_BLOCKS.map((block) => (
+                  <div key={block.key} className="grid grid-cols-7 gap-3 h-[140px] items-stretch">
+                    {weekDates.map((d) => {
+                      const dayApps = appointments.filter((app) => {
+                        const appDay = getSlotDayOfWeek(app.start_time);
+                        const appHour = getSlotHour(app.start_time);
+                        return appDay === d.key && isTimeInBlock(appHour, block.key);
+                      });
 
-                    const sortedDayApps = [...dayApps].sort(
-                      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-                    );
-                    const sortedDaySlots = [...daySlots].sort(
-                      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-                    );
+                      const daySlots = scheduleSlots.filter((slot) => {
+                        if (!slot.is_available) return false;
+                        const slotDay = getSlotDayOfWeek(slot.start_time);
+                        const slotHour = getSlotHour(slot.start_time);
+                        return slotDay === d.key && isTimeInBlock(slotHour, block.key);
+                      });
 
-                    return (
-                      <div
-                        key={d.key}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => handleDropOnCell(d.key, block.key)}
-                        className="min-h-[140px] p-2.5 rounded-xl flex flex-col justify-between space-y-2 transition-all group z-10 bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs"
-                      >
-                        <div className="space-y-2">
-                          {/* Student Appointment Cards */}
-                          {sortedDayApps.map((app) => {
-                            const cardStyle = getStudentCardStyle(app.student_name || '');
-                            const titleText =
-                              app.status === 'rescheduled'
-                                ? `${app.student_name || '學生'} (異動)`
-                                : app.status === 'restored'
-                                ? `${app.student_name || '學生'} (恢復)`
-                                : (app.student_name || '學生');
-                            return (
+                      const sortedDayApps = [...dayApps].sort(
+                        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                      );
+                      const sortedDaySlots = [...daySlots].sort(
+                        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                      );
+
+                      return (
+                        <div
+                          key={d.key}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={() => handleDropOnCell(d.key, block.key)}
+                          className="h-[140px] p-2.5 rounded-xl flex flex-col justify-between space-y-2 transition-all group z-10 bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs overflow-y-auto"
+                        >
+                          <div className="space-y-2">
+                            {/* Student Appointment Cards */}
+                            {sortedDayApps.map((app) => {
+                              const cardStyle = getStudentCardStyle(app.student_name || '');
+                              const titleText =
+                                app.status === 'rescheduled'
+                                  ? `${app.student_name || '學生'} (異動)`
+                                  : app.status === 'restored'
+                                  ? `${app.student_name || '學生'} (恢復)`
+                                  : (app.student_name || '學生');
+                              return (
+                                <div
+                                  key={app.id}
+                                  draggable
+                                  onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
+                                  className={`p-2.5 rounded-xl border flex flex-col gap-0.5 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
+                                >
+                                  <div className="font-black text-xs leading-snug flex items-center gap-1">
+                                    <GripVertical className="w-3 h-3 opacity-60" />
+                                    {titleText}
+                                  </div>
+                                  <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4">
+                                    {formatTimeRange(app.start_time, app.end_time)}
+                                  </div>
+                                </div>
+                              );
+                            })}
+
+                            {/* Open Slots */}
+                            {sortedDaySlots.map((slot) => (
                               <div
-                                key={app.id}
+                                key={slot.id}
                                 draggable
-                                onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
-                                className={`p-2.5 rounded-xl border flex flex-col gap-0.5 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
+                                onDragStart={() => setDraggedCard({ type: 'slot', id: slot.id })}
+                                className="p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:scale-[1.02] flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-transform"
                               >
                                 <div className="font-black text-xs leading-snug flex items-center gap-1">
                                   <GripVertical className="w-3 h-3 opacity-60" />
-                                  {titleText}
+                                  開放時段
                                 </div>
                                 <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4">
-                                  {formatTimeRange(app.start_time, app.end_time)}
+                                  {formatTimeRange(slot.start_time, slot.end_time)}
                                 </div>
                               </div>
-                            );
-                          })}
+                            ))}
+                          </div>
 
-                          {/* Open Slots */}
-                          {sortedDaySlots.map((slot) => (
-                            <div
-                              key={slot.id}
-                              draggable
-                              onDragStart={() => setDraggedCard({ type: 'slot', id: slot.id })}
-                              className="p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:scale-[1.02] flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-transform"
-                            >
-                              <div className="font-black text-xs leading-snug flex items-center gap-1">
-                                <GripVertical className="w-3 h-3 opacity-60" />
-                                開放時段
-                              </div>
-                              <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4">
-                                {formatTimeRange(slot.start_time, slot.end_time)}
-                              </div>
-                            </div>
-                          ))}
+                          {/* Quick Add Button */}
+                          <button
+                            onClick={() => handleOpenAddModal(d.key, block.key)}
+                            className="w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition-all bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> 開設此時段
+                          </button>
                         </div>
-
-                        {/* Quick Add Button */}
-                        <button
-                          onClick={() => handleOpenAddModal(d.key, block.key)}
-                          className="w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition-all bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]"
-                        >
-                          <Plus className="w-3.5 h-3.5" /> 開設此時段
-                        </button>
-                      </div>
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
