@@ -256,30 +256,25 @@ export default function StudentSchedulePage() {
 
             {/* Top Date Headers Panel: Synchronized with bodyRef horizontal scroll */}
             <div ref={headerRef} className="overflow-x-hidden flex-1 relative pt-5 pb-0.5">
-              {/* Today Frame Top Header Overlay (z-60) */}
-              {todayColIdx !== -1 && (
-                <div
-                  className="absolute top-5 bottom-0 border-t-[3px] border-x-[3px] border-[#E88D67] bg-transparent rounded-t-[24px] pointer-events-none z-60 transition-all"
-                  style={{
-                    left: `calc(${todayColIdx} * ((100% - 72px) / 7 + 12px))`,
-                    width: `calc((100% - 72px) / 7)`,
-                  }}
-                >
-                  {/* Badge Header INSIDE top of Orange Frame */}
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1 z-60">
-                    ★ 今天 (TODAY)
-                  </div>
-                </div>
-              )}
-
               <div className="grid grid-cols-7 gap-3 min-w-[980px]">
                 {weekDates.map((d) => {
                   const isToday = d.fullDateStr === todayDateStr;
                   return (
                     <div
                       key={d.key}
-                      className="p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center bg-[#FCEADE] border border-[#F6D0B8] shadow-xs"
+                      className={`p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center relative ${
+                        isToday
+                          ? 'bg-[#FFF2EB] border-2 border-[#E88D67] shadow-md ring-2 ring-[#E88D67]/30'
+                          : 'bg-[#FCEADE] border border-[#F6D0B8] shadow-xs'
+                      }`}
                     >
+                      {/* Today Badge Pill - 100% Visible & Unclipped */}
+                      {isToday && (
+                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#E88D67] text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md whitespace-nowrap uppercase tracking-wider flex items-center gap-1 z-50">
+                          ★ 今天 (TODAY)
+                        </div>
+                      )}
+
                       <div className={`font-mono font-black text-sm tracking-wide ${isToday ? 'text-[#B85536]' : 'text-[#B85536]'}`}>
                         {d.monthDay}
                       </div>
@@ -318,21 +313,11 @@ export default function StudentSchedulePage() {
               onScroll={handleBodyScroll}
               className="flex-1 overflow-x-auto overflow-y-auto max-h-[520px] touch-pan-x touch-pan-y rounded-xl border border-[#EFECE6] bg-[#FAF7F2] p-1 shadow-inner relative"
             >
-              {/* Today Frame Body Overlay */}
-              {todayColIdx !== -1 && (
-                <div
-                  className="absolute top-1 bottom-1 border-b-[3px] border-x-[3px] border-[#E88D67] bg-transparent rounded-b-[24px] pointer-events-none z-60 transition-all"
-                  style={{
-                    left: `calc(4px + ${todayColIdx} * ((100% - 76px) / 7 + 12px))`,
-                    width: `calc((100% - 76px) / 7)`,
-                  }}
-                />
-              )}
-
               <div className="space-y-3 min-w-[980px]">
                 {TIME_BLOCKS.map((block) => (
                   <div key={block.key} className="grid grid-cols-7 gap-3 h-[140px] items-stretch">
                     {weekDates.map((d) => {
+                      const isToday = d.fullDateStr === todayDateStr;
                       const cellAppointments = myAppointments.filter((app) => {
                         const appDay = getSlotDayOfWeek(app.start_time);
                         const appHour = getSlotHour(app.start_time);
@@ -356,7 +341,11 @@ export default function StudentSchedulePage() {
                       return (
                         <div
                           key={d.key}
-                          className="h-[140px] p-2.5 rounded-xl flex flex-col justify-between space-y-2 transition-all z-10 bg-white/70 border border-[#EFECE6] hover:border-[#E88D67]/40 shadow-2xs overflow-y-auto"
+                          className={`h-[140px] p-2.5 rounded-xl flex flex-col justify-between space-y-2 transition-all z-10 overflow-y-auto ${
+                            isToday
+                              ? 'bg-[#FFF8F3] border-2 border-[#E88D67] ring-2 ring-[#E88D67]/20 shadow-sm'
+                              : 'bg-white/70 border border-[#EFECE6] hover:border-[#E88D67]/40 shadow-2xs'
+                          }`}
                         >
                           <div className="space-y-2">
                             {/* Confirmed Student Appointments */}
