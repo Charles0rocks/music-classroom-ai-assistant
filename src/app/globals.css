@@ -47,21 +47,28 @@ body {
   box-shadow: 0 10px 30px rgba(140, 109, 83, 0.08);
 }
 
-/* Custom Warm Scrollbars */
+/* Custom Warm Visible Scrollbars for Schedule Matrix (Mobile X/Y Scrollbars) */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FAF7F2;
+  background: #F5EFE6;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D5C8BA;
-  border-radius: 3px;
+  background: #E88D67;
+  border-radius: 9999px;
+  border: 2px solid #F5EFE6;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8C6D53;
+  background: #B85536;
+}
+
+* {
+  scrollbar-color: #E88D67 #F5EFE6;
+  scrollbar-width: auto;
 }

@@ -229,19 +229,19 @@ export default function StudentSchedulePage() {
           </div>
         </div>
 
-        {/* 2D Sticky Matrix Viewport Container (Zero Leakage, Perfect 2D Freeze Hierarchy) */}
+        {/* 2D Sticky Matrix Viewport Container (X/Y Scrollbars flush on bottom & right edges) */}
         <div
-          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] scrollbar-thin scrollbar-thumb-[#8C6D53]/50 scrollbar-track-[#FAF7F2] touch-pan-x touch-pan-y rounded-2xl border border-[#EFECE6] bg-[#FAF7F2] p-0 shadow-sm relative"
+          className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-[760px] touch-pan-x touch-pan-y rounded-2xl border-2 border-[#EFECE6] bg-[#FAF7F2] p-0 shadow-sm relative"
         >
           {/* Single Unified 32-Cell 2D Grid Matrix */}
-          <div className="grid grid-cols-[100px_repeat(7,_minmax(140px,_1fr))] gap-3 p-3 min-w-[1080px] bg-[#FAF7F2] relative">
+          <div className="grid grid-cols-[100px_repeat(7,_minmax(140px,_1fr))] gap-3 p-1 min-w-[1080px] bg-[#FAF7F2] relative">
             {/* Today's Single Big Orange Border Container Overlay (z-60 on Top Layer) */}
             {todayColIdx !== -1 && (
               <div
                 className="absolute top-0 bottom-0 border-[3px] border-[#E88D67] bg-transparent rounded-[24px] shadow-lg shadow-[#E88D67]/15 ring-4 ring-[#E88D67]/25 pointer-events-none z-60 transition-all"
                 style={{
-                  left: `calc(112px + ${todayColIdx} * ((100% - 124px) / 7))`,
-                  width: `calc((100% - 124px) / 7)`,
+                  left: `calc(104px + ${todayColIdx} * ((100% - 108px) / 7))`,
+                  width: `calc((100% - 108px) / 7)`,
                 }}
               >
                 {/* Badge Header INSIDE top of Orange Frame */}
