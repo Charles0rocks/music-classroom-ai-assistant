@@ -93,7 +93,7 @@ export default function RoleSelectorPage() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#332C27] leading-tight">
-            🎵 歡迎來到 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8C6D53] via-[#B85536] to-[#E88D67]">Harmonix AI Studio</span>
+            🎵 歡迎來到 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8C6D53] via-[#B85536] to-[#E88D67]">MusiMate</span>
           </h1>
 
           <p className="text-[#7A736E] text-sm sm:text-base leading-relaxed font-medium">
@@ -296,7 +296,7 @@ export default function RoleSelectorPage() {
             </div>
 
             <p className="text-xs text-[#7A736E] font-medium leading-relaxed">
-              您已登入 Harmonix AI Studio。請點擊下方快捷按鈕進入功能頁面：
+              您已登入 MusiMate。請點擊下方快捷按鈕進入功能頁面：
             </p>
 
             {currentRole === 'teacher' ? (

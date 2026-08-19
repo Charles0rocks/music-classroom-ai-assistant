@@ -76,7 +76,7 @@ export const Navbar: React.FC = () => {
               </div>
               <div>
                 <span className="font-bold text-lg text-[#332C27] tracking-tight whitespace-nowrap block">
-                  Harmonix AI Studio
+                  MusiMate
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5 text-xs text-[#7A736E] -mt-0.5 font-medium whitespace-nowrap">
                   <span>音樂教室 AI 小幫手</span>

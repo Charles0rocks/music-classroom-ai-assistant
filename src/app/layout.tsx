@@ -4,7 +4,7 @@ import { DemoProvider } from '@/context/DemoContext';
 import { Navbar } from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Harmonix AI Studio - 溫暖音樂教室 AI 小幫手',
+  title: 'MusiMate - 溫暖音樂教室 AI 小幫手',
   description: '溫暖柔和的 AI 音樂教學輔助系統，提供智慧調課、課堂情緒過濾摘要與 AI 雙影片比對診斷。',
 };
 
@@ -22,7 +22,7 @@ export default function RootLayout({
             {children}
           </main>
           <footer className="border-t border-[#EFECE6] py-6 text-center text-xs text-[#7A736E] bg-white/80 backdrop-blur-md mt-12">
-            Harmonix AI Studio &copy; {new Date().getFullYear()} - 溫暖音樂教室 AI 小幫手 (MVP Version)
+            MusiMate &copy; {new Date().getFullYear()} - 溫暖音樂教室 AI 小幫手 (MVP Version)
           </footer>
         </DemoProvider>
       </body>
