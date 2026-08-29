@@ -33,22 +33,13 @@ export const Navbar: React.FC = () => {
 
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const isTeacher = currentRole === 'teacher';
-
   const teacherNavs = [
-    { href: '/teacher/schedule', label: '週課表設定 (P1)', icon: Calendar },
+    { href: '/teacher/schedule', label: '週課表與工作台 (P1)', icon: Calendar },
     { href: '/teacher/recorder', label: '課堂錄音 AI (P2)', icon: Mic },
     { href: '/teacher/demos', label: '範例影片庫 (P7)', icon: Video },
   ];
 
-  const studentNavs = [
-    { href: '/student/schedule', label: '個人課表與調課 (P3)', icon: Calendar },
-    { href: '/student/practice', label: '作業學習中心 (P4)', icon: BookOpen },
-    { href: '/student/summary/lesson-1', label: 'P5 AI筆記', icon: FileText },
-    { href: '/student/compare/practice-1', label: 'P6 雙圖比對', icon: Sliders },
-  ];
-
-  const currentNavs = isTeacher ? teacherNavs : studentNavs;
+  const currentNavs = teacherNavs;
 
   const getTodayDateStr = () => {
     const now = new Date();
@@ -76,30 +67,23 @@ export const Navbar: React.FC = () => {
               </div>
               <div>
                 <span className="font-bold text-base sm:text-lg text-[#332C27] tracking-tight whitespace-nowrap block">
-                  MusiMate
+                  Studio OS 教師課表
                 </span>
                 <div className="flex items-center gap-1 text-[10px] sm:text-xs text-[#7A736E] -mt-0.5 font-medium whitespace-nowrap">
-                  <span className="hidden xs:inline">音樂教室 AI 小幫手</span>
+                  <span className="hidden xs:inline">音樂教室 AI 工作台</span>
                   <span className="hidden xs:inline text-[#E8D4C5]">·</span>
                   <span className="font-mono text-[10px] sm:text-[11px] font-bold text-[#8C6D53]">{todayStr}</span>
                 </div>
               </div>
             </Link>
 
-            {/* Authenticated Role Badge & Logout / Switch Account Control */}
+            {/* Authenticated Role Badge & Logout Control */}
             {isAuthenticated ? (
               <div className="flex items-center gap-1 sm:gap-2 bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6] shrink-0">
-                {isTeacher ? (
-                  <span className="px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1 bg-[#8C6D53] text-white shadow-xs">
-                    <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                    張老師 <span className="hidden sm:inline">(Teacher)</span>
-                  </span>
-                ) : (
-                  <span className="px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1 bg-[#E88D67] text-white shadow-xs">
-                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                    小明 <span className="hidden sm:inline">(Student)</span>
-                  </span>
-                )}
+                <span className="px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1 bg-[#8C6D53] text-white shadow-xs">
+                  <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  林詠晴 老師 <span className="hidden sm:inline">(PRO)</span>
+                </span>
 
                 <button
                   onClick={handleLogout}

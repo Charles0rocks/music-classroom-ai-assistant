@@ -25,6 +25,8 @@ import {
   ArrowRightLeft,
   Trash2,
   GripVertical,
+  Bell,
+  Mic,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 
@@ -94,6 +96,8 @@ export default function TeacherSchedulePage() {
 
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>('recurring');
+  const [mainViewMode, setMainViewMode] = useState<'dailyTimeline' | 'weeklyMatrix' | 'monthlyOverview'>('dailyTimeline');
+  const [selectedDayIdx, setSelectedDayIdx] = useState<number>(3); // Default to Thursday (27th) in Gemini demo layout
 
   // Form State for Mode 1: 1. 常態課表 (Supports Custom Typing!)
   const [recurringStudent, setRecurringStudent] = useState('小明');
@@ -446,28 +450,306 @@ export default function TeacherSchedulePage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm bg-gradient-to-r from-white to-[#FAF2EC]">
-        <div>
-          <div className="flex items-center gap-2 text-[#8C6D53] text-xs font-bold uppercase tracking-wider mb-1">
-            <CalendarIcon className="w-4 h-4" />
-            Teacher Portal (P1)
+    <div className="space-y-6">
+      {/* 1. Teacher Profile Header Card (Studio OS 教師課表 - iPhone 手機介面示範風格) */}
+      <div className="bg-[#1A1F2C] text-white rounded-3xl p-5 sm:p-6 shadow-xl border border-white/10 relative overflow-hidden space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full border-2 border-[#E88D67] overflow-hidden shrink-0 shadow-md">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                alt="林詠晴 老師"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-base sm:text-lg tracking-tight text-white">林詠晴 老師</span>
+                <span className="px-2 py-0.5 rounded-md bg-[#E88D67] text-white font-black text-[10px] uppercase tracking-wide shadow-xs">
+                  PRO
+                </span>
+              </div>
+              <div className="text-xs text-gray-400 font-medium">大安古典鋼琴工作室</div>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#332C27]">週課表與開放時段</h1>
-          <p className="text-[#7A736E] text-xs sm:text-sm mt-1 font-medium">
-            一週 (週一～週日) × 3大時段 矩陣視圖 · 支援自由輸入學生姓名紀錄與 HTML5 卡片拖曳移動
-          </p>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10B981]/20 border border-[#10B981]/40 text-[#10B981] text-xs font-bold animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+              14:00 上課中 🎵
+            </div>
+
+            <button
+              onClick={() => handleOpenAddModal(3, 'afternoon')}
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all border border-white/10"
+              title="新增開放時段"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+
+            <button
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all border border-white/10 relative"
+              title="通知中心"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="w-2 h-2 rounded-full bg-[#E88D67] absolute top-2 right-2 ring-2 ring-[#1A1F2C]" />
+            </button>
+          </div>
         </div>
 
+        {/* Mobile Status Line */}
+        <div className="sm:hidden flex items-center justify-between pt-1 border-t border-white/10">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10B981]/20 border border-[#10B981]/40 text-[#10B981] text-xs font-bold animate-pulse">
+            <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+            14:00 上課中 🎵
+          </div>
+          <div className="text-xs font-bold text-[#E88D67] bg-[#E88D67]/10 px-3 py-1 rounded-full border border-[#E88D67]/30">
+            履約正常 🟢
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Date & 3 Quick Stat Dashboard Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+        {/* Date Display */}
+        <div className="md:col-span-5 bg-[#232A3B] text-white p-4 rounded-2xl border border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-[#E88D67]" />
+            <span className="text-sm font-bold font-mono">📅 2026 年 8 月 27 日 (週四)</span>
+          </div>
+          <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-xs font-bold">
+            履約正常 🟢
+          </span>
+        </div>
+
+        {/* 3 Quick Stat Cards */}
+        <div className="md:col-span-7 grid grid-cols-3 gap-2.5">
+          <div className="bg-[#232A3B] text-white p-3 sm:p-4 rounded-2xl border border-white/10 text-center space-y-0.5 shadow-sm">
+            <div className="text-[11px] text-gray-400 font-medium">今日課程</div>
+            <div className="text-lg sm:text-xl font-black text-white">5 堂</div>
+          </div>
+
+          <div className="bg-[#232A3B] text-white p-3 sm:p-4 rounded-2xl border border-white/10 text-center space-y-0.5 shadow-sm">
+            <div className="text-[11px] text-gray-400 font-medium">預估收益</div>
+            <div className="text-lg sm:text-xl font-black text-[#F59E0B]">$6,200</div>
+          </div>
+
+          <div className="bg-[#232A3B] text-white p-3 sm:p-4 rounded-2xl border border-white/10 text-center space-y-0.5 relative shadow-sm">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#E88D67] absolute top-2 right-2 ring-2 ring-[#232A3B]" />
+            <div className="text-[11px] text-gray-400 font-medium">待辦 AI 週報</div>
+            <div className="text-lg sm:text-xl font-black text-[#E88D67]">1 件</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. View Switcher Tabs (3 View Modes: 日視圖 / 週視圖 / 月總覽) */}
+      <div className="bg-[#1A1F2C] p-1.5 rounded-2xl border border-white/10 grid grid-cols-3 gap-1.5 shadow-md">
         <button
-          onClick={() => handleOpenAddModal(3, 'afternoon')}
-          className="px-5 py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-[#8C6D53]/20 transition-all self-start sm:self-auto"
+          type="button"
+          onClick={() => setMainViewMode('dailyTimeline')}
+          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mainViewMode === 'dailyTimeline'
+              ? 'bg-[#F59E0B] text-slate-950 shadow-md font-extrabold scale-100'
+              : 'text-gray-400 hover:text-white'
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          新增開放時段 (Add Slot)
+          <Clock className="w-4 h-4" />
+          日視圖 (時間軸)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMainViewMode('weeklyMatrix')}
+          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mainViewMode === 'weeklyMatrix'
+              ? 'bg-[#F59E0B] text-slate-950 shadow-md font-extrabold scale-100'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          週視圖 (矩陣)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMainViewMode('monthlyOverview')}
+          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mainViewMode === 'monthlyOverview'
+              ? 'bg-[#F59E0B] text-slate-950 shadow-md font-extrabold scale-100'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <CalendarIcon className="w-4 h-4" />
+          月總覽
         </button>
       </div>
+
+      {/* 4. Week Day Selector Strip (Day Picker) */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {weekDates.map((d, idx) => {
+          const isToday = d.fullDateStr === todayDateStr;
+          const isSelected = selectedDayIdx === idx;
+
+          return (
+            <button
+              key={d.key}
+              type="button"
+              onClick={() => setSelectedDayIdx(idx)}
+              className={`flex-1 min-w-[64px] py-2.5 rounded-2xl text-center transition-all ${
+                isSelected
+                  ? 'bg-[#F59E0B] text-slate-950 font-black shadow-lg scale-105 ring-2 ring-[#F59E0B]/50'
+                  : isToday
+                  ? 'bg-[#232A3B] text-[#F59E0B] font-extrabold border border-[#F59E0B]/40'
+                  : 'bg-[#1A1F2C] text-gray-300 hover:bg-[#232A3B] font-bold border border-white/5'
+              }`}
+            >
+              <div className="text-[10px] opacity-80">{d.dayLabel.replace('週', '')}</div>
+              <div className="text-sm font-black mt-0.5">{d.monthDay.split('/')[1] || d.monthDay}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 5. Daily Timeline Cards (Rendered when mainViewMode === 'dailyTimeline') */}
+      {mainViewMode === 'dailyTimeline' && (
+        <div className="space-y-3.5 animate-in fade-in">
+          {/* Course Card 1: Completed / Archived */}
+          <div className="bg-[#232A3B] border border-white/10 rounded-2xl p-4 sm:p-5 text-white space-y-2.5 shadow-md">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 text-gray-300 font-mono font-bold">
+                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                09:30 - 10:30
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 font-bold text-[11px]">
+                ✓ 已完課 · 週報已發
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base sm:text-lg text-white">
+                  廖小弟 <span className="text-xs font-normal text-gray-400">(幼兒鋼琴啟蒙)</span>
+                </h3>
+                <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                  <span>📍 大安琴房 A 室</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm sm:text-base font-extrabold text-white">NT$1,000</div>
+                <div className="text-[10px] text-gray-400 font-medium">包期 (7/10 堂)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Course Card 2: Action Needed (Golden Highlighted Card matching Gemini share design!) */}
+          <div className="bg-[#232A3B] border-2 border-[#F59E0B] ring-2 ring-[#F59E0B]/20 rounded-2xl p-4 sm:p-5 text-white space-y-3.5 shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 text-[#F59E0B] font-mono font-black">
+                <Clock className="w-3.5 h-3.5" />
+                11:00 - 12:00
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 font-black text-[11px] flex items-center gap-1">
+                🎙️ 待生成 AI 聯絡簿
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base sm:text-lg text-white">
+                  張雅晴 <span className="text-xs font-normal text-gray-400">(皇家鋼琴 5 級)</span>
+                </h3>
+                <div className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                  <span>📍 大安琴房 B 室</span>
+                  <span className="text-gray-500">·</span>
+                  <span className="text-[#F59E0B] font-bold">剛結束 28 分鐘</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm sm:text-base font-extrabold text-[#F59E0B]">NT$1,400</div>
+                <div className="text-[10px] text-emerald-400 font-bold">單堂對帳 OK</div>
+              </div>
+            </div>
+
+            {/* Primary Action Button: 🎙️ 口述 30 秒生成 AI 週報 */}
+            <button
+              onClick={() => router.push('/teacher/recorder')}
+              className="w-full py-3 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99]"
+            >
+              <Mic className="w-4 h-4 text-slate-950" />
+              🎙️ 口述 30 秒生成 AI 週報
+            </button>
+          </div>
+
+          {/* Course Card 3: Upcoming Course */}
+          <div className="bg-[#232A3B] border border-white/10 rounded-2xl p-4 sm:p-5 text-white space-y-2.5 shadow-md">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 text-sky-400 font-mono font-bold">
+                <Clock className="w-3.5 h-3.5 text-sky-400" />
+                14:00 - 15:00 <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 font-normal">(下一堂)</span>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold text-[11px]">
+                學費履約託管中
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base sm:text-lg text-white">
+                  陳郁庭 <span className="text-xs font-normal text-gray-400">(奏鳴曲進階)</span>
+                </h3>
+                <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                  <span>📍 大安琴房 C 室</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm sm:text-base font-extrabold text-white">NT$1,500</div>
+                <div className="text-[10px] text-gray-400 font-medium">包期 (3/10 堂)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Overview View (Rendered when mainViewMode === 'monthlyOverview') */}
+      {mainViewMode === 'monthlyOverview' && (
+        <div className="bg-[#1A1F2C] border border-white/10 rounded-3xl p-6 text-white space-y-4 animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="font-extrabold text-lg flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-[#F59E0B]" />
+              2026 年 8 月總覽
+            </div>
+            <div className="text-xs text-gray-400">本月累計 22 堂 · 收益 NT$28,600</div>
+          </div>
+
+          <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold">
+            {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
+              <div key={day} className="text-gray-400 py-1">{day}</div>
+            ))}
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((dateNum) => {
+              const is27 = dateNum === 27;
+              return (
+                <div
+                  key={dateNum}
+                  className={`py-3 rounded-xl flex flex-col items-center justify-center transition-all ${
+                    is27
+                      ? 'bg-[#F59E0B] text-slate-950 font-black shadow-md'
+                      : 'bg-[#232A3B] text-gray-200 border border-white/5 hover:bg-[#2E364A]'
+                  }`}
+                >
+                  <span className="text-xs font-bold">{dateNum}</span>
+                  <span className={`text-[9px] mt-0.5 ${is27 ? 'text-slate-950 font-bold' : 'text-gray-400'}`}>
+                    {dateNum % 3 === 0 ? '3堂' : dateNum % 2 === 0 ? '2堂' : '1堂'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Render Weekly 2D Matrix View when mainViewMode === 'weeklyMatrix' OR on desktop default */}
+      {mainViewMode === 'weeklyMatrix' && (
+        <>
 
       {/* TOP BLOCK: 課表設定 (1. 常態課表  2. 開放時段  3. 課程異動 & 已記錄常態課表區塊) */}
       <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-6 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
@@ -1097,6 +1379,8 @@ export default function TeacherSchedulePage() {
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* Single Add Slot Modal */}
       {showAddModal && (

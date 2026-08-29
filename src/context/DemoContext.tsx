@@ -242,7 +242,7 @@ const DemoContext = createContext<DemoContextType | undefined>(undefined);
 export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Set default unauthenticated so users land on the Greeting & Identity Selector Login Screen
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [currentRole, setCurrentRole] = useState<Role>('student');
+  const [currentRole, setCurrentRole] = useState<Role>('teacher');
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>(INITIAL_SLOTS);
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
   const [rescheduleRequests, setRescheduleRequests] = useState<RescheduleRequest[]>([]);

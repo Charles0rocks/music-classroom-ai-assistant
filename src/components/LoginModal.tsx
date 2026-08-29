@@ -24,7 +24,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { login } = useDemoContext();
 
-  const [activeTab, setActiveTab] = useState<Role>('teacher');
   const [email, setEmail] = useState('chang.teacher@harmony.edu');
   const [password, setPassword] = useState('teacher123');
   const [errorMsg, setErrorMsg] = useState('');
@@ -32,35 +31,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleTabChange = (role: Role) => {
-    setActiveTab(role);
-    setErrorMsg('');
-    setSuccessMsg('');
-    if (role === 'teacher') {
-      setEmail('chang.teacher@harmony.edu');
-      setPassword('teacher123');
-    } else {
-      setEmail('ming.student@harmony.edu');
-      setPassword('student123');
-    }
-  };
-
-  const handleQuickFill = (role: Role) => {
-    handleTabChange(role);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
-    const res = login(email, password, activeTab);
+    const res = login(email, password, 'teacher');
     if (res.success) {
       setSuccessMsg(res.message);
       setTimeout(() => {
         onClose();
         setSuccessMsg('');
-        router.push('/'); // Always land on P0 role homepage after login
+        router.push('/teacher/schedule');
       }, 600);
     } else {
       setErrorMsg(res.message);
@@ -89,32 +71,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           </p>
         </div>
 
-        {/* Role Select Tabs */}
-        <div className="grid grid-cols-2 gap-2 bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#EFECE6]">
-          <button
-            type="button"
-            onClick={() => handleTabChange('teacher')}
-            className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'teacher'
-                ? 'bg-[#8C6D53] text-white shadow-sm'
-                : 'text-[#7A736E] hover:text-[#332C27]'
-            }`}
-          >
-            <UserCheck className="w-3.5 h-3.5" />
-            張老師 (Teacher)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleTabChange('student')}
-            className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'student'
-                ? 'bg-[#E88D67] text-white shadow-sm'
-                : 'text-[#7A736E] hover:text-[#332C27]'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            小明 (Student)
-          </button>
+        {/* Teacher Identity Badge Header */}
+        <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#EFECE6] flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#8C6D53] text-white flex items-center justify-center font-bold text-xs shrink-0">
+            <UserCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-[#332C27]">張老師 / 林詠晴 老師 [PRO]</div>
+            <div className="text-[10px] text-[#7A736E]">教師端排課與工作台管理</div>
+          </div>
         </div>
 
         {errorMsg && (
@@ -172,17 +137,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => handleQuickFill('teacher')}
-                className="px-2.5 py-1 rounded-full bg-[#F2E8D8] text-[#785338] font-bold hover:bg-[#E8D4C5] transition-all"
+                onClick={() => {
+                  setEmail('chang.teacher@harmony.edu');
+                  setPassword('teacher123');
+                }}
+                className="w-full py-1.5 rounded-full bg-[#8C6D53] text-white font-bold hover:bg-[#765942] transition-all"
               >
-                帶入張老師帳密
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill('student')}
-                className="px-2.5 py-1 rounded-full bg-[#FCEADE] text-[#B85536] font-bold hover:bg-[#F6D0B8] transition-all"
-              >
-                帶入小明帳密
+                帶入林詠晴 / 張老師帳密 (teacher123)
               </button>
             </div>
           </div>
@@ -190,11 +151,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           <div className="pt-2">
             <button
               type="submit"
-              className={`w-full py-3 rounded-full text-white font-bold text-xs shadow-md transition-all ${
-                activeTab === 'teacher'
-                  ? 'bg-[#8C6D53] hover:bg-[#765942] shadow-[#8C6D53]/20'
-                  : 'bg-[#E88D67] hover:bg-[#D67A53] shadow-[#E88D67]/20'
-              }`}
+              className="w-full py-3 rounded-full text-white font-bold text-xs shadow-md transition-all bg-[#8C6D53] hover:bg-[#765942] shadow-[#8C6D53]/20"
             >
               確認登入 (Log In)
             </button>

@@ -29,40 +29,23 @@ export default function RoleSelectorPage() {
   const router = useRouter();
   const { currentRole, isAuthenticated, login, logout, teacherProfile, currentUser } = useDemoContext();
 
-  const [activeTab, setActiveTab] = useState<Role>('student'); // Default student login selection
-  const [email, setEmail] = useState('ming.student@harmony.edu');
-  const [password, setPassword] = useState('student123');
+  const [activeTab, setActiveTab] = useState<Role>('teacher');
+  const [email, setEmail] = useState('chang.teacher@harmony.edu');
+  const [password, setPassword] = useState('teacher123');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [showGuideModal, setShowGuideModal] = useState(false);
-
-  const handleTabChange = (role: Role) => {
-    setActiveTab(role);
-    setErrorMsg('');
-    setSuccessMsg('');
-    if (role === 'teacher') {
-      setEmail('chang.teacher@harmony.edu');
-      setPassword('teacher123');
-    } else {
-      setEmail('ming.student@harmony.edu');
-      setPassword('student123');
-    }
-  };
-
-  const handleQuickFill = (role: Role) => {
-    handleTabChange(role);
-  };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
-    const res = login(email, password, activeTab);
+    const res = login(email, password, 'teacher');
     if (res.success) {
       setSuccessMsg(res.message);
       setTimeout(() => {
-        router.push('/'); // Always land on P0 role homepage after login
+        router.push('/teacher/schedule');
       }, 600);
     } else {
       setErrorMsg(res.message);
@@ -131,32 +114,15 @@ export default function RoleSelectorPage() {
               </p>
             </div>
 
-            {/* Role Select Tabs */}
-            <div className="grid grid-cols-2 gap-2.5 bg-[#FAF7F2] p-2 rounded-2xl border border-[#EFECE6]">
-              <button
-                type="button"
-                onClick={() => handleTabChange('student')}
-                className={`py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === 'student'
-                    ? 'bg-[#E88D67] text-white shadow-sm scale-100'
-                    : 'text-[#7A736E] hover:text-[#332C27]'
-                }`}
-              >
-                <Sparkles className="w-4 h-4" />
-                🎓 我是學生 (Student)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleTabChange('teacher')}
-                className={`py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === 'teacher'
-                    ? 'bg-[#8C6D53] text-white shadow-sm scale-100'
-                    : 'text-[#7A736E] hover:text-[#332C27]'
-                }`}
-              >
-                <UserCheck className="w-4 h-4" />
-                👨‍🏫 我是老師 (Teacher)
-              </button>
+            {/* Teacher Identity Badge Header */}
+            <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EFECE6] flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#8C6D53] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
+                <UserCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-sm font-extrabold text-[#332C27]">林詠晴 老師 [PRO] · 教師工作台</div>
+                <div className="text-xs text-[#7A736E]">大安古典鋼琴工作室 · Studio OS 教師課表系統</div>
+              </div>
             </div>
 
             {errorMsg && (
@@ -235,28 +201,17 @@ export default function RoleSelectorPage() {
               </p>
 
               <div className="space-y-2.5">
-                <div className="p-3.5 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#B85536]">小明 (Student)</span>
-                    <span className="text-[10px] text-[#7A736E] font-mono">ming.student@harmony.edu</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickFill('student')}
-                    className="w-full py-2 rounded-full bg-[#E88D67] hover:bg-[#D67A53] text-white text-xs font-bold shadow-xs transition-all"
-                  >
-                    帶入小明帳密 (student123)
-                  </button>
-                </div>
-
                 <div className="p-3.5 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#8C6D53]">張老師 (Teacher)</span>
+                    <span className="font-bold text-xs text-[#8C6D53]">林詠晴 / 張老師 (Teacher PRO)</span>
                     <span className="text-[10px] text-[#7A736E] font-mono">chang.teacher@harmony.edu</span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleQuickFill('teacher')}
+                    onClick={() => {
+                      setEmail('chang.teacher@harmony.edu');
+                      setPassword('teacher123');
+                    }}
                     className="w-full py-2 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white text-xs font-bold shadow-xs transition-all"
                   >
                     帶入張老師帳密 (teacher123)
@@ -377,9 +332,10 @@ export default function RoleSelectorPage() {
       <DemoGuideModal
         isOpen={showGuideModal}
         onClose={() => setShowGuideModal(false)}
-        onQuickFill={(role) => {
-          handleQuickFill(role);
-          login(role === 'teacher' ? 'chang.teacher@harmony.edu' : 'ming.student@harmony.edu', role === 'teacher' ? 'teacher123' : 'student123', role);
+        onQuickFill={() => {
+          setEmail('chang.teacher@harmony.edu');
+          setPassword('teacher123');
+          login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
         }}
       />
     </div>
