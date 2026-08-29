@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MusiMate - 週課表管理 (Schedule Management)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --caramel-milk-tea: #C08261;
+      --caramel-light: #F9EBE0;
+    }
+    body {
+      background: linear-gradient(135deg, #FFF6D5 0%, #F5D3E8 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #C08261;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #A06445;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.92; transform: scale(1.01); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased p-3 sm:p-6 space-y-6">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- 1. 頂部導覽列 (Header & Navbar) -->
+    <header class="bg-white/85 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+      
+      <!-- 品牌 Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-400 to-sky-400 flex items-center justify-center text-white font-black text-xl shadow-md">
+          M
+        </div>
+        <div class="text-2xl font-black tracking-tight">
+          <span class="text-pink-500">Musi</span><span class="text-sky-500">Mate</span>
+          <span class="text-xs font-bold text-slate-400 ml-2 tracking-normal">Studio OS</span>
+        </div>
+      </div>
+
+      <!-- 導航選單 -->
+      <nav class="flex flex-wrap items-center gap-1 sm:gap-2 bg-slate-100/60 p-1.5 rounded-2xl border border-slate-200/50 text-xs font-bold">
+        <button class="bg-white text-pink-600 px-4 py-2 rounded-xl shadow-sm border border-pink-100 flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          我的課表
+        </button>
+        <button class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          智慧聯絡簿
+        </button>
+        <button class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          學生打卡
+        </button>
+        <button class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          薪資看板
+        </button>
+        <button class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          個人介紹
+        </button>
+      </nav>
+
+      <!-- 教師切換下拉選單與頭像 -->
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <select id="teacherSelect" onchange="switchTeacher(this.value)" class="bg-white/90 border border-slate-200 text-xs font-bold text-slate-700 py-2 pl-3 pr-8 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-300 shadow-xs appearance-none cursor-pointer">
+            <option value="t-1">林詠晴 老師 (古典鋼琴)</option>
+            <option value="t-2">張大衛 老師 (小提琴與樂理)</option>
+            <option value="t-3">陳雅婷 老師 (聲樂專精)</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+
+        <div class="relative w-10 h-10 rounded-2xl border-2 border-pink-300 overflow-hidden shadow-sm shrink-0">
+          <img id="teacherAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Teacher Avatar" class="w-full h-full object-cover">
+          <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- 2. 工具列與週曆切換 (Toolbar & Week Navigator) -->
+    <div class="bg-white/75 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/60 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      
+      <!-- 學生 Magic Link 按鈕 -->
+      <button onclick="copyMagicLink()" class="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-black text-xs shadow-md shadow-sky-200 transition-all flex items-center justify-center gap-2 active:scale-95">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        複製學生專屬 Magic Link
+      </button>
+
+      <!-- 週曆切換按鈕群 -->
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <button onclick="changeWeek(-1)" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-600 transition-all shadow-xs flex items-center gap-1">
+          ◀ 上一週
+        </button>
+
+        <!-- 焦糖奶茶色 (#C08261) 年月週別標籤 -->
+        <div id="weekBanner" class="px-4 sm:px-6 py-2 rounded-2xl bg-[#C08261] text-white font-mono font-black text-xs sm:text-sm shadow-md text-center">
+          2026年08月24日至08月30日
+        </div>
+
+        <button onclick="changeWeek(1)" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-600 transition-all shadow-xs flex items-center gap-1">
+          下一週 ▶
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 3. 週課表矩陣 (Weekly Schedule Grid Matrix) -->
+    <main class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-white/80 shadow-xl space-y-4">
+      
+      <!-- 圖例 (Legend Bar) -->
+      <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-3 text-xs font-bold">
+        <div class="text-slate-700 font-extrabold flex items-center gap-2">
+          <span>週課表狀態圖例 (State Matrix):</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="flex items-center gap-1 text-slate-700">
+            <span class="w-3 h-3 rounded-md bg-white border border-slate-300"></span> 正常課堂
+          </span>
+          <span class="flex items-center gap-1 text-sky-700">
+            <span class="w-3 h-3 rounded-md bg-[#F0F9FF] border border-dashed border-sky-400"></span> 開放預約
+          </span>
+          <span class="flex items-center gap-1 text-orange-600">
+            <span class="w-3 h-3 rounded-md bg-orange-100 border border-orange-500"></span> 改期待審核 (按鈕點擊)
+          </span>
+          <span class="flex items-center gap-1 text-slate-400">
+            <span class="w-3 h-3 rounded-md bg-slate-100 border border-dashed border-slate-300"></span> 原時段鎖定
+          </span>
+          <span class="flex items-center gap-1 text-emerald-700">
+            <span class="w-3 h-3 rounded-md bg-emerald-100 border border-emerald-500"></span> 改期生效
+          </span>
+          <span class="flex items-center gap-1 text-slate-600">
+            <span class="w-3 h-3 rounded-md bg-slate-100 border border-slate-400"></span> 私有保留
+          </span>
+        </div>
+      </div>
+
+      <!-- 2D 課表網格 -->
+      <div class="overflow-x-auto custom-scrollbar rounded-2xl border border-slate-200/80 bg-slate-50/50 p-2 sm:p-3">
+        <div class="min-w-[980px] space-y-3">
+          
+          <!-- 表頭：時段 + 7 天欄位 -->
+          <div class="grid grid-cols-8 gap-3 text-center">
+            <!-- 角落標籤 -->
+            <div class="p-3 rounded-2xl bg-white border border-slate-200 font-extrabold text-xs text-slate-500 flex items-center justify-center shadow-xs">
+              時段 / 日期
+            </div>
+
+            <!-- 7 天標頭 (週六 08/29 為今日，套用焦糖奶茶色 #C08261 外框標記) -->
+            <div class="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div class="text-xs font-black">週一 (Mon)</div>
+              <div class="font-mono text-xs font-bold text-slate-400">08/24</div>
+            </div>
+
+            <div class="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div class="text-xs font-black">週二 (Tue)</div>
+              <div class="font-mono text-xs font-bold text-slate-400">08/25</div>
+            </div>
+
+            <div class="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div class="text-xs font-black">週三 (Wed)</div>
+              <div class="font-mono text-xs font-bold text-slate-400">08/26</div>
+            </div>
+
+            <div class="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div class="text-xs font-black">週四 (Thu)</div>
+              <div class="font-mono text-xs font-bold text-slate-400">08/27</div>
+            </div>
+
+            <div class="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div class="text-xs font-black">週五 (Fri)</div>
+              <div class="font-mono text-xs font-bold text-slate-400">08/28</div>
+            </div>
+
+            <!-- ★ 今日 (2026-08-29 周六)：焦糖奶茶色 #C08261 外框高亮標記 -->
+            <div class="p-2.5 rounded-2xl bg-[#FFF9F5] border-2 border-[#C08261] text-[#C08261] shadow-md relative">
+              <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#C08261] text-white text-[9px] font-black px-2.5 py-0.5 rounded-full shadow-xs uppercase tracking-wider whitespace-nowrap">
+                ★ 今日 (TODAY)
+              </span>
+              <div class="text-xs font-black">週六 (Sat)</div>
+              <div class="font-mono text-xs font-black text-[#C08261]">08/29</div>
+            </div>
+
+            <div class="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div class="text-xs font-black">週日 (Sun)</div>
+              <div class="font-mono text-xs font-bold text-slate-400">08/30</div>
+            </div>
+          </div>
+
+          <!-- 列 1: 上午時段 (09:00 - 12:00) -->
+          <div class="grid grid-cols-8 gap-3 items-stretch">
+            <div class="p-3 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-1 shadow-xs">
+              <span class="text-lg">🌅</span>
+              <span class="font-extrabold text-xs text-slate-800">上午</span>
+              <span class="text-[10px] text-slate-400 font-mono font-bold">09:00-12:00</span>
+            </div>
+            
+            <div id="cell-1-morning" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-2-morning" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-3-morning" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-4-morning" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-5-morning" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <!-- 今日高亮欄 -->
+            <div id="cell-6-morning" class="p-2 rounded-2xl bg-[#FFF9F5]/80 border-2 border-[#C08261]/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-0-morning" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+          </div>
+
+          <!-- 列 2: 下午時段 (13:00 - 18:00) -->
+          <div class="grid grid-cols-8 gap-3 items-stretch">
+            <div class="p-3 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-1 shadow-xs">
+              <span class="text-lg">☀️</span>
+              <span class="font-extrabold text-xs text-slate-800">下午</span>
+              <span class="text-[10px] text-slate-400 font-mono font-bold">13:00-18:00</span>
+            </div>
+
+            <div id="cell-1-afternoon" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-2-afternoon" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-3-afternoon" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-4-afternoon" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-5-afternoon" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <!-- 今日高亮欄 -->
+            <div id="cell-6-afternoon" class="p-2 rounded-2xl bg-[#FFF9F5]/80 border-2 border-[#C08261]/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-0-afternoon" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+          </div>
+
+          <!-- 列 3: 晚間時段 (19:00 - 22:00) -->
+          <div class="grid grid-cols-8 gap-3 items-stretch">
+            <div class="p-3 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-1 shadow-xs">
+              <span class="text-lg">🌙</span>
+              <span class="font-extrabold text-xs text-slate-800">晚間</span>
+              <span class="text-[10px] text-slate-400 font-mono font-bold">19:00-22:00</span>
+            </div>
+
+            <div id="cell-1-evening" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-2-evening" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-3-evening" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-4-evening" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-5-evening" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+            <!-- 今日高亮欄 -->
+            <div id="cell-6-evening" class="p-2 rounded-2xl bg-[#FFF9F5]/80 border-2 border-[#C08261]/60 min-h-[130px] space-y-2"></div>
+            <div id="cell-0-evening" class="p-2 rounded-2xl bg-white/60 border border-slate-200/60 min-h-[130px] space-y-2"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <!-- 4. 頁尾導覽列 (Morandi Gradient Footer #CCDDFE 到 #FCD6DE) -->
+    <footer class="bg-gradient-to-r from-[#CCDDFE] to-[#FCD6DE] rounded-3xl p-5 border border-white/60 shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 text-xs font-bold text-slate-700">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <span>MusiMate AI Studio OS v3.2 · Supabase Realtime Engine Connected</span>
+      </div>
+      <div class="flex items-center gap-4 text-slate-600">
+        <a href="#" class="hover:text-slate-900 transition-colors">使用條款</a>
+        <span>·</span>
+        <a href="#" class="hover:text-slate-900 transition-colors">隱私權政策</a>
+        <span>·</span>
+        <a href="#" class="hover:text-slate-900 transition-colors">系統狀態: 正常 🟢</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- 改期待審核 Modal (Reschedule Pending Approval Modal) -->
+  <div id="rescheduleModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-100 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
+          <span class="text-orange-500">⚡</span>
+          學生線上改期申請審核
+        </h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 font-bold p-1">✕</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="p-3.5 rounded-2xl bg-orange-50 border border-orange-200 space-y-1 text-orange-900">
+          <div class="font-extrabold text-sm flex items-center justify-between">
+            <span id="modalStudentName">小明 (Ming)</span>
+            <span class="px-2 py-0.5 rounded-md bg-orange-500 text-white font-bold text-[10px]">待審核</span>
+          </div>
+          <div class="text-slate-600 mt-1 font-medium">申請調課項目：巴哈E大調小提琴協奏曲</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 font-mono">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="text-[10px] text-slate-400 font-bold font-sans">舊上課時間 (Original):</div>
+            <div id="modalOldTime" class="font-bold text-slate-700 mt-0.5">週三 10:00 - 11:00</div>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+            <div class="text-[10px] text-emerald-600 font-bold font-sans">新申請時間 (Requested):</div>
+            <div id="modalNewTime" class="font-bold text-emerald-800 mt-0.5">週六 14:00 - 15:00</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600">
+          <span class="font-bold text-slate-700">學生備註原因：</span>
+          <p id="modalReason" class="mt-0.5 text-slate-500">學校舉行露營活動碰撞，希望能調整至週六下午開放時段上課，謝謝老師！</p>
+        </div>
+      </div>
+
+      <!-- 操作按鈕 -->
+      <div class="pt-2 flex items-center justify-end gap-3">
+        <button onclick="rejectRescheduleAction()" class="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all">
+          ❌ 拒絕 (還原原時段)
+        </button>
+        <button onclick="confirmRescheduleAction()" class="px-5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md shadow-emerald-200 transition-all">
+          ✅ 確認 (轉為 confirmed)
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast 提示元件 -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold hidden flex items-center gap-2 border border-slate-700">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">已成功複製連結！</span>
+  </div>
+
+  <!-- JavaScript 邏輯與 Supabase 串接 -->
+  <script>
+    // 初始化 Supabase JS Client
+    const SUPABASE_URL = 'https://your-project.supabase.co'; // 填入您的 Supabase 專案 URL
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // 填入 anon key
+    
+    let supabase = null;
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("Supabase Client Connected Successfully.");
+      } catch (err) {
+        console.warn("Supabase init fallback to interactive mock mode.", err);
+      }
+    }
+
+    // 種子/假資料 (Lessons & Slots State Matrix)
+    let currentTeacherId = 't-1';
+    let activeModalLessonId = null;
+
+    let lessonsData = [
+      // 1. 正常課堂 (scheduled): 純白底 + 灰色細邊框
+      {
+        id: 'les-1',
+        teacher_id: 't-1',
+        student_name: '廖小弟',
+        course_name: '幼兒鋼琴啟蒙',
+        day_key: 1, // Mon
+        block_key: 'morning',
+        time_str: '10:00 - 11:00',
+        status: 'scheduled',
+        magic_token: 'tok-liao-001'
+      },
+      {
+        id: 'les-2',
+        teacher_id: 't-1',
+        student_name: '陳郁庭',
+        course_name: '奏鳴曲進階',
+        day_key: 5, // Fri
+        block_key: 'evening',
+        time_str: '19:00 - 20:00',
+        status: 'scheduled',
+        magic_token: 'tok-chen-002'
+      },
+
+      // 2. 老師開放課表 (available): 極淺天藍色 (#F0F9FF) + 天藍虛線框
+      {
+        id: 'slot-101',
+        teacher_id: 't-1',
+        day_key: 2, // Tue
+        block_key: 'afternoon',
+        time_str: '14:00 - 15:00',
+        status: 'available'
+      },
+      {
+        id: 'slot-102',
+        teacher_id: 't-1',
+        day_key: 4, // Thu
+        block_key: 'morning',
+        time_str: '11:00 - 12:00',
+        status: 'available'
+      },
+
+      // 3. 改期待審核 (reschedule_pending): 橘色邊框 + 呼吸動態
+      {
+        id: 'les-pending-1',
+        teacher_id: 't-1',
+        student_name: '小明',
+        course_name: '巴哈E大調小提琴協奏曲',
+        day_key: 6, // Sat (Today)
+        block_key: 'afternoon',
+        time_str: '14:00 - 15:00',
+        old_time_str: '週三 10:00 - 11:00',
+        status: 'reschedule_pending',
+        reason: '學校露營活動碰撞，申請調至週六下午開放時段，謝謝老師！',
+        magic_token: 'tok-ming-888'
+      },
+
+      // 4. 改期原時段鎖定 (reschedule_original): 灰色虛線半透明框
+      {
+        id: 'les-orig-1',
+        teacher_id: 't-1',
+        student_name: '小明 (原時段)',
+        course_name: '巴哈E大調',
+        day_key: 3, // Wed
+        block_key: 'morning',
+        time_str: '10:00 - 11:00',
+        status: 'reschedule_original'
+      },
+
+      // 5. 改期生效 (confirmed): 綠色邊框
+      {
+        id: 'les-confirmed-1',
+        teacher_id: 't-1',
+        student_name: '張雅晴',
+        course_name: '皇家鋼琴5級',
+        day_key: 6, // Sat (Today)
+        block_key: 'morning',
+        time_str: '11:00 - 12:00',
+        status: 'confirmed',
+        magic_token: 'tok-chang-555'
+      },
+
+      // 6. 老師私有保留 (teacher_hold): 深灰邊框
+      {
+        id: 'les-hold-1',
+        teacher_id: 't-1',
+        course_name: '工作室備課與琴房維護',
+        day_key: 0, // Sun
+        block_key: 'evening',
+        time_str: '20:00 - 21:30',
+        status: 'teacher_hold'
+      }
+    ];
+
+    // 切換教師
+    function switchTeacher(teacherId) {
+      currentTeacherId = teacherId;
+      const avatarEl = document.getElementById('teacherAvatar');
+      if (teacherId === 't-2') {
+        avatarEl.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80';
+      } else if (teacherId === 't-3') {
+        avatarEl.src = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80';
+      } else {
+        avatarEl.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+      }
+      showToast('✨ 已切換至選定教師課表！');
+      renderScheduleGrid();
+    }
+
+    // 複製學生 Magic Link
+    function copyMagicLink() {
+      const activeStudent = lessonsData.find(l => l.magic_token);
+      const token = activeStudent ? activeStudent.magic_token : 'a8f9c2d1-3e4b-5a67-8901-bcdef2345678';
+      const magicUrl = `${window.location.origin}/student-view.html?token=${token}`;
+      
+      navigator.clipboard.writeText(magicUrl).then(() => {
+        showToast('🔗 已成功複製學生專屬 Magic Link 連結至剪貼簿！');
+      }).catch(() => {
+        showToast('🔗 連結：' + magicUrl);
+      });
+    }
+
+    // 週曆切換模擬
+    function changeWeek(direction) {
+      showToast(direction > 0 ? '📅 切換至下一週課表' : '📅 切換至上一週課表');
+    }
+
+    // 顯示 Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMessage');
+      msgEl.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    // 渲染課表矩陣
+    function renderScheduleGrid() {
+      const days = [1, 2, 3, 4, 5, 6, 0];
+      const blocks = ['morning', 'afternoon', 'evening'];
+
+      // 清空舊格子
+      days.forEach(d => {
+        blocks.forEach(b => {
+          const cell = document.getElementById(`cell-${d}-${b}`);
+          if (cell) cell.innerHTML = '';
+        });
+      });
+
+      // 篩選當前教師課堂
+      const filtered = lessonsData.filter(l => l.teacher_id === currentTeacherId);
+
+      filtered.forEach(item => {
+        const cell = document.getElementById(`cell-${item.day_key}-${item.block_key}`);
+        if (!cell) return;
+
+        const card = document.createElement('div');
+
+        // 依據 State Matrix 渲染對應樣式
+        switch (item.status) {
+          // 1. 正常課堂 (scheduled): 純白底 + 灰色細邊框
+          case 'scheduled':
+            card.className = 'p-3 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1 text-xs font-bold text-slate-800 transition-all hover:shadow-md';
+            card.innerHTML = `
+              <div class="flex items-center justify-between text-slate-400 text-[10px]">
+                <span class="font-mono">${item.time_str}</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">正常</span>
+              </div>
+              <div class="text-sm font-extrabold text-slate-900">${item.student_name}</div>
+              <div class="text-[11px] text-slate-500 font-normal">${item.course_name}</div>
+            `;
+            break;
+
+          // 2. 老師開放課表 (available): 極淺天藍色 (#F0F9FF) + 天藍虛線框
+          case 'available':
+            card.className = 'p-3 rounded-2xl bg-[#F0F9FF] border-2 border-dashed border-sky-300 text-sky-800 space-y-1 text-xs font-bold hover:border-sky-400 transition-all cursor-pointer shadow-xs';
+            card.innerHTML = `
+              <div class="flex items-center justify-between text-sky-500 text-[10px]">
+                <span class="font-mono font-bold">${item.time_str}</span>
+                <span>Sparkles ✨</span>
+              </div>
+              <div class="text-xs font-black text-sky-700">開放學生自主預約</div>
+            `;
+            break;
+
+          // 3. 改期待審核 (reschedule_pending): 橘色邊框 + 呼吸動態
+          case 'reschedule_pending':
+            card.className = 'p-3 rounded-2xl bg-orange-50 border-2 border-orange-500 text-orange-900 space-y-1 text-xs font-bold cursor-pointer shadow-md animate-pulse-subtle hover:scale-[1.02] transition-all';
+            card.onclick = () => openRescheduleModal(item.id);
+            card.innerHTML = `
+              <div class="flex items-center justify-between text-orange-600 text-[10px]">
+                <span class="font-mono font-bold">${item.time_str}</span>
+                <span class="px-1.5 py-0.5 rounded bg-orange-500 text-white font-black text-[9px]">點擊審核 ⚡</span>
+              </div>
+              <div class="text-xs font-black text-orange-900">${item.student_name} (申請改期)</div>
+              <div class="text-[10px] text-orange-700 font-medium truncate">${item.reason}</div>
+            `;
+            break;
+
+          // 4. 改期原時段鎖定 (reschedule_original): 灰色虛線半透明框
+          case 'reschedule_original':
+            card.className = 'p-3 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300 opacity-60 text-slate-500 space-y-1 text-xs font-bold';
+            card.innerHTML = `
+              <div class="flex items-center justify-between text-slate-400 text-[10px]">
+                <span class="font-mono">${item.time_str}</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-200 text-slate-600 font-bold">原時段</span>
+              </div>
+              <div class="text-xs font-bold text-slate-600">${item.student_name}</div>
+              <div class="text-[10px] text-slate-400 font-normal">釋出待還原/鎖定中</div>
+            `;
+            break;
+
+          // 5. 改期生效 (confirmed): 綠色邊框
+          case 'confirmed':
+            card.className = 'p-3 rounded-2xl bg-emerald-50 border-2 border-emerald-500 text-emerald-900 space-y-1 text-xs font-bold shadow-sm';
+            card.innerHTML = `
+              <div class="flex items-center justify-between text-emerald-600 text-[10px]">
+                <span class="font-mono font-bold">${item.time_str}</span>
+                <span class="px-1.5 py-0.2 rounded bg-emerald-500 text-white font-black text-[9px]">已同意調課 ✓</span>
+              </div>
+              <div class="text-sm font-black text-emerald-950">${item.student_name}</div>
+              <div class="text-[11px] text-emerald-700 font-normal">${item.course_name}</div>
+            `;
+            break;
+
+          // 6. 老師私有保留 (teacher_hold): 深灰邊框
+          case 'teacher_hold':
+            card.className = 'p-3 rounded-2xl bg-slate-50 border border-slate-400 text-slate-700 space-y-1 text-xs font-bold shadow-xs';
+            card.innerHTML = `
+              <div class="flex items-center justify-between text-slate-500 text-[10px]">
+                <span class="font-mono">${item.time_str}</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-300 text-slate-800 font-bold">私有保留</span>
+              </div>
+              <div class="text-xs font-extrabold text-slate-800">${item.course_name}</div>
+            `;
+            break;
+
+          default:
+            break;
+        }
+
+        cell.appendChild(card);
+      });
+    }
+
+    // 打開 Modal 審核視窗
+    function openRescheduleModal(lessonId) {
+      activeModalLessonId = lessonId;
+      const target = lessonsData.find(l => l.id === lessonId);
+      if (!target) return;
+
+      document.getElementById('modalStudentName').textContent = `${target.student_name} (改期申請)`;
+      document.getElementById('modalOldTime').textContent = target.old_time_str || '原週三 10:00 - 11:00';
+      document.getElementById('modalNewTime').textContent = `週六 ${target.time_str}`;
+      document.getElementById('modalReason').textContent = target.reason || '學生申請調整時間';
+
+      document.getElementById('rescheduleModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('rescheduleModal').classList.add('hidden');
+      activeModalLessonId = null;
+    }
+
+    // ✅ 同意改期申請 (轉為 confirmed)
+    function confirmRescheduleAction() {
+      if (!activeModalLessonId) return;
+
+      lessonsData = lessonsData.map(item => {
+        if (item.id === activeModalLessonId) {
+          return { ...item, status: 'confirmed' };
+        }
+        return item;
+      });
+
+      // 原時段若存在，轉為 available 開放預約
+      lessonsData = lessonsData.map(item => {
+        if (item.status === 'reschedule_original') {
+          return { ...item, status: 'available', student_name: undefined };
+        }
+        return item;
+      });
+
+      closeModal();
+      showToast('✅ 已同意學生調課申請！狀態更新為 confirmed，原時段已釋出。');
+      renderScheduleGrid();
+    }
+
+    // ❌ 拒絕改期申請 (原時段還原)
+    function rejectRescheduleAction() {
+      if (!activeModalLessonId) return;
+
+      // 刪除 pending 新預約
+      lessonsData = lessonsData.filter(item => item.id !== activeModalLessonId);
+
+      // 原時段還原為 scheduled
+      lessonsData = lessonsData.map(item => {
+        if (item.status === 'reschedule_original') {
+          return { ...item, status: 'scheduled', student_name: '小明', course_name: '巴哈E大調' };
+        }
+        return item;
+      });
+
+      closeModal();
+      showToast('❌ 已拒絕調課申請，原課程已成功還原回原上課時段！');
+      renderScheduleGrid();
+    }
+
+    // 初始化渲染
+    renderScheduleGrid();
+  </script>
+
+</body>
+</html>
