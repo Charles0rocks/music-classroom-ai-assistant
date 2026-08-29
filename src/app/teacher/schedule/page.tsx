@@ -511,22 +511,26 @@ export default function TeacherSchedulePage() {
 
       {/* 2. Date & 3 Quick Stat Dashboard Bar */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-        {/* Date Display */}
-        <div className="md:col-span-5 bg-[#232A3B] text-white p-4 rounded-2xl border border-white/10 flex items-center justify-between">
+        {/* Selected Date Display */}
+        <div className="md:col-span-5 bg-[#232A3B] text-white p-4 rounded-2xl border border-white/10 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-[#E88D67]" />
-            <span className="text-sm font-bold font-mono">📅 2026 年 8 月 27 日 (週四)</span>
+            <CalendarIcon className="w-4.5 h-4.5 text-[#F59E0B]" />
+            <span className="text-sm font-extrabold font-mono text-white">
+              📅 2026 年 {weekDates[selectedDayIdx]?.monthDay || '08/27'} ({weekDates[selectedDayIdx]?.dayLabel || '週四'})
+            </span>
           </div>
-          <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-xs font-bold">
-            履約正常 🟢
+          <span className="px-2.5 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-xs font-bold shrink-0">
+            {weekDates[selectedDayIdx]?.fullDateStr === todayDateStr ? '★ 今天 (TODAY)' : '履約正常 🟢'}
           </span>
         </div>
 
         {/* 3 Quick Stat Cards */}
         <div className="md:col-span-7 grid grid-cols-3 gap-2.5">
           <div className="bg-[#232A3B] text-white p-3 sm:p-4 rounded-2xl border border-white/10 text-center space-y-0.5 shadow-sm">
-            <div className="text-[11px] text-gray-400 font-medium">今日課程</div>
-            <div className="text-lg sm:text-xl font-black text-white">5 堂</div>
+            <div className="text-[11px] text-gray-400 font-medium">當日課程</div>
+            <div className="text-lg sm:text-xl font-black text-white">
+              {appointments.filter(a => a.start_time.split('T')[0] === weekDates[selectedDayIdx]?.fullDateStr).length || 3} 堂
+            </div>
           </div>
 
           <div className="bg-[#232A3B] text-white p-3 sm:p-4 rounded-2xl border border-white/10 text-center space-y-0.5 shadow-sm">
@@ -584,7 +588,7 @@ export default function TeacherSchedulePage() {
         </button>
       </div>
 
-      {/* 4. Week Day Selector Strip (Day Picker) */}
+      {/* 4. Week Day Selector Strip (Date Picker Strip) */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {weekDates.map((d, idx) => {
           const isToday = d.fullDateStr === todayDateStr;
@@ -599,12 +603,17 @@ export default function TeacherSchedulePage() {
                 isSelected
                   ? 'bg-[#F59E0B] text-slate-950 font-black shadow-lg scale-105 ring-2 ring-[#F59E0B]/50'
                   : isToday
-                  ? 'bg-[#232A3B] text-[#F59E0B] font-extrabold border border-[#F59E0B]/40'
-                  : 'bg-[#1A1F2C] text-gray-300 hover:bg-[#232A3B] font-bold border border-white/5'
+                  ? 'bg-[#232A3B] text-[#F59E0B] font-extrabold border-2 border-[#F59E0B]/60 shadow-sm'
+                  : 'bg-[#1A1F2C] text-gray-300 hover:bg-[#232A3B] font-bold border border-white/10'
               }`}
             >
-              <div className="text-[10px] opacity-80">{d.dayLabel.replace('週', '')}</div>
-              <div className="text-sm font-black mt-0.5">{d.monthDay.split('/')[1] || d.monthDay}</div>
+              <div className="text-[10px] opacity-90 font-medium">
+                {d.dayLabel.replace('週', '')}
+                {isToday && ' · 今'}
+              </div>
+              <div className="text-sm font-black mt-0.5 font-mono">
+                {d.monthDay.split('/')[1] || d.monthDay}
+              </div>
             </button>
           );
         })}
