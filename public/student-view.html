@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MusiMate - 學員課表與練習 (Mobile Student View)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --caramel-milk-tea: #C08261;
+      --caramel-light: #F9EBE0;
+    }
+    body {
+      background: linear-gradient(180deg, #FFF6D5 0%, #F5D3E8 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    @keyframes pulse-soft {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.85; }
+    }
+    .animate-pulse-soft {
+      animation: pulse-soft 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .bottom-sheet-up {
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased pb-24">
+
+  <!-- 手機邊界限制容器 (Mobile Container) -->
+  <div class="max-w-md mx-auto min-h-screen flex flex-col justify-between space-y-4 px-3 sm:px-4 pt-3">
+
+    <!-- 1. 手機端頂部個人專屬狀態列 (Mobile Top Header Status Bar) -->
+    <header class="bg-white/85 backdrop-blur-md rounded-3xl p-4 border border-white/80 shadow-lg space-y-3">
+      
+      <!-- 第一層：頭像、姓名、堂數卡片 -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="relative w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-400 to-sky-400 p-0.5 shadow-md shrink-0">
+            <img id="studentAvatar" src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80" alt="小明" class="w-full h-full object-cover rounded-2xl">
+            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 id="studentNameDisplay" class="text-lg font-black text-slate-900 tracking-tight">小明 同學</h1>
+              <span class="px-2 py-0.2 rounded-full bg-pink-100 text-pink-600 font-extrabold text-[10px]">
+                Magic Link 驗證 ✓
+              </span>
+            </div>
+            <div id="teacherNameDisplay" class="text-xs text-slate-500 font-medium">
+              指導老師：林詠晴 老師 (古典鋼琴/小提琴)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第二層：課堂進度條 Pill -->
+      <div class="bg-[#FAF2EC] rounded-2xl p-2.5 border border-[#F6D0B8]/60 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-sm">🎹</span>
+          <span class="font-extrabold text-slate-700">本期課程進度</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-24 bg-white rounded-full h-2 overflow-hidden border border-[#F6D0B8]">
+            <div class="bg-[#C08261] h-full w-[70%] rounded-full"></div>
+          </div>
+          <span class="font-mono font-black text-[#C08261] text-xs">7 / 10 堂</span>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- Token 驗證失敗畫面 -->
+    <div id="authErrorBanner" class="hidden bg-white/90 rounded-3xl p-6 border-2 border-rose-300 shadow-xl text-center space-y-3">
+      <div class="w-12 h-12 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+        ⚠️
+      </div>
+      <h2 class="text-base font-black text-slate-900">存取憑證無效或已過期</h2>
+      <p class="text-xs text-slate-600">
+        無法驗證當前的 Magic Link。請向您的授課老師重新索取個人專屬連結。
+      </p>
+      <button onclick="useDemoToken()" class="w-full py-2.5 rounded-2xl bg-[#C08261] text-white font-bold text-xs shadow-md">
+        🔄 載入小明同學範例權限
+      </button>
+    </div>
+
+    <!-- 主要內容區 (Main Content Area) -->
+    <div id="mainStudentContent" class="space-y-4">
+
+      <!-- 2. 日曆膠囊橫向滑動週曆 (Weekly Date Strip Capsules) -->
+      <section class="bg-white/85 backdrop-blur-md rounded-3xl p-3 sm:p-4 border border-white/80 shadow-lg space-y-2">
+        <div class="flex items-center justify-between px-1 text-xs font-bold text-slate-600">
+          <span class="flex items-center gap-1">
+            <span>🗓️ 選擇日期 (Swipe Date Strip)</span>
+          </span>
+          <span id="currentMonthLabel" class="font-mono text-[#C08261] font-black">2026 年 8 月</span>
+        </div>
+
+        <!-- 橫向滑動膠囊容器 (Horizontal Scrollable Strip) -->
+        <div id="dateStripContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-0.5">
+          <!-- 由 JavaScript 動態注入 14 天膠囊 -->
+        </div>
+      </section>
+
+      <!-- 3. 當日課堂與時段直式時間軸卡片流 (Vertical Timeline Cards Flow) -->
+      <section class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/80 shadow-xl space-y-3 min-h-[260px]">
+        
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#C08261]"></span>
+            <h2 id="selectedDateTitle" class="text-sm font-black text-slate-900">
+              08月29日 (週六) 課堂與開放空檔
+            </h2>
+          </div>
+          <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+            嚴格資料隔離
+          </span>
+        </div>
+
+        <!-- 直式時間軸卡片流列表 (Timeline Cards List) -->
+        <div id="timelineCardsContainer" class="space-y-3 pt-1">
+          <!-- 由 JavaScript 動態生成當日卡片 -->
+        </div>
+
+      </section>
+
+      <!-- 5. 15 秒練琴打卡抽屜區 (15s Practice Audio Check-in) -->
+      <section class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/80 shadow-xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <h2 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+            <span>🎙️ 15秒自主練琴打卡</span>
+          </h2>
+          <span class="text-[10px] font-extrabold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+            AI 音聲評測
+          </span>
+        </div>
+
+        <!-- 錄音控制區卡片 -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-center space-y-3">
+          
+          <!-- 大圓形一鍵錄音觸控按鈕 -->
+          <div class="flex flex-col items-center justify-center space-y-2 py-2">
+            <button id="touchRecBtn" onclick="toggleTouchRecord()" class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-pink-200 active:scale-95 transition-all relative">
+              <span id="recBtnIcon">🎙️</span>
+              <span id="recPulseRing" class="absolute inset-0 rounded-full border-4 border-pink-400 animate-ping hidden"></span>
+            </button>
+            <div id="touchRecStatus" class="font-extrabold text-xs text-slate-700">點擊按鈕開始 15 秒錄音</div>
+            <div id="touchRecTimer" class="font-mono text-[11px] font-bold text-slate-400">最長限制 15 秒 · WebAudio API</div>
+          </div>
+
+          <!-- 進度條 -->
+          <div id="touchRecProgressBox" class="w-full bg-slate-200 h-2 rounded-full overflow-hidden hidden">
+            <div id="touchRecProgressBar" class="bg-pink-500 h-full w-0 transition-all duration-100"></div>
+          </div>
+
+          <!-- 音樂錄音預覽與心得輸入 -->
+          <div id="touchAudioPreviewBox" class="hidden text-left space-y-2.5 pt-2 border-t border-slate-200">
+            <div class="text-[11px] font-extrabold text-slate-700 flex justify-between items-center">
+              <span>錄音檔預覽 (Audio Ready):</span>
+              <span class="text-emerald-600 text-[10px]">Ready ✓</span>
+            </div>
+            <audio id="touchAudioPlayer" controls class="w-full h-8"></audio>
+            
+            <input type="text" id="practiceNoteInput" placeholder="簡單寫下一句練琴心得 (例如: 第24小節換弓平順許多)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-300">
+
+            <button onclick="submitMobilePractice()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md transition-all">
+              🚀 上傳送出練琴打卡
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 歷史打卡與 AI 評語選單 -->
+        <div id="mobilePracticeLogs" class="space-y-2 pt-1">
+          <!-- 歷史打卡紀錄卡片 -->
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- 4. 頁尾導覽 (Morandi Footer) -->
+    <footer class="bg-gradient-to-r from-[#CCDDFE] to-[#FCD6DE] rounded-3xl p-4 border border-white/60 shadow-md text-center text-[11px] font-bold text-slate-600 space-y-1">
+      <div>MusiMate Mobile Student View · 嚴格資料隔離中</div>
+      <div class="text-[10px] text-slate-500">如有緊急改期或課表疑問，請直接點擊 LINE 聯繫林老師 💬</div>
+    </footer>
+
+  </div>
+
+  <!-- Modal 1: 24 小時防放鳥溫柔阻擋 Bottom Sheet -->
+  <div id="lockoutBottomSheet" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-end justify-center">
+    <div class="bg-white rounded-t-3xl p-6 max-w-md w-full border-t border-slate-200 shadow-2xl space-y-4 bottom-sheet-up">
+      
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+          🔒
+        </div>
+        <h3 class="text-base font-black text-slate-900">已進入課前 24 小時鎖定</h3>
+        <p class="text-xs text-slate-600 leading-relaxed text-left bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          為維護老師備課與排課權益，課前 24 小時內已關閉線上自動改期。如有緊急突發狀況，請點擊下方直接與老師聯繫。
+        </p>
+      </div>
+
+      <div class="space-y-2 pt-1">
+        <a href="https://line.me" target="_blank" class="w-full py-3 rounded-2xl bg-[#00B900] hover:bg-[#009900] text-white font-black text-xs text-center shadow-md flex items-center justify-center gap-2">
+          💬 直接開啟 LINE 聯繫老師
+        </a>
+        <button onclick="closeBottomSheet('lockoutBottomSheet')" class="w-full py-2.5 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs">
+          我知道了
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal 2: 學生線上申請改期選取 Bottom Sheet -->
+  <div id="rescheduleBottomSheet" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-end justify-center">
+    <div class="bg-white rounded-t-3xl p-6 max-w-md w-full border-t border-slate-200 shadow-2xl space-y-4 bottom-sheet-up">
+      
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+          <span>✨ 選擇欲改期的新時段</span>
+        </h3>
+        <button onclick="closeBottomSheet('rescheduleBottomSheet')" class="text-slate-400 font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="p-3 rounded-2xl bg-[#FFF6EE] border border-[#F6D0B8] text-slate-800 space-y-0.5">
+          <div class="text-[10px] text-slate-400 font-bold">欲移動的舊課程：</div>
+          <div id="targetLessonTitle" class="font-black text-[#C08261] text-sm">巴哈E大調小提琴協奏曲</div>
+          <div id="targetLessonTimeStr" class="font-mono text-xs font-bold text-slate-600">08/29 (六) 10:00 - 11:00</div>
+        </div>
+
+        <div>
+          <label class="block font-extrabold text-slate-700 mb-1">選擇林老師開放的空檔：</label>
+          <select id="mobileOpenSlotsSelect" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-300">
+            <!-- 動態注入 available slots -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-extrabold text-slate-700 mb-1">填寫簡短改期原因：</label>
+          <input type="text" id="mobileReasonInput" placeholder="例如：學校露營活動碰撞，申請調課" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-300">
+        </div>
+      </div>
+
+      <div class="pt-1 flex justify-end gap-2">
+        <button onclick="closeBottomSheet('rescheduleBottomSheet')" class="px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-600 font-bold text-xs">
+          取消
+        </button>
+        <button onclick="submitMobileReschedule()" class="px-5 py-2.5 rounded-2xl bg-[#C08261] text-white font-black text-xs shadow-md">
+          送出改期申請
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold hidden flex items-center gap-2 border border-slate-700">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">訊息提示</span>
+  </div>
+
+  <script>
+    // 1. URL Token Parsing & Student Identification
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentToken = urlParams.get('token') || 'tok-ming-888';
+
+    // 學生離線/種子資料庫 (Database Seed)
+    const mockStudents = {
+      'tok-ming-888': {
+        id: 's-ming',
+        name: '小明 同學',
+        avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+        teacherName: '林詠晴 老師 (古典鋼琴/小提琴)',
+        completedCount: 7,
+        totalCount: 10
+      }
+    };
+
+    // 14 天完整課堂資料 (包含我的課堂、開放空檔與已申請待審核項目)
+    let lessonsData = [
+      // 1. 小明今日 24 小時內正式課堂 (2026-08-29 10:00: 距離目前 2026-08-29 22:37 已小於24h)
+      {
+        id: 'les-today-1',
+        student_id: 's-ming',
+        student_name: '小明',
+        course_name: '巴哈E大調小提琴協奏曲',
+        date_str: '2026-08-29',
+        day_label: 'Sat',
+        time_str: '10:00 - 11:00',
+        iso_start: '2026-08-29T10:00:00',
+        status: 'scheduled'
+      },
+      // 2. 小明下週 > 24小時課堂 (2026-09-02)
+      {
+        id: 'les-future-1',
+        student_id: 's-ming',
+        student_name: '小明',
+        course_name: '奏鳴曲基礎音階與弓法練琴',
+        date_str: '2026-09-02',
+        day_label: 'Wed',
+        time_str: '10:00 - 11:00',
+        iso_start: '2026-09-02T10:00:00',
+        status: 'scheduled'
+      },
+      // 3. 小明已申請待審核項目 (2026-09-05 Sat)
+      {
+        id: 'les-pending-1',
+        student_id: 's-ming',
+        student_name: '小明',
+        course_name: '巴哈E大調 (申請改期中)',
+        date_str: '2026-09-05',
+        day_label: 'Sat',
+        time_str: '14:00 - 15:00',
+        iso_start: '2026-09-05T14:00:00',
+        status: 'reschedule_pending',
+        reason: '學校露營活動碰撞，申請調至週六下午'
+      },
+      // 4. 林老師開放空檔 1 (2026-08-30 Sun)
+      {
+        id: 'slot-open-1',
+        date_str: '2026-08-30',
+        day_label: 'Sun',
+        time_str: '15:00 - 16:00',
+        iso_start: '2026-08-30T15:00:00',
+        status: 'available'
+      },
+      // 5. 林老師開放空檔 2 (2026-09-03 Thu)
+      {
+        id: 'slot-open-2',
+        date_str: '2026-09-03',
+        day_label: 'Thu',
+        time_str: '11:00 - 12:00',
+        iso_start: '2026-09-03T11:00:00',
+        status: 'available'
+      },
+      // 6. 林老師開放空檔 3 (2026-09-06 Sun)
+      {
+        id: 'slot-open-3',
+        date_str: '2026-09-06',
+        day_label: 'Sun',
+        time_str: '14:00 - 15:00',
+        iso_start: '2026-09-06T14:00:00',
+        status: 'available'
+      }
+    ];
+
+    let selectedDateStr = '2026-08-29'; // 預設選擇今日
+    let selectedLessonForReschedule = null;
+
+    // 初始化學生端資訊
+    function initMobileStudentView() {
+      const student = mockStudents[currentToken];
+
+      if (!student) {
+        document.getElementById('authErrorBanner').classList.remove('hidden');
+        document.getElementById('mainStudentContent').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('authErrorBanner').classList.add('hidden');
+      document.getElementById('mainStudentContent').classList.remove('hidden');
+
+      document.getElementById('studentNameDisplay').textContent = student.name;
+      document.getElementById('studentAvatar').src = student.avatar;
+      document.getElementById('teacherNameDisplay').textContent = `指導老師：${student.teacherName}`;
+
+      renderDateStrip();
+      renderTimelineCards(selectedDateStr);
+      renderMobilePracticeLogs();
+    }
+
+    function useDemoToken() {
+      currentToken = 'tok-ming-888';
+      initMobileStudentView();
+    }
+
+    // 2. 渲染手機版 14 天日曆膠囊 (Horizontal Scroll Date Strip)
+    function renderDateStrip() {
+      const container = document.getElementById('dateStripContainer');
+      container.innerHTML = '';
+
+      // 生成從 2026-08-24 至 2026-09-06 共 14 天
+      const startDate = new Date('2026-08-24');
+      
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const dateNum = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${dateNum}`;
+        const dayLabel = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+
+        const isToday = dateStr === '2026-08-29';
+        const isSelected = dateStr === selectedDateStr;
+
+        // 檢查該日是否有我的課程或開放空檔
+        const hasMyLesson = lessonsData.some(l => l.date_str === dateStr && l.student_id === 's-ming');
+        const hasOpenSlot = lessonsData.some(l => l.date_str === dateStr && l.status === 'available');
+
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.onclick = () => selectDate(dateStr);
+
+        let pillBg = 'bg-white border border-slate-200 text-slate-700';
+        if (isSelected) {
+          pillBg = 'bg-[#C08261] text-white font-black shadow-md ring-2 ring-[#C08261]/30 scale-105';
+        } else if (isToday) {
+          pillBg = 'bg-[#FFF2EB] border-2 border-[#C08261] text-[#C08261] font-black';
+        }
+
+        pill.className = `flex-1 min-w-[56px] py-2.5 rounded-2xl flex flex-col items-center justify-center transition-all ${pillBg} shrink-0 relative`;
+        pill.innerHTML = `
+          <span class="text-[10px] opacity-80 uppercase font-bold">${dayLabel}</span>
+          <span class="text-sm font-mono font-black mt-0.5">${dateNum}</span>
+          
+          <!-- 提示圓點 -->
+          <div class="flex items-center gap-1 mt-1">
+            ${hasMyLesson ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-500'}"></span>` : ''}
+            ${hasOpenSlot ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-sky-200' : 'bg-sky-400'}"></span>` : ''}
+          </div>
+        `;
+
+        container.appendChild(pill);
+      }
+    }
+
+    function selectDate(dateStr) {
+      selectedDateStr = dateStr;
+      renderDateStrip();
+      renderTimelineCards(dateStr);
+    }
+
+    // 3. 渲染當日直式時間軸卡片流 (Vertical Timeline Cards Flow - Strict Data Isolation)
+    function renderTimelineCards(dateStr) {
+      const container = document.getElementById('timelineCardsContainer');
+      container.innerHTML = '';
+
+      const titleEl = document.getElementById('selectedDateTitle');
+      const parts = dateStr.split('-');
+      titleEl.textContent = `${parts[1]}月${parts[2]}日 課堂與開放空檔`;
+
+      // 僅篩選小明自己的課程 與 老師開放空檔 (絕對隱藏其他同學資訊)
+      const dayItems = lessonsData.filter(l => l.date_str === dateStr && (l.student_id === 's-ming' || l.status === 'available'));
+
+      if (dayItems.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center text-slate-400 text-xs font-bold space-y-1">
+            <span class="text-2xl block">☕</span>
+            <span>當日無安排課程或開放空檔</span>
+          </div>
+        `;
+        return;
+      }
+
+      dayItems.forEach(item => {
+        const card = document.createElement('div');
+
+        if (item.status === 'available') {
+          // 【老師開放空檔】：極淺天藍底 (#F0F9FF) + 天藍虛線框
+          card.className = 'p-3.5 rounded-2xl bg-[#F0F9FF] border-2 border-dashed border-sky-300 text-sky-900 space-y-1.5 shadow-xs hover:border-sky-400 transition-all';
+          card.innerHTML = `
+            <div class="flex items-center justify-between text-sky-600 text-[10px] font-bold">
+              <span>【老師開放空檔】</span>
+              <span class="px-1.5 py-0.2 rounded bg-sky-200 text-sky-800 font-extrabold">Sparkles ✨</span>
+            </div>
+            <div class="text-sm font-black text-sky-950 font-mono">${item.time_str}</div>
+            <div class="text-[11px] text-sky-700 font-medium flex items-center justify-between pt-1 border-t border-sky-200/50">
+              <span>可選取作為自主改期目標時段</span>
+              <span class="font-bold text-sky-800">可預約調課 ➔</span>
+            </div>
+          `;
+        } else {
+          // 【我的正式課堂】 / 【已申請待審核】
+          const now = new Date('2026-08-29T22:37:38').getTime();
+          const targetTime = new Date(item.iso_start).getTime();
+          const diffHours = (targetTime - now) / (1000 * 60 * 60);
+
+          let statusBadge = `<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">正式課堂 ✓</span>`;
+          let cardBg = 'bg-white border border-slate-200/90 shadow-sm';
+
+          if (item.status === 'reschedule_pending') {
+            statusBadge = `<span class="px-2 py-0.5 rounded bg-orange-500 text-white font-bold text-[10px]">改期待老師審核中 ⚡</span>`;
+            cardBg = 'bg-orange-50 border-2 border-orange-400 shadow-md';
+          }
+
+          card.className = `p-3.5 rounded-2xl ${cardBg} space-y-2 text-xs font-bold transition-all`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-black text-slate-900 text-sm">${item.course_name}</span>
+              ${statusBadge}
+            </div>
+            <div class="font-mono text-xs font-bold text-[#C08261]">${item.time_str}</div>
+            
+            <div class="pt-1 flex items-center justify-between border-t border-slate-100">
+              <span class="text-[10px] text-slate-400 font-medium">${diffHours <= 24 ? '🔒 課前 24h 已鎖定' : '支援線上自主改期'}</span>
+              <button onclick="handleMobileRescheduleClick('${item.id}')" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-black text-[11px] shadow-xs active:scale-95 transition-all">
+                申請改期 🔄
+              </button>
+            </div>
+          `;
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    // 4. 24 小時防放鳥溫柔阻擋機制 (Mobile Bottom Sheet)
+    function handleMobileRescheduleClick(lessonId) {
+      const lesson = lessonsData.find(l => l.id === lessonId);
+      if (!lesson) return;
+
+      const now = new Date('2026-08-29T22:37:38').getTime();
+      const targetTime = new Date(lesson.iso_start).getTime();
+      const diffHours = (targetTime - now) / (1000 * 60 * 60);
+
+      if (diffHours <= 24) {
+        // 彈出 Bottom Sheet 阻擋
+        document.getElementById('lockoutBottomSheet').classList.remove('hidden');
+      } else {
+        // 開啟改期選取 Bottom Sheet
+        selectedLessonForReschedule = lesson;
+        document.getElementById('targetLessonTitle').textContent = lesson.course_name;
+        document.getElementById('targetLessonTimeStr').textContent = `${lesson.date_str} ${lesson.time_str}`;
+
+        const selectEl = document.getElementById('mobileOpenSlotsSelect');
+        selectEl.innerHTML = '';
+        const openSlots = lessonsData.filter(l => l.status === 'available');
+
+        if (openSlots.length === 0) {
+          selectEl.innerHTML = `<option disabled selected>目前尚無老師開放的空檔時段</option>`;
+        } else {
+          openSlots.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = `${s.date_str} ${s.time_str}`;
+            selectEl.appendChild(opt);
+          });
+        }
+
+        document.getElementById('rescheduleBottomSheet').classList.remove('hidden');
+      }
+    }
+
+    function submitMobileReschedule() {
+      if (!selectedLessonForReschedule) return;
+
+      const selectEl = document.getElementById('mobileOpenSlotsSelect');
+      const targetSlotId = selectEl.value;
+      const reason = document.getElementById('mobileReasonInput').value.trim() || '學生線上申請改期';
+
+      const targetSlot = lessonsData.find(l => l.id === targetSlotId);
+      if (!targetSlot) {
+        showToast('請選取有效的開放空檔！');
+        return;
+      }
+
+      // 狀態變更：目標空檔 -> reschedule_pending
+      targetSlot.status = 'reschedule_pending';
+      targetSlot.student_id = 's-ming';
+      targetSlot.student_name = '小明';
+      targetSlot.course_name = selectedLessonForReschedule.course_name;
+
+      // 原時段 -> reschedule_original (對其他學員隱藏)
+      selectedLessonForReschedule.status = 'reschedule_original';
+
+      closeBottomSheet('rescheduleBottomSheet');
+      showToast('⚡ 改期申請已成功送出！待林老師確認後即生效。');
+      renderTimelineCards(selectedDateStr);
+    }
+
+    // 5. 15 秒手機觸控錄音打卡 (Mobile Audio Practice Check-in)
+    let touchMediaRecorder = null;
+    let touchAudioChunks = [];
+    let touchRecTimer = null;
+    let touchRecSecs = 0;
+
+    async function toggleTouchRecord() {
+      if (touchMediaRecorder && touchMediaRecorder.state === 'recording') {
+        stopTouchRec();
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        touchMediaRecorder = new MediaRecorder(stream);
+        touchAudioChunks = [];
+
+        touchMediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) touchAudioChunks.push(e.data);
+        };
+
+        touchMediaRecorder.onstop = () => {
+          const blob = new Blob(touchAudioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(blob);
+          document.getElementById('touchAudioPlayer').src = audioUrl;
+          document.getElementById('touchAudioPreviewBox').classList.remove('hidden');
+        };
+
+        touchMediaRecorder.start();
+        touchRecSecs = 0;
+
+        document.getElementById('recBtnIcon').textContent = '⏹️';
+        document.getElementById('recPulseRing').classList.remove('hidden');
+        document.getElementById('touchRecStatus').textContent = '正在錄音中...請彈奏樂器';
+        document.getElementById('touchRecProgressBox').classList.remove('hidden');
+
+        touchRecTimer = setInterval(() => {
+          touchRecSecs++;
+          document.getElementById('touchRecTimer').textContent = `錄音中: ${touchRecSecs}s / 15s`;
+          document.getElementById('touchRecProgressBar').style.width = `${(touchRecSecs / 15) * 100}%`;
+
+          if (touchRecSecs >= 15) {
+            stopTouchRec();
+          }
+        }, 1000);
+
+      } catch (err) {
+        showToast('無法取得麥克風權限！');
+      }
+    }
+
+    function stopTouchRec() {
+      if (touchMediaRecorder && touchMediaRecorder.state === 'recording') {
+        touchMediaRecorder.stop();
+        touchMediaRecorder.stream.getTracks().forEach(t => t.stop());
+      }
+      clearInterval(touchRecTimer);
+
+      document.getElementById('recBtnIcon').textContent = '🎙️';
+      document.getElementById('recPulseRing').classList.add('hidden');
+      document.getElementById('touchRecStatus').textContent = '錄音完成！可預覽並送出';
+    }
+
+    function submitMobilePractice() {
+      const note = document.getElementById('practiceNoteInput').value.trim() || '自主練琴打卡';
+      showToast('🚀 已成功上傳練琴打卡音檔至 musimate-audio Bucket！');
+      document.getElementById('touchAudioPreviewBox').classList.add('hidden');
+      document.getElementById('practiceNoteInput').value = '';
+    }
+
+    function renderMobilePracticeLogs() {
+      const container = document.getElementById('mobilePracticeLogs');
+      container.innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs font-bold">
+          <div class="flex justify-between text-slate-500">
+            <span class="text-slate-800 font-extrabold">巴哈E大調 第 16-24 小節慢練</span>
+            <span class="font-mono text-[10px]">08/27 20:30</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-[11px] font-medium">
+            🤖 AI 診斷：音高準確率 88%，BPM 96 控制穩定！
+          </div>
+        </div>
+      `;
+    }
+
+    function closeBottomSheet(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    // 初始化頁面
+    initMobileStudentView();
+  </script>
+
+</body>
+</html>

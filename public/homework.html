@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MusiMate - 學員打卡與作業檢視 (Homework Review)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --caramel-milk-tea: #C08261;
+      --caramel-light: #F9EBE0;
+    }
+    body {
+      background: linear-gradient(135deg, #FFF6D5 0%, #F5D3E8 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased p-3 sm:p-6 space-y-6">
+
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- 1. 頂部導覽列 -->
+    <header class="bg-white/85 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-md">
+          🎧
+        </div>
+        <div class="text-2xl font-black tracking-tight">
+          <span class="text-pink-500">Musi</span><span class="text-sky-500">Mate</span>
+          <span class="text-xs font-bold text-slate-400 ml-2 tracking-normal">學員作業審閱</span>
+        </div>
+      </div>
+
+      <nav class="flex items-center gap-2 bg-slate-100/60 p-1.5 rounded-2xl border border-slate-200/50 text-xs font-bold">
+        <a href="dashboard.html" class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          🏠 Dashboard
+        </a>
+        <a href="schedule.html" class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          📅 週課表
+        </a>
+        <span class="bg-purple-600 text-white px-3 py-1.5 rounded-xl shadow-xs">
+          🎧 作業檢視
+        </span>
+      </nav>
+    </header>
+
+    <!-- 2. 作業批改清單區 -->
+    <main class="bg-white/90 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-white/80 shadow-xl space-y-4">
+      <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h1 class="text-lg font-black text-slate-900 flex items-center gap-2">
+          <span>學員練習打卡音檔與 AI 分析報告</span>
+        </h1>
+        <span class="text-xs font-extrabold text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+          2 份待審閱作業
+        </span>
+      </div>
+
+      <div class="space-y-4 text-xs font-bold">
+        <!-- 作業卡片 1 -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 shadow-xs">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-black text-slate-900">小明 同學</span>
+              <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-black">待老師留言評語</span>
+            </div>
+            <span class="font-mono text-slate-400 text-[11px]">2026/08/27 20:30</span>
+          </div>
+
+          <div class="font-extrabold text-slate-700 text-sm">巴哈E大調小提琴協奏曲 第 16-24 小節慢練</div>
+
+          <!-- 音訊播放器 -->
+          <audio controls src="https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg" class="w-full h-9"></audio>
+
+          <!-- AI 音聲分析 -->
+          <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 space-y-1">
+            <div class="flex items-center justify-between font-black text-[11px]">
+              <span>🤖 AI 自動音聲診斷 (MusiMate Pitch & Rhythm Analyzer):</span>
+              <span class="font-mono text-sky-600 font-bold">評分 88 分 · BPM 96</span>
+            </div>
+            <p class="font-medium text-sky-800 text-[11px]">
+              音高準確率 88%，BPM 96 控制穩定！第 20 小節換弓右手手腕放鬆度表現佳。
+            </p>
+          </div>
+
+          <!-- 老師評語輸入 -->
+          <div class="space-y-1.5 pt-1">
+            <label class="block text-slate-700 font-extrabold">給予小明的個別指導評語：</label>
+            <div class="flex gap-2">
+              <input type="text" value="老師評語：表現很好！這週運弓已經沒有乾硬的雜音了，繼續保持！" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-300">
+              <button onclick="alert('已成功送出老師評語！')" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-xs">
+                儲存評語
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 作業卡片 2 -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 shadow-xs">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-black text-slate-900">陳郁庭 同學</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-black">已評語 ✓</span>
+            </div>
+            <span class="font-mono text-slate-400 text-[11px]">2026/08/26 19:15</span>
+          </div>
+
+          <div class="font-extrabold text-slate-700 text-sm">莫札特鋼琴奏鳴曲 第 1-16 小節觸鍵練習</div>
+          <audio controls src="https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg" class="w-full h-9"></audio>
+
+          <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 space-y-1">
+            <div class="flex items-center justify-between font-black text-[11px]">
+              <span>🤖 AI 自動音聲診斷:</span>
+              <span class="font-mono text-sky-600 font-bold">評分 92 分 · BPM 88</span>
+            </div>
+            <p class="font-medium text-sky-800 text-[11px]">
+              左手阿爾貝蒂低音拍子平穩，旋律強弱層次分明。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- 3. 頁尾 -->
+    <footer class="bg-gradient-to-r from-[#CCDDFE] to-[#FCD6DE] rounded-3xl p-5 border border-white/60 shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 text-xs font-bold text-slate-700">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <span>MusiMate Teacher OS · Homework Review Workbench</span>
+      </div>
+      <div class="flex items-center gap-4 text-slate-600">
+        <a href="dashboard.html" class="hover:text-slate-900 transition-colors">Dashboard</a>
+        <span>·</span>
+        <a href="schedule.html" class="hover:text-slate-900 transition-colors">週課表</a>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MusiMate - 30秒 AI 課堂紀錄 (Lesson Record)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --caramel-milk-tea: #C08261;
+      --caramel-light: #F9EBE0;
+    }
+    body {
+      background: linear-gradient(135deg, #FFF6D5 0%, #F5D3E8 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #C08261;
+      border-radius: 4px;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.96); opacity: 0.8; }
+      50% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(0.96); opacity: 0.8; }
+    }
+    .animate-rec {
+      animation: pulse-ring 1.5s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased p-3 sm:p-6 space-y-6">
+
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- 1. 頂部導覽列 (Header & Navbar) -->
+    <header class="bg-white/85 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/70 shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-pink-400 flex items-center justify-center text-white font-black text-xl shadow-md">
+          🎙️
+        </div>
+        <div class="text-2xl font-black tracking-tight">
+          <span class="text-pink-500">Musi</span><span class="text-sky-500">Mate</span>
+          <span class="text-xs font-bold text-slate-400 ml-2 tracking-normal">30秒 AI 課堂紀錄</span>
+        </div>
+      </div>
+
+      <!-- 導航選單 -->
+      <nav class="flex items-center gap-2 bg-slate-100/60 p-1.5 rounded-2xl border border-slate-200/50 text-xs font-bold">
+        <a href="dashboard.html" class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          🏠 Dashboard
+        </a>
+        <a href="schedule.html" class="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-white/50 transition-all">
+          📅 週課表
+        </a>
+        <span class="bg-amber-500 text-white px-3 py-1.5 rounded-xl shadow-xs">
+          🎙️ AI 錄音寫週報
+        </span>
+      </nav>
+    </header>
+
+    <!-- 2. 教師操作面板 (Student Selector & Date Picker) -->
+    <section class="bg-white/90 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-white/80 shadow-xl space-y-4">
+      <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h1 class="text-lg font-black text-slate-900 flex items-center gap-2">
+          <span>選擇學員與課堂日期</span>
+        </h1>
+        <span class="text-xs font-extrabold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+          Gemini 1.5 Flash 驅動
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <label class="block font-extrabold text-slate-700 mb-1.5">選擇上課學員：</label>
+          <select id="studentSelect" onchange="handleStudentChange(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-300">
+            <option value="s-ming">小明 同學 (巴哈E大調小提琴協奏曲)</option>
+            <option value="s-chen">陳郁庭 同學 (奏鳴曲進階)</option>
+            <option value="s-chang">張雅晴 同學 (皇家鋼琴5級)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-extrabold text-slate-700 mb-1.5">課堂日期：</label>
+          <input type="date" id="lessonDatePicker" value="2026-08-29" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-300">
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 語音錄音與 AI 結構化萃取 (30s Voice Recorder & Gemini 1.5 Flash) -->
+    <section class="bg-white/90 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-white/80 shadow-xl space-y-5">
+      
+      <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+          <span>🎙️ 30 秒下課口述錄音 / 文字備用區</span>
+        </h2>
+        <span class="text-xs font-bold text-slate-400">Bucket: musimate-audio</span>
+      </div>
+
+      <!-- 錄音卡片與控制 -->
+      <div class="bg-amber-50/60 rounded-2xl p-5 border border-amber-200/80 space-y-4">
+        
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- 錄音狀態標籤 -->
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div id="recMicIcon" class="w-14 h-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl font-black shadow-md shrink-0">
+              🎙️
+            </div>
+            <div>
+              <div id="recStatusTitle" class="font-black text-slate-900 text-sm">口述下課指導重點 (30 秒)</div>
+              <div id="recTimerText" class="font-mono text-xs font-bold text-slate-500 mt-0.5">點擊右側按鈕開始錄音</div>
+            </div>
+          </div>
+
+          <!-- 按鈕群 -->
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button id="toggleRecBtn" onclick="toggleTeacherRecording()" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs shadow-md shadow-amber-200 transition-all flex items-center gap-2">
+              🔴 開始 30 秒口述錄音
+            </button>
+          </div>
+        </div>
+
+        <!-- 錄音倒數進度條 -->
+        <div id="recProgressBox" class="w-full bg-amber-200/80 h-2.5 rounded-full overflow-hidden hidden">
+          <div id="recProgressBar" class="bg-amber-600 h-full w-0 transition-all duration-100"></div>
+        </div>
+
+        <!-- 音檔播放預覽 -->
+        <div id="teacherAudioPreview" class="hidden p-3 bg-white rounded-xl border border-amber-200 space-y-2">
+          <div class="text-[11px] font-bold text-amber-800">錄音檔已就緒 (Audio File Recorded):</div>
+          <audio id="teacherAudioPlayer" controls class="w-full h-8"></audio>
+        </div>
+
+        <!-- 文字備用區 (Fallback Text Input Area) -->
+        <div class="pt-2 border-t border-amber-200/60 space-y-1.5">
+          <label class="block font-extrabold text-xs text-slate-700">
+            💬 語音逐字稿 / 文字備用輸入區 (可手動編修補充口述內容):
+          </label>
+          <textarea id="rawTranscriptText" rows="3" class="w-full bg-white border border-amber-200 rounded-2xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400" placeholder="例如：小明今天巴哈小提琴表現很好，第24小節換弓手腕放鬆，第16-32小節用BPM 72慢練10遍，不要搶拍！加油！"></textarea>
+        </div>
+
+        <!-- 執行 AI 萃取按鈕 -->
+        <button onclick="runGeminiExtraction()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-black text-xs shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2">
+          <span id="geminiBtnSpinner" class="hidden animate-spin">⏳</span>
+          ✨ 呼叫 Google Gemini 1.5 Flash 結構化萃取聯絡簿
+        </button>
+
+      </div>
+
+    </section>
+
+    <!-- 4. AI 萃取結果與微調編輯卡片 (Editable Summary Form Card) -->
+    <section class="bg-white/90 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-white/80 shadow-xl space-y-4">
+      
+      <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+          <span>📝 AI 聯絡簿預覽與微調編輯 (Editable Preview)</span>
+        </h2>
+        <span id="aiParsedBadge" class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 hidden">
+          JSON Structured Output Ready ✓
+        </span>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        
+        <!-- 綜合摘要 -->
+        <div>
+          <label class="block font-extrabold text-slate-700 mb-1">1. 本週課堂綜合摘要 (Summary)：</label>
+          <textarea id="editSummary" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-300"></textarea>
+        </div>
+
+        <!-- 指法與拍子重點 -->
+        <div>
+          <label class="block font-extrabold text-slate-700 mb-1">2. 指法與拍子注意事項 (Key Points)：</label>
+          <textarea id="editKeyPoints" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-300"></textarea>
+        </div>
+
+        <!-- 回家作業與速度 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block font-extrabold text-slate-700 mb-1">3. 回家作業與指定曲目 (Homework)：</label>
+            <input type="text" id="editHomework" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-300">
+          </div>
+          <div>
+            <label class="block font-extrabold text-slate-700 mb-1">4. 目標練習速度 (Target BPM)：</label>
+            <input type="text" id="editTargetBpm" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 font-mono font-black text-amber-700 focus:outline-none focus:ring-2 focus:ring-pink-300">
+          </div>
+        </div>
+
+        <!-- 生成與推播按鈕 -->
+        <div class="pt-2 flex justify-end gap-3">
+          <button onclick="saveAndGenerateShareModal()" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xs shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2">
+            🚀 生成聯絡簿卡片並推播分享
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- 5. 頁尾導覽列 (Morandi Footer) -->
+    <footer class="bg-gradient-to-r from-[#CCDDFE] to-[#FCD6DE] rounded-3xl p-5 border border-white/60 shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 text-xs font-bold text-slate-700">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <span>MusiMate AI Studio OS v3.2 · Gemini 1.5 Flash Engine Connected</span>
+      </div>
+      <div class="flex items-center gap-4 text-slate-600">
+        <a href="dashboard.html" class="hover:text-slate-900 transition-colors">Dashboard</a>
+        <span>·</span>
+        <a href="schedule.html" class="hover:text-slate-900 transition-colors">週課表</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- 一鍵推播與分享 Modal (Share Modal) -->
+  <div id="shareModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-100 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+          <span class="text-emerald-500">✨</span>
+          週報聯絡簿生成成功！
+        </h3>
+        <button onclick="closeModal('shareModal')" class="text-slate-400 hover:text-slate-600 font-bold p-1">✕</button>
+      </div>
+
+      <!-- 聯絡簿名片卡片預覽 -->
+      <div class="p-4 rounded-2xl bg-gradient-to-br from-[#FFF6EE] to-[#FAF2EC] border border-[#F6D0B8] space-y-2 text-xs font-bold text-slate-800">
+        <div class="flex items-center justify-between text-slate-400 text-[10px]">
+          <span>MusiMate 課堂週報</span>
+          <span id="shareCardDate" class="font-mono">2026/08/29</span>
+        </div>
+        <div id="shareCardStudent" class="text-base font-black text-[#C08261]">小明 同學</div>
+        <div id="shareCardSummary" class="text-slate-700 font-medium">巴哈E大調小提琴協奏曲整體音高控制穩定。</div>
+        <div class="pt-2 border-t border-[#F6D0B8]/60 flex items-center justify-between text-[11px]">
+          <span id="shareCardHomework" class="text-amber-800">作業: 第16-32小節慢練10遍</span>
+          <span id="shareCardBpm" class="font-mono font-black text-pink-600">BPM 72</span>
+        </div>
+      </div>
+
+      <!-- 推播按鈕群 -->
+      <div class="space-y-2.5">
+        <!-- LINE 一鍵發送按鈕 -->
+        <a id="lineShareLink" target="_blank" class="w-full py-3 rounded-2xl bg-[#00B900] hover:bg-[#009900] text-white font-black text-xs shadow-md shadow-emerald-200 transition-all flex items-center justify-center gap-2">
+          💬 LINE 一鍵發送週報給家長/學員
+        </a>
+
+        <!-- 複製專屬 Magic Link 連結 -->
+        <button onclick="copyShareUrl()" class="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-2">
+          🔗 複製學生專屬存取連結 (student-view.html)
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold hidden flex items-center gap-2 border border-slate-700">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">訊息提示</span>
+  </div>
+
+  <script>
+    // 預設示範逐字稿與 AI 結構化種子
+    const SUPABASE_URL = 'https://your-project.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+    const defaultData = {
+      's-ming': {
+        name: '小明 同學',
+        transcript: '小明今天練習巴哈E大調小提琴協奏曲。整體音高表現不錯，但是到了第24小節換弓的地方右手姿勢太緊繃了，導致聲音有點乾硬。樂理部分要特別注意十六分音符的拍子，不要搶拍！回家作業請把第16到32小節用 BPM 72 慢練10遍，把音準跟弓法拉平順。加油！你這周進步很多！',
+        json: {
+          summary: '巴哈E大調小提琴協奏曲整體音高控制穩定，讀譜速度顯著提升。',
+          key_points: '1. 第24小節換弓時請放鬆右手手腕與持弓角度；2. 注意十六分音符節奏不要搶拍。',
+          homework: '第 16-32 小節搭配節拍器慢練 10 遍',
+          target_bpm: '72'
+        }
+      },
+      's-chen': {
+        name: '陳郁庭 同學',
+        transcript: '陳郁庭今天練習莫札特鋼琴奏鳴曲。左手阿爾貝蒂低音拍子很平穩，右手旋律要注意強弱對比。回家作業請練習第1至16小節，目標速度 BPM 88。',
+        json: {
+          summary: '莫札特奏鳴曲左手伴奏拍子平穩，旋律線條清晰。',
+          key_points: '1. 右手旋律請加強強弱 (f/p) 觸鍵對比；2. 圓滑奏 legato 動作再放平順。',
+          homework: '第 1-16 小節慢練與強弱觸鍵練習',
+          target_bpm: '88'
+        }
+      },
+      's-chang': {
+        name: '張雅晴 同學',
+        transcript: '張雅晴皇家鋼琴5級視奏進步很多！音階練習升f小調要特別注意第4指按鍵力量。作業請練第32-48小節 BPM 96。',
+        json: {
+          summary: '皇家鋼琴5級視奏反應敏捷，音樂表情豐富。',
+          key_points: '1. 升f小調音階第4指獨立按鍵力量需加強；2. 踏板踩放時間點精確。',
+          homework: '升f小調音階 + 指定練習曲 32-48 小節',
+          target_bpm: '96'
+        }
+      }
+    };
+
+    let currentStudentKey = 's-ming';
+    let teacherMediaRecorder = null;
+    let teacherAudioChunks = [];
+    let recTimerId = null;
+    let recCount = 0;
+
+    function handleStudentChange(key) {
+      currentStudentKey = key;
+      const data = defaultData[key] || defaultData['s-ming'];
+      document.getElementById('rawTranscriptText').value = data.transcript;
+      fillForm(data.json);
+    }
+
+    function fillForm(json) {
+      document.getElementById('editSummary').value = json.summary || '';
+      document.getElementById('editKeyPoints').value = json.key_points || '';
+      document.getElementById('editHomework').value = json.homework || '';
+      document.getElementById('editTargetBpm').value = json.target_bpm || '72';
+    }
+
+    // 30 秒語音錄音器
+    async function toggleTeacherRecording() {
+      const btn = document.getElementById('toggleRecBtn');
+
+      if (teacherMediaRecorder && teacherMediaRecorder.state === 'recording') {
+        stopTeacherRec();
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        teacherMediaRecorder = new MediaRecorder(stream);
+        teacherAudioChunks = [];
+
+        teacherMediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) teacherAudioChunks.push(e.data);
+        };
+
+        teacherMediaRecorder.onstop = () => {
+          const blob = new Blob(teacherAudioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(blob);
+          document.getElementById('teacherAudioPlayer').src = audioUrl;
+          document.getElementById('teacherAudioPreview').classList.remove('hidden');
+        };
+
+        teacherMediaRecorder.start();
+        recCount = 0;
+
+        btn.textContent = '⏹️ 停止錄音 (30s)';
+        btn.className = 'px-5 py-2.5 rounded-2xl bg-rose-600 text-white font-black text-xs shadow-md animate-pulse';
+        document.getElementById('recStatusTitle').textContent = '錄音中...請口述指導重點';
+        document.getElementById('recProgressBox').classList.remove('hidden');
+
+        recTimerId = setInterval(() => {
+          recCount++;
+          document.getElementById('recTimerText').textContent = `錄音中: ${recCount}s / 30s`;
+          document.getElementById('recProgressBar').style.width = `${(recCount / 30) * 100}%`;
+
+          if (recCount >= 30) {
+            stopTeacherRec();
+          }
+        }, 1000);
+
+      } catch (err) {
+        showToast('無法存取麥克風，請使用上方文字備用區輸入！');
+      }
+    }
+
+    function stopTeacherRec() {
+      if (teacherMediaRecorder && teacherMediaRecorder.state === 'recording') {
+        teacherMediaRecorder.stop();
+        teacherMediaRecorder.stream.getTracks().forEach(t => t.stop());
+      }
+      clearInterval(recTimerId);
+
+      const btn = document.getElementById('toggleRecBtn');
+      btn.textContent = '🔴 開始 30 秒口述錄音';
+      btn.className = 'px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs shadow-md shadow-amber-200 transition-all flex items-center gap-2';
+      document.getElementById('recStatusTitle').textContent = '口述錄音完成！已可執行 Gemini AI 萃取';
+    }
+
+    // 呼叫 Google Gemini 1.5 Flash 結構化萃取 JSON
+    async function runGeminiExtraction() {
+      const spinner = document.getElementById('geminiBtnSpinner');
+      const textInput = document.getElementById('rawTranscriptText').value.trim();
+
+      if (!textInput) {
+        showToast('請先進行口述錄音或在文字備用區輸入語音內容！');
+        return;
+      }
+
+      spinner.classList.remove('hidden');
+      showToast('✨ 正在呼叫 Google Gemini 1.5 Flash 進行語意萃取...');
+
+      // 模擬 / 呼叫 Gemini 1.5 Flash 結構化輸出 API
+      setTimeout(() => {
+        spinner.classList.add('hidden');
+        document.getElementById('aiParsedBadge').classList.remove('hidden');
+
+        // 套用萃取出的結構化結果
+        const studentObj = defaultData[currentStudentKey] || defaultData['s-ming'];
+        fillForm(studentObj.json);
+
+        showToast('✅ Gemini 1.5 Flash 結構化解析完成！已填入微調編輯卡片。');
+      }, 1200);
+    }
+
+    // 生成聯絡簿卡片並開啟分享 Modal
+    function saveAndGenerateShareModal() {
+      const summary = document.getElementById('editSummary').value.trim();
+      const homework = document.getElementById('editHomework').value.trim();
+      const bpm = document.getElementById('editTargetBpm').value.trim();
+      const studentObj = defaultData[currentStudentKey] || defaultData['s-ming'];
+
+      document.getElementById('shareCardStudent').textContent = studentObj.name;
+      document.getElementById('shareCardSummary').textContent = summary || '課堂表現優異！';
+      document.getElementById('shareCardHomework').textContent = `作業: ${homework || '指定曲目練習'}`;
+      document.getElementById('shareCardBpm').textContent = `BPM ${bpm || '72'}`;
+
+      const shareUrl = `${window.location.origin}/student-view.html?token=tok-ming-888`;
+      const lineMsg = `【MusiMate 課堂週報】\n${studentObj.name} 您好！\n綜合摘要: ${summary}\n作業曲目: ${homework}\n目標速度: BPM ${bpm}\n完整線上聯絡簿: ${shareUrl}`;
+
+      const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineMsg)}`;
+      document.getElementById('lineShareLink').href = lineUrl;
+
+      document.getElementById('shareModal').classList.remove('hidden');
+    }
+
+    function copyShareUrl() {
+      const shareUrl = `${window.location.origin}/student-view.html?token=tok-ming-888`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast('🔗 已成功複製學生專屬存取連結！');
+      }).catch(() => {
+        showToast('🔗 存取連結：' + shareUrl);
+      });
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    // 初始化頁面
+    handleStudentChange('s-ming');
+  </script>
+
+</body>
+</html>
