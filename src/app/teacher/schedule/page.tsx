@@ -583,6 +583,8 @@ export default function TeacherSchedulePage() {
     }
   };
 
+  console.log("Current Schedules in State:", appointments);
+
   return (
     <div className="space-y-6">
       {/* 1. Teacher Profile Header Card (Studio OS 教師課表 - 莫蘭迪奶油風格) */}
@@ -699,7 +701,7 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* 2. 課表設定 Card (Always Available at Top of Teacher Schedule Workbench) */}
+      {/* 2. 課表設定 Card (Single Clean Panel at Top of Teacher Schedule Workbench) */}
       <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-6 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EADFC9]/80 pb-4">
           <div className="flex items-center gap-2">
@@ -762,286 +764,266 @@ export default function TeacherSchedulePage() {
           </div>
         )}
 
-        {/* Dynamic Form according to Mode */}
-        {scheduleMode === 'recurring' ? (
-          /* Mode 1: 1. 常態課表 Form (Supports Custom Typing & Selecting) */
-          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                1. 學生姓名 (可自由輸入或點選)
-              </label>
-              <input
-                type="text"
-                required
-                list="student-suggestions"
-                value={recurringStudent}
-                onChange={(e) => setRecurringStudent(e.target.value)}
-                placeholder="請輸入或選擇學生姓名..."
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-              />
-              <datalist id="student-suggestions">
-                <option value="小明" />
-                <option value="小華" />
-                <option value="小美" />
-                <option value="小王" />
-                <option value="常態班學生" />
-              </datalist>
+        {/* Setting Mode 1: 常態課表 Form */}
+        {scheduleMode === 'recurring' && (
+          <form onSubmit={handleSettingSubmit} className="space-y-4">
+            <div className="text-xs font-bold text-[#7A736E] flex items-center gap-1.5">
+              <span>📌 說明：設定固定每週重複上課的常態學生與時段，系統會自動在課表中顯示。</span>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                固定日期
-              </label>
-              <select
-                value={recurringDayKey}
-                onChange={(e) => setRecurringDayKey(parseInt(e.target.value, 10))}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-              >
-                {weekDates.map((d) => (
-                  <option key={d.key} value={d.key}>
-                    {d.monthDay} {d.dayLabel}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  學生姓名 (Student Name)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={recurringStudent}
+                  onChange={(e) => setRecurringStudent(e.target.value)}
+                  placeholder="例：小明 / 廖小弟"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                固定時段
-              </label>
-              <select
-                value={recurringBlockKey}
-                onChange={(e) => {
-                  const bKey = e.target.value;
-                  setRecurringBlockKey(bKey);
-                  if (bKey === 'morning') {
-                    setRecurringStartTime('10:00');
-                    setRecurringEndTime('11:00');
-                  } else if (bKey === 'afternoon') {
-                    setRecurringStartTime('14:00');
-                    setRecurringEndTime('15:00');
-                  } else {
-                    setRecurringStartTime('19:00');
-                    setRecurringEndTime('20:00');
-                  }
-                }}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-              >
-                <option value="morning">☀️ 上午</option>
-                <option value="afternoon">🌤️ 下午</option>
-                <option value="evening">🌙 晚間</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  上課星期 (Day of Week)
+                </label>
+                <select
+                  value={recurringDayKey}
+                  onChange={(e) => setRecurringDayKey(Number(e.target.value))}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                >
+                  {weekDates.map((d) => (
+                    <option key={d.key} value={d.key}>
+                      {d.monthDay} ({d.dayLabel})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                上課時間
-              </label>
-              <div className="flex items-center gap-1">
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  時段分組 (Block)
+                </label>
+                <select
+                  value={recurringBlockKey}
+                  onChange={(e) => setRecurringBlockKey(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                >
+                  <option value="morning">上午 (09:00 - 12:00)</option>
+                  <option value="afternoon">下午 (13:00 - 18:00)</option>
+                  <option value="evening">晚間 (19:00 - 22:00)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  開始時間 (Start Time)
+                </label>
                 <input
                   type="time"
+                  required
                   value={recurringStartTime}
                   onChange={(e) => setRecurringStartTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-mono font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
                 />
-                <span className="text-xs text-[#7A736E] font-bold">-</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  結束時間 (End Time)
+                </label>
                 <input
                   type="time"
+                  required
                   value={recurringEndTime}
                   onChange={(e) => setRecurringEndTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-mono font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
                 />
               </div>
             </div>
 
-            <div>
+            <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#8C6D53]/20 transition-all"
+                className="px-5 py-2.5 rounded-2xl bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
               >
-                <BookOpen className="w-3.5 h-3.5" />
-                排入常態課表
+                <Plus className="w-4 h-4" />
+                儲存常態課表設定
               </button>
             </div>
           </form>
-        ) : scheduleMode === 'openSlot' ? (
-          /* Mode 2: 2. 開放時段 Form */
-          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
-            <div>
-              <label className="block text-xs font-bold text-[#2E7D32] mb-1">
-                2. 時段屬性
-              </label>
-              <div className="w-full bg-[#E8F5E9] border border-[#C8E6C9] rounded-2xl px-3.5 py-2 text-xs font-extrabold text-[#2E7D32] flex items-center gap-1.5">
-                開放時段
+        )}
+
+        {/* Setting Mode 2: 開放時段 Form */}
+        {scheduleMode === 'openSlot' && (
+          <form onSubmit={handleSettingSubmit} className="space-y-4">
+            <div className="text-xs font-bold text-[#2E7D32] flex items-center gap-1.5">
+              <span>💡 說明：開放可預約時段，讓學生線上預約或進行補課。</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  開放日期 (Date)
+                </label>
+                <select
+                  value={openDayKey}
+                  onChange={(e) => setOpenDayKey(Number(e.target.value))}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                >
+                  {weekDates.map((d) => (
+                    <option key={d.key} value={d.key}>
+                      {d.monthDay} ({d.dayLabel})
+                    </option>
+                  ))}
+                </select>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放日期
-              </label>
-              <select
-                value={openDayKey}
-                onChange={(e) => setOpenDayKey(parseInt(e.target.value, 10))}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
-              >
-                {weekDates.map((d) => (
-                  <option key={d.key} value={d.key}>
-                    {d.monthDay} {d.dayLabel}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  時段分組 (Block)
+                </label>
+                <select
+                  value={openBlockKey}
+                  onChange={(e) => setOpenBlockKey(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                >
+                  <option value="morning">上午 (09:00 - 12:00)</option>
+                  <option value="afternoon">下午 (13:00 - 18:00)</option>
+                  <option value="evening">晚間 (19:00 - 22:00)</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放時段
-              </label>
-              <select
-                value={openBlockKey}
-                onChange={(e) => {
-                  const bKey = e.target.value;
-                  setOpenBlockKey(bKey);
-                  if (bKey === 'morning') {
-                    setOpenStartTime('11:00');
-                    setOpenEndTime('12:00');
-                  } else if (bKey === 'afternoon') {
-                    setOpenStartTime('14:00');
-                    setOpenEndTime('15:00');
-                  } else {
-                    setOpenStartTime('19:00');
-                    setOpenEndTime('20:00');
-                  }
-                }}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
-              >
-                <option value="morning">☀️ 上午</option>
-                <option value="afternoon">🌤️ 下午</option>
-                <option value="evening">🌙 晚間</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放時間
-              </label>
-              <div className="flex items-center gap-1">
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  開始時間 (Start)
+                </label>
                 <input
                   type="time"
+                  required
                   value={openStartTime}
                   onChange={(e) => setOpenStartTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-mono font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
                 />
-                <span className="text-xs text-[#7A736E] font-bold">-</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  結束時間 (End)
+                </label>
                 <input
                   type="time"
+                  required
                   value={openEndTime}
                   onChange={(e) => setOpenEndTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-mono font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
                 />
               </div>
             </div>
 
-            <div>
+            <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-full bg-[#E8F5E9] hover:bg-[#C8E6C9] border border-[#C8E6C9] text-[#2E7D32] font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                className="px-5 py-2.5 rounded-2xl bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] hover:bg-[#C8E6C9] font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
-                開放此時段
+                <Plus className="w-4 h-4" />
+                新增開放時段 (Add Slot)
               </button>
             </div>
           </form>
-        ) : (
-          /* Mode 3: 3. 課程異動 Form */
-          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
-            <div>
-              <label className="block text-xs font-bold text-[#1565C0] mb-1">
-                3. 欲異動之課程
-              </label>
-              <select
-                value={rescheduleAppId}
-                onChange={(e) => setRescheduleAppId(e.target.value)}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
-              >
-                {appointments.map((app) => (
-                  <option key={app.id} value={app.id}>
-                    {app.student_name} · {formatFullDateStr(app.start_time)} ({formatTimeRange(app.start_time, app.end_time)})
-                  </option>
-                ))}
-              </select>
+        )}
+
+        {/* Setting Mode 3: 課程異動 Form */}
+        {scheduleMode === 'reschedule' && (
+          <form onSubmit={handleSettingSubmit} className="space-y-4">
+            <div className="text-xs font-bold text-[#1565C0] flex items-center gap-1.5">
+              <span>🔄 說明：手動替學生辦理課程調課，將課程移至新的日期與時間。</span>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                異動新日期
-              </label>
-              <select
-                value={rescheduleDayKey}
-                onChange={(e) => setRescheduleDayKey(parseInt(e.target.value, 10))}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
-              >
-                {weekDates.map((d) => (
-                  <option key={d.key} value={d.key}>
-                    {d.monthDay} {d.dayLabel}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  選擇欲異動的課程
+                </label>
+                <select
+                  value={rescheduleAppId}
+                  onChange={(e) => setRescheduleAppId(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                >
+                  {appointments.map((app) => (
+                    <option key={app.id} value={app.id}>
+                      {app.student_name} ({formatFullDateStr(app.start_time)})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                異動新時段
-              </label>
-              <select
-                value={rescheduleBlockKey}
-                onChange={(e) => {
-                  const bKey = e.target.value;
-                  setRescheduleBlockKey(bKey);
-                  if (bKey === 'morning') {
-                    setRescheduleStartTime('10:00');
-                    setRescheduleEndTime('11:00');
-                  } else if (bKey === 'afternoon') {
-                    setRescheduleStartTime('14:00');
-                    setRescheduleEndTime('15:00');
-                  } else {
-                    setRescheduleStartTime('19:00');
-                    setRescheduleEndTime('20:00');
-                  }
-                }}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
-              >
-                <option value="morning">☀️ 上午</option>
-                <option value="afternoon">🌤️ 下午</option>
-                <option value="evening">🌙 晚間</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  目標新日期
+                </label>
+                <select
+                  value={rescheduleDayKey}
+                  onChange={(e) => setRescheduleDayKey(Number(e.target.value))}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                >
+                  {weekDates.map((d) => (
+                    <option key={d.key} value={d.key}>
+                      {d.monthDay} ({d.dayLabel})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                異動新時間
-              </label>
-              <div className="flex items-center gap-1">
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  目標時段分組
+                </label>
+                <select
+                  value={rescheduleBlockKey}
+                  onChange={(e) => setRescheduleBlockKey(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
+                >
+                  <option value="morning">上午 (09:00 - 12:00)</option>
+                  <option value="afternoon">下午 (13:00 - 18:00)</option>
+                  <option value="evening">晚間 (19:00 - 22:00)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  新開始時間
+                </label>
                 <input
                   type="time"
+                  required
                   value={rescheduleStartTime}
                   onChange={(e) => setRescheduleStartTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-mono font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
                 />
-                <span className="text-xs text-[#7A736E] font-bold">-</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#332C27] mb-1">
+                  新結束時間
+                </label>
                 <input
                   type="time"
+                  required
                   value={rescheduleEndTime}
                   onChange={(e) => setRescheduleEndTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
+                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl px-3 py-2 text-xs font-mono font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
                 />
               </div>
             </div>
 
-            <div>
+            <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-full bg-[#1565C0] hover:bg-[#0D47A1] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#1565C0]/20 transition-all"
+                className="px-5 py-2.5 rounded-2xl bg-[#E3F2FD] text-[#1565C0] border border-[#BBDEFB] hover:bg-[#BBDEFB] font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
               >
                 <ArrowRightLeft className="w-3.5 h-3.5" />
                 確認異動課程
@@ -1050,7 +1032,7 @@ export default function TeacherSchedulePage() {
           </form>
         )}
 
-        {/* Dedicated Registered Recurring Schedules Log Panel Inside "課表設定" Section */}
+        {/* Log Panel */}
         <div className="pt-4 border-t border-[#EADFC9]/80 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-extrabold text-[#8C6D53] flex items-center gap-1.5">
@@ -1224,398 +1206,6 @@ export default function TeacherSchedulePage() {
       {/* Weekly 2D Matrix View */}
       {mainViewMode === 'weeklyMatrix' && (
         <>
-      <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-warm space-y-6 bg-gradient-to-r from-[#FFFDF9] via-white to-[#FAF2EC]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EADFC9]/80 pb-4">
-          <div className="flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-[#8C6D53]" />
-            <h2 className="text-xl font-extrabold text-[#332C27]">
-              課表設定
-            </h2>
-          </div>
-
-          {/* Mode Switcher Tabs */}
-          <div className="flex flex-wrap items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#EADFC9]">
-            <button
-              type="button"
-              onClick={() => setScheduleMode('recurring')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
-                scheduleMode === 'recurring'
-                  ? 'bg-[#8C6D53] text-white shadow-sm'
-                  : 'text-[#7A736E] hover:text-[#332C27]'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              1. 常態課表
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setScheduleMode('openSlot')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
-                scheduleMode === 'openSlot'
-                  ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] shadow-sm font-extrabold'
-                  : 'text-[#7A736E] hover:text-[#332C27]'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
-              2. 開放時段
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setScheduleMode('reschedule');
-                if (appointments.length > 0) setRescheduleAppId(appointments[0].id);
-              }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
-                scheduleMode === 'reschedule'
-                  ? 'bg-[#E3F2FD] text-[#1565C0] border border-[#BBDEFB] shadow-sm font-extrabold'
-                  : 'text-[#7A736E] hover:text-[#332C27]'
-              }`}
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5 text-[#1565C0]" />
-              3. 課程異動
-            </button>
-          </div>
-        </div>
-
-        {settingNotice && (
-          <div className="p-3.5 rounded-2xl bg-[#E8F5E9] border border-[#C8E6C9] text-xs font-bold text-[#2E7D32] flex items-center gap-2 animate-in fade-in">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2E7D32]" />
-            {settingNotice}
-          </div>
-        )}
-
-        {/* Dynamic Form according to Mode */}
-        {scheduleMode === 'recurring' ? (
-          /* Mode 1: 1. 常態課表 Form (Supports Custom Typing & Selecting) */
-          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                1. 學生姓名 (可自由輸入或點選)
-              </label>
-              <input
-                type="text"
-                required
-                list="student-suggestions"
-                value={recurringStudent}
-                onChange={(e) => setRecurringStudent(e.target.value)}
-                placeholder="請輸入或選擇學生姓名..."
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-              />
-              <datalist id="student-suggestions">
-                <option value="小明" />
-                <option value="小華" />
-                <option value="小美" />
-                <option value="小王" />
-                <option value="常態班學生" />
-              </datalist>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                固定日期
-              </label>
-              <select
-                value={recurringDayKey}
-                onChange={(e) => setRecurringDayKey(parseInt(e.target.value, 10))}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-              >
-                {weekDates.map((d) => (
-                  <option key={d.key} value={d.key}>
-                    {d.monthDay} {d.dayLabel}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                固定時段
-              </label>
-              <select
-                value={recurringBlockKey}
-                onChange={(e) => {
-                  const bKey = e.target.value;
-                  setRecurringBlockKey(bKey);
-                  if (bKey === 'morning') {
-                    setRecurringStartTime('10:00');
-                    setRecurringEndTime('11:00');
-                  } else if (bKey === 'afternoon') {
-                    setRecurringStartTime('14:00');
-                    setRecurringEndTime('15:00');
-                  } else {
-                    setRecurringStartTime('19:00');
-                    setRecurringEndTime('20:00');
-                  }
-                }}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#8C6D53]"
-              >
-                <option value="morning">☀️ 上午</option>
-                <option value="afternoon">🌤️ 下午</option>
-                <option value="evening">🌙 晚間</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                上課時間
-              </label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="time"
-                  value={recurringStartTime}
-                  onChange={(e) => setRecurringStartTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-                />
-                <span className="text-xs text-[#7A736E] font-bold">-</span>
-                <input
-                  type="time"
-                  value={recurringEndTime}
-                  onChange={(e) => setRecurringEndTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#8C6D53]/20 transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                排入常態課表
-              </button>
-            </div>
-          </form>
-        ) : scheduleMode === 'openSlot' ? (
-          /* Mode 2: 2. 開放時段 Form */
-          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
-            <div>
-              <label className="block text-xs font-bold text-[#2E7D32] mb-1">
-                2. 時段屬性
-              </label>
-              <div className="w-full bg-[#E8F5E9] border border-[#C8E6C9] rounded-2xl px-3.5 py-2 text-xs font-extrabold text-[#2E7D32] flex items-center gap-1.5">
-                開放時段
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放日期
-              </label>
-              <select
-                value={openDayKey}
-                onChange={(e) => setOpenDayKey(parseInt(e.target.value, 10))}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
-              >
-                {weekDates.map((d) => (
-                  <option key={d.key} value={d.key}>
-                    {d.monthDay} {d.dayLabel}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放時段
-              </label>
-              <select
-                value={openBlockKey}
-                onChange={(e) => {
-                  const bKey = e.target.value;
-                  setOpenBlockKey(bKey);
-                  if (bKey === 'morning') {
-                    setOpenStartTime('11:00');
-                    setOpenEndTime('12:00');
-                  } else if (bKey === 'afternoon') {
-                    setOpenStartTime('14:00');
-                    setOpenEndTime('15:00');
-                  } else {
-                    setOpenStartTime('19:00');
-                    setOpenEndTime('20:00');
-                  }
-                }}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#2E7D32]"
-              >
-                <option value="morning">☀️ 上午</option>
-                <option value="afternoon">🌤️ 下午</option>
-                <option value="evening">🌙 晚間</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                開放時間
-              </label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="time"
-                  value={openStartTime}
-                  onChange={(e) => setOpenStartTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-                />
-                <span className="text-xs text-[#7A736E] font-bold">-</span>
-                <input
-                  type="time"
-                  value={openEndTime}
-                  onChange={(e) => setOpenEndTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-full bg-[#E8F5E9] hover:bg-[#C8E6C9] border border-[#C8E6C9] text-[#2E7D32] font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
-                開放此時段
-              </button>
-            </div>
-          </form>
-        ) : (
-          /* Mode 3: 3. 課程異動 Form */
-          <form onSubmit={handleSettingSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end pt-1">
-            <div>
-              <label className="block text-xs font-bold text-[#1565C0] mb-1">
-                3. 欲異動之課程
-              </label>
-              <select
-                value={rescheduleAppId}
-                onChange={(e) => setRescheduleAppId(e.target.value)}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
-              >
-                {appointments.map((app) => (
-                  <option key={app.id} value={app.id}>
-                    {app.student_name} · {formatFullDateStr(app.start_time)} ({formatTimeRange(app.start_time, app.end_time)})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                異動新日期
-              </label>
-              <select
-                value={rescheduleDayKey}
-                onChange={(e) => setRescheduleDayKey(parseInt(e.target.value, 10))}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
-              >
-                {weekDates.map((d) => (
-                  <option key={d.key} value={d.key}>
-                    {d.monthDay} {d.dayLabel}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                異動新時段
-              </label>
-              <select
-                value={rescheduleBlockKey}
-                onChange={(e) => {
-                  const bKey = e.target.value;
-                  setRescheduleBlockKey(bKey);
-                  if (bKey === 'morning') {
-                    setRescheduleStartTime('10:00');
-                    setRescheduleEndTime('11:00');
-                  } else if (bKey === 'afternoon') {
-                    setRescheduleStartTime('14:00');
-                    setRescheduleEndTime('15:00');
-                  } else {
-                    setRescheduleStartTime('19:00');
-                    setRescheduleEndTime('20:00');
-                  }
-                }}
-                className="w-full bg-white border border-[#EFECE6] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-[#332C27] focus:outline-none focus:border-[#1565C0]"
-              >
-                <option value="morning">☀️ 上午</option>
-                <option value="afternoon">🌤️ 下午</option>
-                <option value="evening">🌙 晚間</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#332C27] mb-1">
-                異動新時間
-              </label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="time"
-                  value={rescheduleStartTime}
-                  onChange={(e) => setRescheduleStartTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-                />
-                <span className="text-xs text-[#7A736E] font-bold">-</span>
-                <input
-                  type="time"
-                  value={rescheduleEndTime}
-                  onChange={(e) => setRescheduleEndTime(e.target.value)}
-                  className="w-full bg-white border border-[#EFECE6] rounded-2xl px-2.5 py-2 text-[11px] font-mono text-[#332C27]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-full bg-[#1565C0] hover:bg-[#0D47A1] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#1565C0]/20 transition-all"
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5" />
-                確認異動課程
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Dedicated Registered Recurring Schedules Log Panel Inside "課表設定" Section */}
-        <div className="pt-4 border-t border-[#EADFC9]/80 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-[#8C6D53] flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4 text-[#8C6D53]" />
-              已記錄的常態課表 (Registered Recurring Schedules)
-            </span>
-            <span className="text-[11px] text-[#7A736E] font-bold">
-              共 {recurringLogs.length} 筆常態紀錄
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {recurringLogs.map((log) => {
-              const cardStyle = getStudentCardStyle(log.studentName);
-              return (
-                <div
-                  key={log.id}
-                  className={`p-3 rounded-2xl border flex items-center justify-between gap-2 shadow-xs ${cardStyle}`}
-                >
-                  <div className="space-y-0.5">
-                    <div className="font-extrabold text-xs">
-                      {log.studentName} (常態課)
-                    </div>
-                    <div className="font-mono text-[11px] opacity-90">
-                      {log.monthDay} {log.dayLabel} · {log.startTime}-{log.endTime}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveRecurringLog(log.id)}
-                    className="p-1.5 rounded-xl hover:bg-black/10 text-current opacity-70 hover:opacity-100 transition-all"
-                    title="刪除此筆常態課表紀錄"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
 
       {/* Top Banner: Global Year & Week Segment Banner */}
       <div className="warm-card p-4 sm:p-6 rounded-3xl border border-[#EFECE6] shadow-warm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white">
@@ -1841,19 +1431,28 @@ export default function TeacherSchedulePage() {
                                   : app.status === 'restored'
                                   ? `${app.student_name || '學生'} (恢復)`
                                   : (app.student_name || '學生');
+
+                              const displaySlot = app.time_slot || formatTimeRange(app.start_time, app.end_time);
+                              const displayDuration = app.duration || '60 分鐘';
+                              const displayFee = app.fee ? `NT$${app.fee.toLocaleString()}` : 'NT$1,200';
+
                               return (
                                 <div
                                   key={app.id}
                                   draggable
                                   onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
-                                  className={`p-2.5 rounded-xl border flex flex-col gap-0.5 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
+                                  className={`p-2.5 rounded-xl border flex flex-col gap-1 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
                                 >
-                                  <div className="font-black text-xs leading-snug flex items-center gap-1">
-                                    <GripVertical className="w-3 h-3 opacity-60" />
-                                    {titleText}
+                                  <div className="font-black text-xs leading-snug flex items-center justify-between gap-1">
+                                    <span className="flex items-center gap-1">
+                                      <GripVertical className="w-3 h-3 opacity-60" />
+                                      {titleText}
+                                    </span>
+                                    <span className="text-[10px] font-extrabold font-mono opacity-90">{displayFee}</span>
                                   </div>
-                                  <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4">
-                                    {formatTimeRange(app.start_time, app.end_time)}
+                                  <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4 flex items-center justify-between gap-1">
+                                    <span>{displaySlot}</span>
+                                    <span className="text-[9px] opacity-75 font-sans font-normal">{displayDuration}</span>
                                   </div>
                                 </div>
                               );

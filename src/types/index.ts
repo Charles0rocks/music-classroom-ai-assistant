@@ -39,6 +39,11 @@ export interface Appointment {
   start_time: string;
   original_start_time?: string;
   end_time: string;
+  date?: string;
+  day_of_week?: string;
+  time_slot?: string;
+  duration?: string;
+  fee?: number;
   status: AppointmentStatus;
 }
 
