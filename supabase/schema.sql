@@ -57,6 +57,20 @@ CREATE TABLE IF NOT EXISTS public.appointments (
     CONSTRAINT valid_appointment_time CHECK (end_time > start_time)
 );
 
+-- 5.1 排課與課程總表 (schedules)
+CREATE TABLE IF NOT EXISTS public.schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    teacher_id VARCHAR(100) NOT NULL DEFAULT 't0000000-0000-0000-0000-000000000001',
+    student_name VARCHAR(100) NOT NULL,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    room VARCHAR(100) DEFAULT '大安琴房 A 室',
+    fee INT DEFAULT 1200,
+    status VARCHAR(50) NOT NULL DEFAULT 'confirmed',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT valid_schedule_time CHECK (end_time > start_time)
+);
+
 -- 6. 調課申請紀錄 (reschedule_requests)
 CREATE TABLE IF NOT EXISTS public.reschedule_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

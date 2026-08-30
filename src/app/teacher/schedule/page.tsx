@@ -29,6 +29,7 @@ import {
   Mic,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
+import { supabase, isSupabaseConfigured, DbScheduleRecord } from '@/lib/supabaseClient';
 
 const DAYS = [
   { key: 1, label: '週一', short: 'Mon' },
@@ -232,6 +233,58 @@ export default function TeacherSchedulePage() {
   };
 
   // Submit Handler for Top "課表設定" Block
+  const [isDbConnected, setIsDbConnected] = useState<boolean>(false);
+  const [isLoadingDb, setIsLoadingDb] = useState<boolean>(false);
+
+  // Fetch Schedules from Supabase (Fallback to Mock Seed when offline / unconfigured)
+  useEffect(() => {
+    const loadSupabaseSchedules = async () => {
+      if (!isSupabaseConfigured() || !supabase) {
+        setIsDbConnected(false);
+        return;
+      }
+
+      setIsLoadingDb(true);
+      try {
+        const { data, error } = await supabase
+          .from('schedules')
+          .select('*')
+          .order('start_time', { ascending: true });
+
+        if (error) {
+          console.warn('Supabase DB fetch error, falling back to mock seed data:', error.message);
+          setIsDbConnected(false);
+        } else if (data && data.length > 0) {
+          console.log('Successfully fetched schedules from Supabase DB:', data);
+          setIsDbConnected(true);
+
+          const dbApps: Appointment[] = data.map((item: DbScheduleRecord) => ({
+            id: item.id,
+            student_id: `s-${item.id}`,
+            student_name: item.student_name,
+            teacher_id: item.teacher_id,
+            start_time: item.start_time,
+            original_start_time: item.start_time,
+            end_time: item.end_time,
+            status: (item.status as any) || 'confirmed',
+          }));
+
+          setAppointments(dbApps);
+        } else {
+          // Table exists but currently empty
+          setIsDbConnected(true);
+        }
+      } catch (err) {
+        console.warn('Supabase network error, fallback to mock data:', err);
+        setIsDbConnected(false);
+      } finally {
+        setIsLoadingDb(false);
+      }
+    };
+
+    loadSupabaseSchedules();
+  }, [weekOffset]);
+
   const handleSettingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -244,8 +297,9 @@ export default function TeacherSchedulePage() {
       const endIso = new Date(`${datePrefix}T${recurringEndTime}`).toISOString();
 
       // Add to Appointments list
+      const newAppId = `app-${Date.now()}`;
       const newApp: Appointment = {
-        id: `app-custom-${Date.now()}`,
+        id: newAppId,
         student_id: `s-custom-${Date.now()}`,
         student_name: studentNameInput,
         teacher_id: teacherProfile.id,
@@ -256,9 +310,34 @@ export default function TeacherSchedulePage() {
       };
       setAppointments((prev) => [...prev, newApp]);
 
+      // Supabase Client Insert
+      if (isSupabaseConfigured() && supabase) {
+        supabase
+          .from('schedules')
+          .insert([
+            {
+              teacher_id: teacherProfile.id || 't0000000-0000-0000-0000-000000000001',
+              student_name: studentNameInput,
+              start_time: startIso,
+              end_time: endIso,
+              room: '大安琴房 A 室',
+              fee: 1200,
+              status: 'confirmed',
+            },
+          ])
+          .then(({ error }) => {
+            if (!error) {
+              setIsDbConnected(true);
+              setSettingNotice(`🟢 已成功寫入 Supabase 資料庫：【${studentNameInput}】· ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
+            } else {
+              console.warn('Supabase insert error:', error.message);
+            }
+          });
+      }
+
       // Record in "課表設定" Panel Logs
       const newLog: RecurringScheduleLog = {
-        id: `rec-${Date.now()}`,
+        id: newAppId,
         studentName: studentNameInput,
         dayKey: recurringDayKey,
         monthDay: targetDayObj?.monthDay || '',
@@ -269,7 +348,9 @@ export default function TeacherSchedulePage() {
       };
       setRecurringLogs((prev) => [newLog, ...prev]);
 
-      setSettingNotice(`已成功新增並記錄常態課表：【${studentNameInput}】· ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
+      if (!settingNotice) {
+        setSettingNotice(`已成功新增並記錄常態課表：【${studentNameInput}】· ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${recurringStartTime}-${recurringEndTime}！`);
+      }
     } else if (scheduleMode === 'openSlot') {
       const targetDayObj = weekDates.find((w) => w.key === openDayKey);
       const datePrefix = targetDayObj ? targetDayObj.fullDateStr : new Date().toISOString().split('T')[0];
@@ -278,6 +359,23 @@ export default function TeacherSchedulePage() {
       const endIso = new Date(`${datePrefix}T${openEndTime}`).toISOString();
 
       addScheduleSlot(startIso, endIso);
+
+      if (isSupabaseConfigured() && supabase) {
+        supabase
+          .from('schedule_slots')
+          .insert([
+            {
+              teacher_id: teacherProfile.id || 't0000000-0000-0000-0000-000000000001',
+              start_time: startIso,
+              end_time: endIso,
+              is_available: true,
+            },
+          ])
+          .then(({ error }) => {
+            if (!error) setIsDbConnected(true);
+          });
+      }
+
       setSettingNotice(`已成功新增「2. 開放時段」：${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${openStartTime}-${openEndTime}！`);
     } else {
       // Mode 3: 3. 課程異動
@@ -294,7 +392,7 @@ export default function TeacherSchedulePage() {
       const origTime = targetApp.original_start_time || oldStartIso;
       const isRestored = new Date(newStartIso).getTime() === new Date(origTime).getTime();
 
-      // 1. Update appointment
+      // 1. Update appointment locally
       setAppointments((prev) =>
         prev.map((app) =>
           app.id === rescheduleAppId
@@ -307,6 +405,21 @@ export default function TeacherSchedulePage() {
             : app
         )
       );
+
+      // Supabase Update
+      if (isSupabaseConfigured() && supabase) {
+        supabase
+          .from('schedules')
+          .update({
+            start_time: newStartIso,
+            end_time: newEndIso,
+            status: isRestored ? 'confirmed' : 'rescheduled',
+          })
+          .eq('id', rescheduleAppId)
+          .then(({ error }) => {
+            if (!error) setIsDbConnected(true);
+          });
+      }
 
       // 2. Open Slots Sync: Disable target slot, re-enable old slot
       setScheduleSlots((prev) =>
@@ -335,6 +448,13 @@ export default function TeacherSchedulePage() {
 
   const handleRemoveRecurringLog = (logId: string) => {
     setRecurringLogs((prev) => prev.filter((l) => l.id !== logId));
+    setAppointments((prev) => prev.filter((app) => app.id !== logId));
+
+    if (isSupabaseConfigured() && supabase) {
+      supabase.from('schedules').delete().eq('id', logId).then(({ error }) => {
+        if (!error) setIsDbConnected(true);
+      });
+    }
   };
 
   // Drag and Drop Logic Execution (Move Card to Target Cell)
@@ -359,60 +479,39 @@ export default function TeacherSchedulePage() {
     const newEndIso = new Date(`${datePrefix}T${defaultEndTime}`).toISOString();
 
     if (draggedCard.type === 'appointment') {
-      const targetApp = appointments.find((a) => a.id === draggedCard.id);
-      const oldStartIso = targetApp?.start_time || newStartIso;
-      const origTime = targetApp?.original_start_time || oldStartIso;
-      const isRestored = origTime && new Date(newStartIso).getTime() === new Date(origTime).getTime();
-
-      // 1. Update appointment start & end time, and set status
       setAppointments((prev) =>
         prev.map((app) =>
           app.id === draggedCard.id
-            ? {
-                ...app,
-                start_time: newStartIso,
-                end_time: newEndIso,
-                status: isRestored ? 'restored' : 'rescheduled',
-              }
+            ? { ...app, start_time: newStartIso, end_time: newEndIso, status: 'rescheduled' }
             : app
         )
       );
 
-      // 2. Open Slots Sync: Disable target open slot, Re-enable old open slot if restored/moved
-      setScheduleSlots((prev) =>
-        prev.map((s) => {
-          if (new Date(s.start_time).getTime() === new Date(newStartIso).getTime()) {
-            return { ...s, is_available: false };
-          }
-          if (new Date(s.start_time).getTime() === new Date(oldStartIso).getTime()) {
-            return { ...s, is_available: true };
-          }
-          return s;
-        })
-      );
-
-      if (isRestored) {
-        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程恢復至原上課時間 (${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} ${defaultStartTime}-${defaultEndTime})，原本的開放時段已自動恢復顯示！`);
-      } else {
-        setSettingNotice(`已成功將【${targetApp?.student_name || '學生'}】的課程拖曳異動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
+      // Supabase Drag Update
+      if (isSupabaseConfigured() && supabase) {
+        supabase
+          .from('schedules')
+          .update({
+            start_time: newStartIso,
+            end_time: newEndIso,
+            status: 'rescheduled',
+          })
+          .eq('id', draggedCard.id)
+          .then(({ error }) => {
+            if (!error) setIsDbConnected(true);
+          });
       }
     } else if (draggedCard.type === 'slot') {
       setScheduleSlots((prev) =>
         prev.map((slot) =>
           slot.id === draggedCard.id
-            ? {
-                ...slot,
-                start_time: newStartIso,
-                end_time: newEndIso,
-              }
+            ? { ...slot, start_time: newStartIso, end_time: newEndIso }
             : slot
         )
       );
-      setSettingNotice(`已成功將「開放時段」拖曳移動至 ${targetDayObj?.monthDay} ${targetDayObj?.dayLabel} (${defaultStartTime}-${defaultEndTime})！`);
     }
 
     setDraggedCard(null);
-    setTimeout(() => setSettingNotice(null), 4000);
   };
 
   const formatTimeRange = (startIso: string, endIso: string) => {
@@ -474,6 +573,21 @@ export default function TeacherSchedulePage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Supabase Real DB Connection Status Indicator */}
+            <div className="hidden sm:flex items-center gap-1.5">
+              {isDbConnected ? (
+                <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 text-xs font-bold shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  🟢 DB 已連線 (Supabase)
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-xs font-bold shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  🟡 離線 / 示範模式 (Mock Seed)
+                </span>
+              )}
+            </div>
+
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold animate-pulse">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               14:00 上課中 🎵

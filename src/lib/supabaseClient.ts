@@ -1,0 +1,28 @@
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+export const isSupabaseConfigured = (): boolean => {
+  return Boolean(supabaseUrl && supabaseAnonKey && supabaseUrl !== 'https://your-supabase-project.supabase.co');
+};
+
+let supabaseInstance: SupabaseClient | null = null;
+
+if (isSupabaseConfigured()) {
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+}
+
+export const supabase = supabaseInstance;
+
+export interface DbScheduleRecord {
+  id: string;
+  teacher_id: string;
+  student_name: string;
+  start_time: string;
+  end_time: string;
+  room?: string;
+  fee?: number;
+  status: string;
+  created_at?: string;
+}
