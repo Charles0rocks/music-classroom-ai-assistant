@@ -215,12 +215,22 @@ export default function TeacherSchedulePage() {
   // Submit Handler for Top "課表設定" Block
   const { isAuthenticated } = useDemoContext();
   const [isDbConnected, setIsDbConnected] = useState<boolean>(false);
+  const [dbErrorMsg, setDbErrorMsg] = useState<string>('');
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(false);
 
-  // Active Fetch Schedules from Supabase (Supporting tolerant teacher_id / teacher_name filtering and console logging)
+  // Active Fetch Schedules from Supabase (Forcing Supabase Connection & Console Debugging)
   const fetchSchedules = useCallback(async () => {
-    if (!isSupabaseConfigured() || !supabase) {
+    console.log('--- MusiMate DB Debug ---');
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Loaded' : 'Missing');
+
+    if (!supabase) {
+      const errMsg = !process.env.NEXT_PUBLIC_SUPABASE_URL
+        ? 'NEXT_PUBLIC_SUPABASE_URL 未設定'
+        : 'Supabase Client 未初始化';
+      console.log('Fetched Schedules Result:', { data: null, error: errMsg });
       setIsDbConnected(false);
+      setDbErrorMsg(errMsg);
+      setAppointments([]);
       return;
     }
 
@@ -236,34 +246,20 @@ export default function TeacherSchedulePage() {
         .from('schedules')
         .select('*');
 
-      console.log('課表資料載入成功 (Supabase Raw Data):', data);
+      console.log('Fetched Schedules Result:', { data, error });
 
-      if (error || !data) {
-        console.warn('Supabase DB fetch error:', error?.message);
+      if (error) {
         setIsDbConnected(false);
+        setDbErrorMsg(error.message || 'Supabase 查詢失敗');
         setAppointments([]);
         return;
       }
 
       setIsDbConnected(true);
+      setDbErrorMsg('');
 
-      const filteredRows = data.filter((item: any) => {
-        if (!item) return false;
-        const rowTeacherName = String(item.teacher_name || item.teacherName || item.teacher || '').toLowerCase();
-        const rowTeacherId = String(item.teacher_id || item.teacherId || '').toLowerCase();
-
-        if (
-          rowTeacherName.includes('charles') ||
-          rowTeacherName.includes(queryName.toLowerCase()) ||
-          rowTeacherId.includes('charles') ||
-          (!item.teacher_name && !item.teacher_id)
-        ) {
-          return true;
-        }
-        return true; // Tolerantly include all rows in schedules table
-      });
-
-      const dbApps: Appointment[] = filteredRows.map((item: any, idx: number) => {
+      const targetRows = data || [];
+      const dbApps: Appointment[] = targetRows.map((item: any, idx: number) => {
         let startIso = item.start_time || item.startTime;
         let endIso = item.end_time || item.endTime;
         const itemDate = item.date || '2026-08-24';
@@ -296,9 +292,11 @@ export default function TeacherSchedulePage() {
 
       console.log("Current Schedules in State:", dbApps);
       setAppointments(dbApps);
-    } catch (err) {
-      console.warn('Supabase fetchSchedules network error:', err);
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      console.log('Fetched Schedules Result:', { data: null, error: errMsg });
       setIsDbConnected(false);
+      setDbErrorMsg(errMsg);
       setAppointments([]);
     } finally {
       setIsLoadingDb(false);
@@ -609,12 +607,12 @@ export default function TeacherSchedulePage() {
               {isDbConnected ? (
                 <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 text-xs font-bold shadow-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  🟢 DB 已連線 (Supabase)
+                  🟢 已連線至 Supabase 資料庫
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-xs font-bold shadow-xs">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  🟡 離線 / 示範模式 (Mock Seed)
+                <span className="flex items-center gap-1.5 text-red-700 bg-red-50 px-3 py-1 rounded-full border border-red-200 text-xs font-bold shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  🔴 資料庫連線失敗：{dbErrorMsg || '未設定 Supabase URL'}
                 </span>
               )}
             </div>

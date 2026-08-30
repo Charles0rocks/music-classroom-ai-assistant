@@ -9,8 +9,12 @@ export const isSupabaseConfigured = (): boolean => {
 
 let supabaseInstance: SupabaseClient | null = null;
 
-if (isSupabaseConfigured()) {
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+if (supabaseUrl && supabaseUrl.startsWith('http')) {
+  try {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey || 'dummy-key');
+  } catch (e) {
+    console.warn('Failed to initialize Supabase client:', e);
+  }
 }
 
 export const supabase = supabaseInstance;
