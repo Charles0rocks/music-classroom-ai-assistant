@@ -3,157 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MusiMate 音樂教室 AI 營運小幫手 - 系統入口</title>
+  <title>MusiMate - 音樂教室 AI 小幫手</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
-    :root {
-      --caramel-milk-tea: #C08261;
-      --caramel-light: #F9EBE0;
-    }
     body {
-      background: linear-gradient(135deg, #FFF6D5 0%, #F5D3E8 100%);
-      min-height: 100vh;
+      background-color: #FBF9F5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-    .hover-lift {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .hover-lift:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
-<body class="text-slate-800 antialiased p-4 sm:p-8 flex items-center justify-center min-h-screen">
+<body class="text-stone-800 antialiased min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-7xl mx-auto space-y-8">
 
-  <div class="max-w-2xl w-full space-y-6">
-
-    <!-- 品牌 Header 卡片 -->
-    <div class="bg-white/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/80 shadow-2xl text-center space-y-4">
-      
-      <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-pink-400 via-amber-400 to-sky-400 p-0.5 mx-auto shadow-lg flex items-center justify-center text-white font-black text-3xl">
-        M
+  <!-- 1. 頁首資訊 (Header) -->
+  <header class="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-500 to-[#D97736] flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0">
+        🎵
       </div>
-
       <div>
-        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          MusiMate 音樂教室 AI 營運小幫手
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1 max-w-md mx-auto">
-          結合 24h 防放鳥排課狀態機、Google Gemini 1.5 Flash 週報萃取與學員 15 秒自主練習打卡系統
+        <div class="flex items-center gap-2">
+          <h1 class="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+            Musi <span class="text-[#D97736]">Mate</span>
+          </h1>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black">
+            v3.2 PRO
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm text-stone-500 font-bold mt-0.5">
+          音樂教室 AI 小幫手 · 智慧排課與課堂週報系統
         </p>
       </div>
+    </div>
 
-      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF6EE] border border-[#F6D0B8] text-[#C08261] text-xs font-black">
-        <span>Studio OS v3.2 · Vercel Ready</span>
+    <!-- 動態當日時間 Badge -->
+    <div class="flex items-center gap-2 bg-[#FAF7F2] px-4 py-2 rounded-2xl border border-stone-200 text-xs font-mono font-bold text-stone-700 shadow-xs">
+      <span>今日時間：</span>
+      <span class="text-[#D97736] font-black">2026/08/30 (UTC+8)</span>
+    </div>
+  </header>
+
+  <!-- 2. 核心互動區（雙卡片佈局） -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+    
+    <!-- 左卡片：【老師專區】 -->
+    <div class="lg:col-span-7 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+          <span class="px-3 py-1 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black">
+            👩‍🏫 【老師專區】
+          </span>
+          <a href="./schedule.html" class="text-xs font-black text-[#D97736] hover:underline">
+            週課表工作台 ➔
+          </a>
+        </div>
+
+        <h2 class="text-xl font-black text-stone-900">
+          教師管理與登入
+        </h2>
+
+        <!-- 一鍵帶入與入口按鈕 -->
+        <div class="space-y-3">
+          <a href="./schedule.html" class="w-full py-3.5 rounded-2xl bg-[#D97736] hover:bg-[#c4682a] text-white font-black text-xs text-center block shadow-md transition-all">
+            🔑 教師登入 (直達課表工作台 ./schedule.html)
+          </a>
+
+          <a href="./schedule.html" class="w-full py-3 rounded-2xl bg-[#FAF2EC] text-[#D97736] border border-[#F6D0B8] font-black text-xs text-center block shadow-xs hover:bg-[#F6E6DA]">
+            ✨ 一鍵帶入 Demo 帳密 (chang.teacher@harmony.edu)
+          </a>
+
+          <!-- 第三方登入 -->
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <a href="./schedule.html" class="py-2.5 rounded-2xl bg-[#00B900] text-white font-black text-xs text-center block shadow-xs">
+              💬 LINE 快速登入
+            </a>
+            <a href="./schedule.html" class="py-2.5 rounded-2xl bg-white border border-stone-300 text-stone-700 font-black text-xs text-center block shadow-xs">
+              🌐 Google 快速登入
+            </a>
+          </div>
+        </div>
       </div>
 
+      <div class="pt-2 text-[11px] text-stone-400 font-bold border-t border-stone-100 flex items-center justify-between">
+        <span>支援 iOS / Android / Web 響應式工作台</span>
+        <span>Studio OS PRO Engine</span>
+      </div>
     </div>
 
-    <!-- 四大核心功能體驗入口導覽 -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-      <!-- 入口 1: 教師總覽 Dashboard -->
-      <a href="./dashboard.html" class="bg-white/90 backdrop-blur-md rounded-3xl p-5 border border-white/80 shadow-lg hover-lift group block space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl font-black shadow-xs group-hover:scale-110 transition-transform">
-            👩‍🏫
-          </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold">
-            教師端首頁
+    <!-- 右卡片：【學生與家長專區】 -->
+    <div class="lg:col-span-5 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+          <span class="px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-xs font-black">
+            📱 【學生與家長專區】
           </span>
+          <span class="text-xs text-stone-400 font-medium">Student View</span>
         </div>
-        <div>
-          <h2 class="text-base font-black text-slate-900 group-hover:text-[#C08261] transition-colors">
-            教師登入總覽 (Dashboard)
-          </h2>
-          <p class="text-xs text-slate-500 font-medium mt-0.5">
-            今日課堂KPI、待審核改期通知與核心工作區選單。
-          </p>
-        </div>
-        <div class="text-xs font-black text-[#C08261] flex items-center gap-1 pt-1 border-t border-slate-100">
-          <span>進入首頁看板</span> ➔
-        </div>
-      </a>
 
-      <!-- 入口 2: 課表與狀態機 Schedule -->
-      <a href="./schedule.html" class="bg-white/90 backdrop-blur-md rounded-3xl p-5 border border-white/80 shadow-lg hover-lift group block space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="w-12 h-12 rounded-2xl bg-[#FFF6EE] border border-[#F6D0B8] text-[#C08261] flex items-center justify-center text-2xl font-black shadow-xs group-hover:scale-110 transition-transform">
-            🗓️
+        <h2 class="text-xl font-black text-stone-900">
+          LINE 官方帳號與手機門戶
+        </h2>
+
+        <div class="bg-[#FAF7F2] p-5 rounded-2xl border border-stone-200 text-center space-y-3">
+          <div class="w-32 h-32 mx-auto bg-white p-2 border-2 border-dashed border-[#00B900] rounded-2xl flex flex-col items-center justify-center text-center">
+            <span class="text-3xl">📱</span>
+            <span class="text-[10px] font-black text-[#00B900] mt-1">@MusiMate_AI</span>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-[#C08261] border border-[#F6D0B8] text-[10px] font-bold">
-            週課表 2D 矩陣
-          </span>
-        </div>
-        <div>
-          <h2 class="text-base font-black text-slate-900 group-hover:text-[#C08261] transition-colors">
-            課表安排與改期審核
-          </h2>
-          <p class="text-xs text-slate-500 font-medium mt-0.5">
-            一週 3大時段矩陣、審核學生改期與產生 Magic Link。
-          </p>
-        </div>
-        <div class="text-xs font-black text-[#C08261] flex items-center gap-1 pt-1 border-t border-slate-100">
-          <span>開啟課表管理</span> ➔
-        </div>
-      </a>
 
-      <!-- 入口 3: 學員手機端體驗 Student Mobile View -->
-      <a href="./student-view.html?token=tok-ming-888" class="bg-white/90 backdrop-blur-md rounded-3xl p-5 border border-white/80 shadow-lg hover-lift group block space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl font-black shadow-xs group-hover:scale-110 transition-transform">
-            📱
+          <div class="text-xs text-stone-600 font-medium leading-relaxed">
+            掃描 QR Code 或點擊下方連結加入 MusiMate 官方帳號，即時接收課堂週報與調課通知。
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-600 border border-sky-200 text-[10px] font-bold">
-            手機端體驗
-          </span>
         </div>
-        <div>
-          <h2 class="text-base font-black text-slate-900 group-hover:text-sky-600 transition-colors">
-            學員手機專屬入口 (Student View)
-          </h2>
-          <p class="text-xs text-slate-500 font-medium mt-0.5">
-            日曆膠囊、24h 鎖定防放鳥抽屜與 15 秒錄音打卡。
-          </p>
-        </div>
-        <div class="text-xs font-black text-sky-600 flex items-center gap-1 pt-1 border-t border-slate-100">
-          <span>體驗小明同學權限</span> ➔
-        </div>
-      </a>
 
-      <!-- 入口 4: 30 秒 AI 聯絡簿 Lesson Record -->
-      <a href="./lesson-record.html" class="bg-white/90 backdrop-blur-md rounded-3xl p-5 border border-white/80 shadow-lg hover-lift group block space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="w-12 h-12 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center text-2xl font-black shadow-xs group-hover:scale-110 transition-transform">
-            🎙️
-          </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-pink-50 text-pink-600 border border-pink-200 text-[10px] font-bold">
-            Gemini 1.5 Flash
-          </span>
-        </div>
-        <div>
-          <h2 class="text-base font-black text-slate-900 group-hover:text-pink-600 transition-colors">
-            30 秒 AI 課堂紀錄
-          </h2>
-          <p class="text-xs text-slate-500 font-medium mt-0.5">
-            口述下課指導重點、AI 結構化萃取 JSON 與 LINE 分享。
-          </p>
-        </div>
-        <div class="text-xs font-black text-pink-600 flex items-center gap-1 pt-1 border-t border-slate-100">
-          <span>開啟 AI 錄音寫週報</span> ➔
-        </div>
-      </a>
+        <a href="./student-view.html?token=tok-ming-888" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black text-xs text-center block shadow-md">
+          📱 體驗學生端手機畫面 (student-view.html)
+        </a>
+      </div>
 
+      <div class="pt-2 text-[11px] text-stone-400 font-bold border-t border-stone-100 text-center">
+        無須下載 App · LINE 自動發送聯絡簿
+      </div>
     </div>
 
-    <!-- 頁尾 -->
-    <footer class="text-center text-xs font-bold text-slate-500 pt-2">
-      MusiMate Music Studio OS v3.2 · Vercel Deployment Pre-flight Configured
-    </footer>
+  </section>
 
-  </div>
+  <!-- 3. 底部功能介紹區 -->
+  <section class="space-y-4 pt-2">
+    <div class="text-center space-y-1">
+      <h3 class="text-lg font-black text-stone-900">
+        三大核心 AI 營運功能
+      </h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <a href="./schedule.html" class="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-3 block hover:border-[#D97736]">
+        <div class="text-2xl">🗓️</div>
+        <h4 class="text-base font-black text-stone-900">師生排課工作台</h4>
+        <p class="text-xs text-stone-500 font-medium">2D 週課表矩陣、開放空檔設定與 24h 防放鳥智慧調課審核機制。</p>
+      </a>
+
+      <a href="./lesson-record.html" class="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-3 block hover:border-pink-500">
+        <div class="text-2xl">🎙️</div>
+        <h4 class="text-base font-black text-stone-900">30秒 AI 錄音聯絡簿</h4>
+        <p class="text-xs text-stone-500 font-medium">下課口述 30 秒，Google Gemini 1.5 Flash 自動結構化解析為聯絡簿並推播至 LINE。</p>
+      </a>
+
+      <a href="./homework.html" class="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-3 block hover:border-sky-500">
+        <div class="text-2xl">🎥</div>
+        <h4 class="text-base font-black text-stone-900">學生作業雙影片比對</h4>
+        <p class="text-xs text-stone-500 font-medium">學員 15 秒打卡音檔與 AI 音高/節奏評測、師生雙影片姿態影格比對。</p>
+      </a>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs font-bold text-stone-400 py-4 border-t border-stone-200/60">
+    MusiMate Music Studio OS v3.2 · Gemini 1.5 Flash Connected
+  </footer>
 
 </body>
 </html>

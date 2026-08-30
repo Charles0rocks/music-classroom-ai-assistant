@@ -1,40 +1,66 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
-import { DemoGuideModal } from '@/components/DemoGuideModal';
-import { Role } from '@/types';
 import {
-  UserCheck,
-  Sparkles,
   Calendar,
   Mic,
   Video,
-  BookOpen,
-  ArrowRight,
-  ShieldCheck,
+  UserCheck,
   CheckCircle2,
   Lock,
   Mail,
   Key,
   AlertCircle,
-  HelpCircle,
+  Sparkles,
+  Smartphone,
+  QrCode,
+  UserPlus,
+  ArrowRight,
+  LogOut,
+  Clock,
   Music,
   Heart,
+  Globe,
+  MessageCircle,
 } from 'lucide-react';
 
-export default function RoleSelectorPage() {
+export default function HomePage() {
   const router = useRouter();
-  const { currentRole, isAuthenticated, login, logout, teacherProfile, currentUser } = useDemoContext();
+  const { isAuthenticated, login, logout, currentUser } = useDemoContext();
 
-  const [activeTab, setActiveTab] = useState<Role>('teacher');
   const [email, setEmail] = useState('chang.teacher@harmony.edu');
   const [password, setPassword] = useState('teacher123');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerSuccessMsg, setRegisterSuccessMsg] = useState('');
+
+  // 申請老師帳號表單 State
+  const [regForm, setRegForm] = useState({
+    name: '',
+    nickname: '',
+    gender: 'female',
+    phone: '',
+    email: '',
+    password: '',
+    socialAccount: '',
+    subjects: '古典鋼琴, 小提琴',
+    bio: '',
+  });
+
+  // 動態當日時間：2026/08/30 (UTC+8)
+  const [todayStr, setTodayStr] = useState('2026/08/30 (UTC+8)');
+
+  useEffect(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    setTodayStr(`${year}/${month}/${date} (UTC+8)`);
+  }, []);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,301 +69,548 @@ export default function RoleSelectorPage() {
 
     const res = login(email, password, 'teacher');
     if (res.success) {
-      setSuccessMsg(res.message);
+      setSuccessMsg('登入成功！即將前往教師課表工作台...');
       setTimeout(() => {
         router.push('/teacher/schedule');
-      }, 600);
+      }, 500);
     } else {
       setErrorMsg(res.message);
     }
   };
 
+  const handleQuickFillAndLogin = () => {
+    setEmail('chang.teacher@harmony.edu');
+    setPassword('teacher123');
+    const res = login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
+    if (res.success) {
+      setSuccessMsg('一鍵帶入成功！即將進入教師課表...');
+      setTimeout(() => {
+        router.push('/teacher/schedule');
+      }, 500);
+    }
+  };
+
+  const handleSocialLogin = (provider: 'LINE' | 'Google') => {
+    setErrorMsg('');
+    setSuccessMsg(`已透過 ${provider} 快速驗證身份！進入教師工作台...`);
+    login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
+    setTimeout(() => {
+      router.push('/teacher/schedule');
+    }, 600);
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegisterSuccessMsg('🎉 申請資料已成功送出！系統將發送開通確認信至您的 Email。');
+    setTimeout(() => {
+      setShowRegisterModal(false);
+      setRegisterSuccessMsg('');
+      login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
+      router.push('/teacher/schedule');
+    }, 1500);
+  };
+
   return (
-    <div className="space-[#332C27] space-y-8 py-2">
-      {/* Greeting Banner & App Introduction Section */}
-      <div className="relative overflow-hidden rounded-3xl warm-card p-8 sm:p-10 border border-[#EFECE6] shadow-warm bg-gradient-to-br from-[#FDFBF7] via-white to-[#FAF2EC]">
-        <div className="absolute -right-16 -top-16 w-80 h-80 bg-[#E88D67]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-16 -bottom-16 w-80 h-80 bg-[#8C6D53]/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-4xl space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF2EC] border border-[#E8D4C5] text-[#8C6D53] text-xs font-bold">
-              <Heart className="w-3.5 h-3.5 fill-[#E88D67] text-[#E88D67]" />
-              溫暖音樂教室 AI 夥伴 · 系統簡介與登入
-            </div>
-
-            <button
-              onClick={() => setShowGuideModal(true)}
-              className="px-4 py-1.5 rounded-full bg-white hover:bg-[#FAF2EC] text-[#8C6D53] border border-[#E8D4C5] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all"
-            >
-              <HelpCircle className="w-4 h-4 text-[#8C6D53]" />
-              💡 Demo 測試帳密與系統說明
-            </button>
+    <div className="min-h-screen bg-[#FBF9F5] text-stone-800 space-y-8 py-4 sm:py-6 px-3 sm:px-6 max-w-7xl mx-auto">
+      
+      {/* 1. 頁首資訊 (Header) */}
+      <header className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
+        <div className="absolute -right-16 -top-16 w-64 h-64 bg-[#D97736]/5 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-500 to-[#D97736] flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0">
+            🎵
           </div>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#332C27] leading-tight">
-            🎵 歡迎來到 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8C6D53] via-[#B85536] to-[#E88D67]">MusiMate</span>
-          </h1>
-
-          <p className="text-[#7A736E] text-sm sm:text-base leading-relaxed font-medium">
-            專為溫暖現代音樂教室打造的雙端 AI 助手。整合「師生排課系統與智慧調課」、「 Whisper 課堂錄音 STT + LLM 溫暖情緒過濾筆記」與「學生 vs 老師 AI 雙影片逐影格姿態/音高比對」。請選擇您的身份並輸入帳號密碼登入，探索全方位的 AI 音樂教學體驗！
-          </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-semibold text-[#7A736E]">
-            <span className="flex items-center gap-1.5 bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-[#EFECE6]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 師生排課系統
-            </span>
-            <span className="flex items-center gap-1.5 bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-[#EFECE6]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 課堂紀錄與筆記
-            </span>
-            <span className="flex items-center gap-1.5 bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-[#EFECE6]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5240]" /> 課後作業驗收與專家建議
-            </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+                Musi <span className="text-[#D97736]">Mate</span>
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black">
+                v3.2 PRO
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-stone-500 font-bold mt-0.5">
+              音樂教室AI 小幫手 · 智慧排課與課堂週報系統
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Main Container: Default Identity Selector & Dedicated Login Card */}
-      {!isAuthenticated ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Dedicated Login Form Card (7 cols) */}
-          <div className="lg:col-span-7 bg-[#FFFDF9] rounded-3xl border border-[#EADFC9] border-l-8 border-l-[#8C6D53] shadow-[0_10px_35px_rgba(140,109,83,0.12)] p-6 sm:p-10 space-y-6">
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#F2E8D8] text-[#785338] text-xs font-bold border border-[#EADFC9]">
-                <Lock className="w-3.5 h-3.5 text-[#8C6D53]" /> 預設身分選擇與帳密登入
-              </div>
-              <h2 className="text-2xl font-extrabold text-[#332C27]">
-                請選擇登入身分
-              </h2>
-              <p className="text-xs text-[#7A736E] font-medium">
-                點擊選擇「學生」或「老師」頁籤，輸入帳密登入專屬 Portal
-              </p>
-            </div>
-
-            {/* Teacher Identity Badge Header */}
-            <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EFECE6] flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#8C6D53] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
-                <UserCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-sm font-extrabold text-[#332C27]">林詠晴 老師 [PRO] · 教師工作台</div>
-                <div className="text-xs text-[#7A736E]">大安古典鋼琴工作室 · Studio OS 教師課表系統</div>
-              </div>
-            </div>
-
-            {errorMsg && (
-              <div className="p-3.5 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] text-xs font-bold text-[#B85536] flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                {errorMsg}
-              </div>
-            )}
-
-            {successMsg && (
-              <div className="p-3.5 rounded-2xl bg-[#E3E8E1] border border-[#C5D2C2] text-xs font-bold text-[#3D5240] flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                {successMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#332C27] mb-1.5">
-                  帳號 (Email Address)
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-[#7A736E] absolute left-4 top-3.5" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="請輸入 Email 帳號"
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl pl-11 pr-4 py-3 text-xs text-[#332C27] font-mono focus:outline-none focus:border-[#8C6D53]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#332C27] mb-1.5">
-                  密碼 (Password)
-                </label>
-                <div className="relative">
-                  <Key className="w-4 h-4 text-[#7A736E] absolute left-4 top-3.5" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="請輸入密碼"
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl pl-11 pr-4 py-3 text-xs text-[#332C27] font-mono focus:outline-none focus:border-[#8C6D53]"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className={`w-full py-3.5 rounded-full text-white font-bold text-xs shadow-md transition-all ${
-                    activeTab === 'teacher'
-                      ? 'bg-[#8C6D53] hover:bg-[#765942] shadow-[#8C6D53]/20'
-                      : 'bg-[#E88D67] hover:bg-[#D67A53] shadow-[#E88D67]/20'
-                  }`}
-                >
-                  登入系統 (Log In to Portal)
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Right Column: Demo Notes & Quick Credentials Helper Card (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="warm-card p-6 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
-              <h3 className="font-bold text-sm text-[#332C27] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#8C6D53]" />
-                Demo 測試備註與一鍵帶入 (Quick Fill)
-              </h3>
-              <p className="text-xs text-[#7A736E] leading-relaxed font-medium">
-                您可直接點擊下方按鈕帶入測試帳號密碼，快速體驗老師或學生端 Portal：
-              </p>
-
-              <div className="space-y-2.5">
-                <div className="p-3.5 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#8C6D53]">林詠晴 / 張老師 (Teacher PRO)</span>
-                    <span className="text-[10px] text-[#7A736E] font-mono">chang.teacher@harmony.edu</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('chang.teacher@harmony.edu');
-                      setPassword('teacher123');
-                    }}
-                    className="w-full py-2 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white text-xs font-bold shadow-xs transition-all"
-                  >
-                    帶入張老師帳密 (teacher123)
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* 動態時間 Badge */}
+        <div className="flex items-center gap-2 bg-[#FAF7F2] px-4 py-2 rounded-2xl border border-stone-200 text-xs font-mono font-bold text-stone-700 shadow-xs relative z-10">
+          <Clock className="w-4 h-4 text-[#D97736]" />
+          <span>今日時間：</span>
+          <span className="text-[#D97736] font-black">{todayStr}</span>
         </div>
-      ) : (
-        /* Authenticated Welcome Dashboard */
-        <div className="space-y-6">
-          <div className="warm-card p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4 bg-gradient-to-r from-white to-[#FAF2EC]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <img
-                  src={currentUser.avatar_url}
-                  alt={currentUser.name}
-                  className="w-12 h-12 rounded-full border-2 border-[#EFECE6] object-cover"
-                />
-                <div>
-                  <h2 className="text-2xl font-extrabold text-[#332C27]">
-                    歡迎回來，{currentUser.name}！
-                  </h2>
-                  <span className="text-xs text-[#8C6D53] font-bold">
-                    {currentRole === 'teacher' ? '張老師教學 Portal' : '小明學習 Portal'} 已成功登入
-                  </span>
-                </div>
-              </div>
+      </header>
 
+      {/* 2. 核心互動區（雙卡片佈局） */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        {/* 左卡片：【老師專區】 */}
+        <div className="lg:col-span-7 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5" />
+                  【老師專區】
+                </span>
+                <span className="text-xs text-stone-400 font-medium">Teacher Portal</span>
+              </div>
+              
               <button
-                onClick={logout}
-                className="px-4 py-2 rounded-full bg-[#FAF7F2] hover:bg-[#EFECE6] text-[#7A736E] text-xs font-bold border border-[#EFECE6]"
+                type="button"
+                onClick={() => setShowRegisterModal(true)}
+                className="text-xs font-black text-[#D97736] hover:text-[#b85a1e] underline flex items-center gap-1 transition-colors"
               >
-                登出帳號
+                <UserPlus className="w-3.5 h-3.5" />
+                申請老師帳號 ➔
               </button>
             </div>
 
-            <p className="text-xs text-[#7A736E] font-medium leading-relaxed">
-              您已登入 MusiMate。請點擊下方快捷按鈕進入功能頁面：
-            </p>
+            <h2 className="text-xl font-black text-stone-900">
+              教師管理與登入
+            </h2>
 
-            {currentRole === 'teacher' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
+            {/* 已登入狀態提示 */}
+            {isAuthenticated ? (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={currentUser?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                      alt="林詠晴 老師"
+                      className="w-10 h-10 rounded-full border-2 border-emerald-300 object-cover"
+                    />
+                    <div>
+                      <div className="font-extrabold text-sm text-stone-900">{currentUser?.name || '林詠晴 老師'} (PRO)</div>
+                      <div className="text-xs text-emerald-700 font-bold">已成功驗證登入中</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-xs font-bold text-stone-600 hover:bg-stone-50"
+                  >
+                    <LogOut className="w-3.5 h-3.5 inline mr-1" /> 登出
+                  </button>
+                </div>
+                
                 <Link
                   href="/teacher/schedule"
-                  className="p-8 sm:p-10 rounded-3xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-base sm:text-lg text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
+                  className="w-full py-3 rounded-2xl bg-[#D97736] hover:bg-[#c4682a] text-white font-black text-xs text-center block shadow-md transition-all"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] flex items-center justify-center text-[#8C6D53] group-hover:scale-110 transition-transform">
-                    <Calendar className="w-9 h-9" />
-                  </div>
-                  <span>週課表與開放時段 (P1)</span>
-                </Link>
-                <Link
-                  href="/teacher/recorder"
-                  className="p-8 sm:p-10 rounded-3xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-base sm:text-lg text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] flex items-center justify-center text-[#8C6D53] group-hover:scale-110 transition-transform">
-                    <Mic className="w-9 h-9" />
-                  </div>
-                  <span>課堂錄音 AI 淨化 (P2)</span>
-                </Link>
-                <Link
-                  href="/teacher/demos"
-                  className="p-8 sm:p-10 rounded-3xl bg-white hover:bg-[#FAF2EC] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-base sm:text-lg text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-[#FAF2EC] border border-[#E8D4C5] flex items-center justify-center text-[#8C6D53] group-hover:scale-110 transition-transform">
-                    <Video className="w-9 h-9" />
-                  </div>
-                  <span>範例影片庫微調 (P7)</span>
+                  🚀 直達教師週課表與工作台 (/teacher/schedule)
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-4">
-                <Link
-                  href="/student/schedule"
-                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
-                    <Calendar className="w-8 h-8" />
+              /* 未登入表單與多元登入 */
+              <div className="space-y-4">
+                
+                {errorMsg && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {errorMsg}
                   </div>
-                  <span>個人課表 (P3)</span>
-                </Link>
-                <Link
-                  href="/student/practice"
-                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
-                    <BookOpen className="w-8 h-8" />
+                )}
+
+                {successMsg && (
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    {successMsg}
                   </div>
-                  <span>作業學習中心 (P4)</span>
-                </Link>
-                <Link
-                  href="/student/summary/lesson-1"
-                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
-                    <Sparkles className="w-8 h-8" />
+                )}
+
+                {/* Email & 密碼 登入表單 */}
+                <form onSubmit={handleLoginSubmit} className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-extrabold text-stone-700 mb-1">
+                      Email 帳號：
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="請輸入老師 Email"
+                        className="w-full bg-[#FAF7F2] border border-stone-200 rounded-2xl pl-10 pr-3 py-2.5 text-xs font-mono font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      />
+                    </div>
                   </div>
-                  <span>P5 AI筆記</span>
-                </Link>
-                <Link
-                  href="/student/compare/practice-1"
-                  className="p-7 rounded-3xl bg-white hover:bg-[#FCEADE] border border-[#EFECE6] flex flex-col items-center justify-center text-center gap-3 font-extrabold text-sm sm:text-base text-[#332C27] shadow-md hover:shadow-lg hover:-translate-y-1 transition-all group"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-[#FCEADE] border border-[#F6D0B8] flex items-center justify-center text-[#E88D67] group-hover:scale-110 transition-transform">
-                    <Video className="w-8 h-8" />
+
+                  <div>
+                    <label className="block text-xs font-extrabold text-stone-700 mb-1">
+                      密碼設定：
+                    </label>
+                    <div className="relative">
+                      <Key className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                      <input
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="請輸入密碼"
+                        className="w-full bg-[#FAF7F2] border border-stone-200 rounded-2xl pl-10 pr-3 py-2.5 text-xs font-mono font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      />
+                    </div>
                   </div>
-                  <span>P6 雙圖比對</span>
-                </Link>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-2xl bg-[#D97736] hover:bg-[#c4682a] text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    🔑 帳密登入系統 (Log In)
+                  </button>
+                </form>
+
+                {/* 一鍵帶入 Demo 帳密 */}
+                <button
+                  type="button"
+                  onClick={handleQuickFillAndLogin}
+                  className="w-full py-2.5 rounded-2xl bg-[#FAF2EC] hover:bg-[#F6E6DA] text-[#D97736] border border-[#F6D0B8] font-black text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  帶入林詠晴老師 Demo 帳密 (一鍵體驗)
+                </button>
+
+                {/* 第三方快速登入分隔線 */}
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-stone-200"></div>
+                  <span className="flex-shrink mx-3 text-[11px] font-bold text-stone-400">或使用第三方快速登入</span>
+                  <div className="flex-grow border-t border-stone-200"></div>
+                </div>
+
+                {/* 第三方按鈕群 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleSocialLogin('LINE')}
+                    className="py-2.5 px-3 rounded-2xl bg-[#00B900] hover:bg-[#009900] text-white font-black text-xs shadow-sm transition-all flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-white" />
+                    LINE 快速登入
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSocialLogin('Google')}
+                    className="py-2.5 px-3 rounded-2xl bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 font-black text-xs shadow-xs transition-all flex items-center justify-center gap-2"
+                  >
+                    <Globe className="w-4 h-4 text-rose-500" />
+                    Google 快速登入
+                  </button>
+                </div>
+
               </div>
             )}
+          </div>
+
+          <div className="pt-2 text-[11px] text-stone-400 font-bold border-t border-stone-100 flex items-center justify-between">
+            <span>支援 iOS / Android / Web 響應式工作台</span>
+            <span>Studio OS PRO Engine</span>
+          </div>
+        </div>
+
+        {/* 右卡片：【學生與家長專區】 */}
+        <div className="lg:col-span-5 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <span className="px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-xs font-black flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5" />
+                【學生與家長專區】
+              </span>
+              <span className="text-xs text-stone-400 font-medium">Student & Parent Portal</span>
+            </div>
+
+            <h2 className="text-xl font-black text-stone-900">
+              LINE 官方帳號與手機門戶
+            </h2>
+
+            {/* LINE QR Code 展示區 */}
+            <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-stone-200 text-center space-y-3">
+              <div className="w-36 h-36 mx-auto bg-white p-2.5 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-center relative">
+                {/* 親切乾淨的 LINE QR Code 示意 */}
+                <div className="w-full h-full border-2 border-dashed border-[#00B900] rounded-xl flex flex-col items-center justify-center p-2 text-center bg-[#F0FDF4]">
+                  <QrCode className="w-12 h-12 text-[#00B900]" />
+                  <span className="text-[10px] font-black text-[#00B900] mt-1">@MusiMate_AI</span>
+                </div>
+              </div>
+
+              <div className="text-xs text-stone-600 font-medium leading-relaxed max-w-xs mx-auto">
+                掃描 QR Code 或點擊下方連結加入 MusiMate 官方帳號，即時接收課堂週報、調課提醒與作業批改通知。
+              </div>
+            </div>
+
+            {/* 「體驗學生端手機畫面」快捷按鈕 */}
+            <div className="space-y-2">
+              <a
+                href="/student-view.html?token=tok-ming-888"
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 group text-center block"
+              >
+                <Smartphone className="w-4 h-4 inline group-hover:scale-110 transition-transform" />
+                📱 體驗學生端手機畫面 (student-view.html)
+              </a>
+
+              <p className="text-[11px] text-stone-400 text-center font-bold">
+                Magic Link 驗證機制 · 日曆膠囊與 15s 音訊打卡
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2 text-[11px] text-stone-400 font-bold border-t border-stone-100 text-center">
+            無須下載 App · LINE 自動發送聯絡簿
+          </div>
+        </div>
+
+      </section>
+
+      {/* 3. 底部功能介紹區 (Bottom 3 Feature Cards) */}
+      <section className="space-y-4 pt-2">
+        <div className="text-center space-y-1">
+          <h3 className="text-lg font-black text-stone-900">
+            三大核心 AI 營運功能
+          </h3>
+          <p className="text-xs text-stone-500 font-medium">
+            點擊卡片可直接體驗相關功能頁面
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          
+          {/* 功能卡片 1: 師生排課工作台 */}
+          <Link
+            href="/teacher/schedule"
+            className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-[#D97736] border border-amber-200 flex items-center justify-center text-2xl font-black group-hover:scale-110 transition-transform">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-base font-black text-stone-900 group-hover:text-[#D97736] transition-colors">
+                師生排課工作台
+              </h4>
+              <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
+                2D 週課表矩陣、開放空檔設定與 24h 防放鳥智慧調課審核機制。
+              </p>
+            </div>
+            <div className="text-xs font-black text-[#D97736] flex items-center gap-1 pt-2 border-t border-stone-100">
+              <span>查看週課表 (P1)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </Link>
+
+          {/* 功能卡片 2: 30秒 AI 錄音聯絡簿 */}
+          <Link
+            href="/teacher/recorder"
+            className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-pink-50 text-pink-600 border border-pink-200 flex items-center justify-center text-2xl font-black group-hover:scale-110 transition-transform">
+              <Mic className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-base font-black text-stone-900 group-hover:text-pink-600 transition-colors">
+                30秒 AI 錄音聯絡簿
+              </h4>
+              <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
+                下課口述 30 秒，Google Gemini 1.5 Flash 自動結構化解析為聯絡簿並推播至 LINE。
+              </p>
+            </div>
+            <div className="text-xs font-black text-pink-600 flex items-center gap-1 pt-2 border-t border-stone-100">
+              <span>開啟 AI 錄音 (P2)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </Link>
+
+          {/* 功能卡片 3: 學生作業雙影片比對 */}
+          <Link
+            href="/teacher/demos"
+            className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center text-2xl font-black group-hover:scale-110 transition-transform">
+              <Video className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-base font-black text-stone-900 group-hover:text-sky-600 transition-colors">
+                學生作業雙影片比對
+              </h4>
+              <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
+                學員 15 秒打卡音檔與 AI 音高/節奏評測、師生雙影片姿態影格比對。
+              </p>
+            </div>
+            <div className="text-xs font-black text-sky-600 flex items-center gap-1 pt-2 border-t border-stone-100">
+              <span>檢視範例影片 (P7)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </Link>
+
+        </div>
+      </section>
+
+      {/* 4. Modal: 申請老師帳號 Modal */}
+      {showRegisterModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <h3 className="text-lg font-black text-stone-900 flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-[#D97736]" />
+                申請老師帳號 (Teacher Registration)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowRegisterModal(false)}
+                className="text-stone-400 hover:text-stone-600 font-bold text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {registerSuccessMsg ? (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold text-center space-y-2">
+                <div className="text-2xl">🎉</div>
+                <div>{registerSuccessMsg}</div>
+              </div>
+            ) : (
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5 text-xs font-bold">
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-stone-700 mb-1">中文姓名 *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="例：陳雅婷"
+                      value={regForm.name}
+                      onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
+                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-stone-700 mb-1">稱呼 / 暱稱</label>
+                    <input
+                      type="text"
+                      placeholder="例：雅晴 老師"
+                      value={regForm.nickname}
+                      onChange={(e) => setRegForm({ ...regForm, nickname: e.target.value })}
+                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-stone-700 mb-1">性別</label>
+                    <select
+                      value={regForm.gender}
+                      onChange={(e) => setRegForm({ ...regForm, gender: e.target.value })}
+                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-bold"
+                    >
+                      <option value="female">女 (Female)</option>
+                      <option value="male">男 (Male)</option>
+                      <option value="other">其他 / 不透漏</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-stone-700 mb-1">聯絡電話 *</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="0912-345-678"
+                      value={regForm.phone}
+                      onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
+                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-stone-700 mb-1">Email 帳號 *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="teacher@harmony.edu"
+                      value={regForm.email}
+                      onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
+                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-stone-700 mb-1">密碼設定 *</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="6位數以上密碼"
+                      value={regForm.password}
+                      onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 mb-1">LINE / Google 綁定帳號</label>
+                  <input
+                    type="text"
+                    placeholder="LINE ID 或 Google Email (選填)"
+                    value={regForm.socialAccount}
+                    onChange={(e) => setRegForm({ ...regForm, socialAccount: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 mb-1">教學項目 / 樂器科目 *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="例：古典鋼琴, 小提琴, 視唱樂理"
+                    value={regForm.subjects}
+                    onChange={(e) => setRegForm({ ...regForm, subjects: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 mb-1">專業介紹與工作室經歷</label>
+                  <textarea
+                    rows={2}
+                    placeholder="簡述您的教學年資、畢業學府與音樂工作室理念..."
+                    value={regForm.bio}
+                    onChange={(e) => setRegForm({ ...regForm, bio: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl p-3 text-stone-800"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterModal(false)}
+                    className="px-4 py-2.5 rounded-xl bg-stone-100 text-stone-600 font-bold"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-[#D97736] hover:bg-[#c4682a] text-white font-black shadow-md"
+                  >
+                    送出申請並登入
+                  </button>
+                </div>
+              </form>
+            )}
+
           </div>
         </div>
       )}
 
-      {/* Demo Guide Modal Triggered by Button */}
-      <DemoGuideModal
-        isOpen={showGuideModal}
-        onClose={() => setShowGuideModal(false)}
-        onQuickFill={() => {
-          setEmail('chang.teacher@harmony.edu');
-          setPassword('teacher123');
-          login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
-        }}
-      />
+      {/* 5. 頁尾 */}
+      <footer className="text-center text-xs font-bold text-stone-400 py-4 border-t border-stone-200/60">
+        MusiMate Music Studio OS v3.2 · Gemini 1.5 Flash Connected
+      </footer>
+
     </div>
   );
 }
