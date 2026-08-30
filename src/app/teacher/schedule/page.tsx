@@ -1406,13 +1406,14 @@ export default function TeacherSchedulePage() {
                           key={d.key}
                           onDragOver={(e) => e.preventDefault()}
                           onDrop={() => handleDropOnCell(d.key, block.key)}
-                          className={`min-h-[140px] p-2 flex flex-col justify-between space-y-1.5 transition-all group z-10 overflow-hidden rounded-xl ${
+                          className={`h-[140px] p-2 flex flex-col justify-between transition-all group z-10 rounded-xl ${
                             isToday
                               ? 'bg-transparent border-0'
                               : 'bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs'
                           }`}
                         >
-                          <div className="space-y-2">
+                          {/* Cell-Level Internal Vertical Scrollable Container */}
+                          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col gap-1.5 p-0.5 pr-1 scrollbar-thin scrollbar-thumb-stone-300">
                             {/* Student Appointment Cards */}
                             {sortedDayApps.map((app) => {
                               const cardStyle = getStudentCardStyle(app.student_name || '');
@@ -1432,18 +1433,19 @@ export default function TeacherSchedulePage() {
                                   key={app.id}
                                   draggable
                                   onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
-                                  className={`p-2.5 rounded-xl border flex flex-col gap-1 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform ${cardStyle}`}
+                                  className={`p-2 rounded-xl border flex flex-col gap-1 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform shrink-0 ${cardStyle}`}
                                 >
-                                  <div className="font-black text-xs leading-snug flex items-center justify-between gap-1">
-                                    <span className="flex items-center gap-1">
-                                      <GripVertical className="w-3 h-3 opacity-60" />
-                                      {titleText}
+                                  {/* Title & Fee Row: Forced single-line flex with nowrap and truncate */}
+                                  <div className="flex items-center justify-between gap-1 w-full min-w-0">
+                                    <span className="flex items-center gap-1 min-w-0 font-extrabold text-xs whitespace-nowrap truncate">
+                                      <GripVertical className="w-3 h-3 opacity-60 shrink-0" />
+                                      <span className="whitespace-nowrap truncate">{titleText}</span>
                                     </span>
-                                    <span className="text-[10px] font-extrabold font-mono opacity-90">{displayFee}</span>
+                                    <span className="text-[11px] whitespace-nowrap font-extrabold font-mono opacity-90 shrink-0">{displayFee}</span>
                                   </div>
-                                  <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4 flex items-center justify-between gap-1">
-                                    <span>{displaySlot}</span>
-                                    <span className="text-[9px] opacity-75 font-sans font-normal">{displayDuration}</span>
+                                  <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4 flex items-center justify-between gap-1 whitespace-nowrap">
+                                    <span className="truncate">{displaySlot}</span>
+                                    <span className="text-[9px] opacity-75 font-sans font-normal shrink-0">{displayDuration}</span>
                                   </div>
                                 </div>
                               );
@@ -1455,26 +1457,28 @@ export default function TeacherSchedulePage() {
                                 key={slot.id}
                                 draggable
                                 onDragStart={() => setDraggedCard({ type: 'slot', id: slot.id })}
-                                className="p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:scale-[1.02] flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-transform"
+                                className="p-2 rounded-xl cursor-grab active:cursor-grabbing hover:scale-[1.02] flex flex-col gap-0.5 border bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9] hover:bg-[#C8E6C9] shadow-xs transition-transform shrink-0"
                               >
-                                <div className="font-black text-xs leading-snug flex items-center gap-1">
-                                  <GripVertical className="w-3 h-3 opacity-60" />
-                                  開放時段
+                                <div className="font-black text-xs leading-snug flex items-center gap-1 whitespace-nowrap truncate">
+                                  <GripVertical className="w-3 h-3 opacity-60 shrink-0" />
+                                  <span className="truncate">開放時段</span>
                                 </div>
-                                <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4">
+                                <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4 whitespace-nowrap truncate">
                                   {formatTimeRange(slot.start_time, slot.end_time)}
                                 </div>
                               </div>
                             ))}
                           </div>
 
-                          {/* Quick Add Button */}
-                          <button
-                            onClick={() => handleOpenAddModal(d.key, block.key)}
-                            className="w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition-all bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]"
-                          >
-                            <Plus className="w-3.5 h-3.5" /> 開設此時段
-                          </button>
+                          {/* Quick Add Button - Separated at bottom, shrink-0 to prevent overlap */}
+                          <div className="pt-1.5 mt-auto shrink-0 border-t border-stone-200/50">
+                            <button
+                              onClick={() => handleOpenAddModal(d.key, block.key)}
+                              className="w-full py-1 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1 shadow-2xs transition-all bg-[#FFF9E6] hover:bg-[#FFF2C8] border border-[#F0E2BF] text-[#8C6D53]"
+                            >
+                              <Plus className="w-3 h-3" /> 開設此時段
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
