@@ -48,7 +48,7 @@ export default function HomePage() {
     bio: '',
   });
 
-  // 動態當日時間：2026/08/30 (UTC+8)
+  // 動態時間：2026/08/30 (UTC+8)
   const [todayStr, setTodayStr] = useState('2026/08/30 (UTC+8)');
 
   useEffect(() => {
@@ -110,7 +110,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#FBF9F5] text-stone-800 space-y-8 py-4 sm:py-6 px-3 sm:px-6 max-w-7xl mx-auto">
       
-      {/* 1. 頁首 Header */}
+      {/* 1. 【頂部 Header】 */}
       <header className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
         <div className="absolute -right-16 -top-16 w-64 h-64 bg-[#D97736]/5 rounded-full blur-2xl pointer-events-none" />
         
@@ -133,7 +133,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 顯示動態時間 */}
+        {/* 動態時間 */}
         <div className="flex items-center gap-2 bg-[#FAF7F2] px-4 py-2 rounded-2xl border border-stone-200 text-xs font-mono font-bold text-stone-700 shadow-xs relative z-10">
           <Clock className="w-4 h-4 text-[#D97736]" />
           <span>今日時間：</span>
@@ -141,10 +141,10 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* 2. 雙欄核心互動區 */}
+      {/* 2. 重構首頁結構（雙欄卡片佈局） */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
-        {/* 左側欄位 ——【老師專用通道】 */}
+        {/* 左側：【老師專區】 */}
         <div className="lg:col-span-7 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -170,7 +170,7 @@ export default function HomePage() {
               老師登入 (Teacher Portal)
             </h2>
 
-            {/* 已登入狀態 */}
+            {/* 已登入狀態提示 */}
             {isAuthenticated ? (
               <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-3">
                 <div className="flex items-center justify-between">
@@ -201,7 +201,7 @@ export default function HomePage() {
                 </Link>
               </div>
             ) : (
-              /* 未登入登入表單 */
+              /* 未登入表單與多元登入 */
               <div className="space-y-4">
                 
                 {errorMsg && (
@@ -218,7 +218,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Email + 密碼 登入表單 */}
+                {/* Email + 密碼 */}
                 <form onSubmit={handleLoginSubmit} className="space-y-3">
                   <div>
                     <label className="block text-xs font-extrabold text-stone-700 mb-1">
@@ -279,7 +279,7 @@ export default function HomePage() {
                   <div className="flex-grow border-t border-stone-200"></div>
                 </div>
 
-                {/* LINE 快速登入 & Google 快速登入 */}
+                {/* LINE 登入 / Google 登入 */}
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -287,7 +287,7 @@ export default function HomePage() {
                     className="py-2.5 px-3 rounded-2xl bg-[#00B900] hover:bg-[#009900] text-white font-black text-xs shadow-sm transition-all flex items-center justify-center gap-2"
                   >
                     <MessageCircle className="w-4 h-4 fill-white" />
-                    LINE 快速登入
+                    LINE 登入
                   </button>
 
                   <button
@@ -296,7 +296,7 @@ export default function HomePage() {
                     className="py-2.5 px-3 rounded-2xl bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 font-black text-xs shadow-xs transition-all flex items-center justify-center gap-2"
                   >
                     <Globe className="w-4 h-4 text-rose-500" />
-                    Google 快速登入
+                    Google 登入
                   </button>
                 </div>
 
@@ -322,7 +322,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 右側欄位 ——【學生與家長專區】 */}
+        {/* 右側：【學生與家長專區】 */}
         <div className="lg:col-span-5 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -334,15 +334,15 @@ export default function HomePage() {
             </div>
 
             <h2 className="text-xl font-black text-stone-900">
-              學生與家長加入 (無需登入)
+              學生與家長加入（免註冊登入）
             </h2>
 
             {/* 說明文字 */}
             <p className="text-xs text-stone-600 font-medium leading-relaxed bg-[#FAF7F2] p-3.5 rounded-2xl border border-stone-200">
-              學生與家長無須註冊帳號與密碼！掃描下方 QR Code 加入 MusiMate LINE 官方帳號，課後自動接收專屬 AI 聯絡簿與示範影片。
+              掃描下方 QR Code 加入 LINE 官方帳號，即可接收每週 AI 聯絡簿與進度通知。
             </p>
 
-            {/* LINE 官方帳號 QR Code 圖示區塊 */}
+            {/* 清晰的 LINE 官方帳號 QR Code 圖示區塊 */}
             <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-stone-200 text-center space-y-3">
               <div className="w-36 h-36 mx-auto bg-white p-2.5 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-center relative">
                 <div className="w-full h-full border-2 border-dashed border-[#00B900] rounded-xl flex flex-col items-center justify-center p-2 text-center bg-[#F0FDF4]">
@@ -356,7 +356,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 「📱 體驗小明專屬聯絡簿 (Magic Link)」按鈕 */}
+            {/* 「📱 體驗學生手機聯絡簿 (Magic Link)」按鈕 */}
             <div className="space-y-2 pt-1">
               <a
                 href="/student-view.html?token=tok-ming-888"
@@ -365,7 +365,7 @@ export default function HomePage() {
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 group text-center block"
               >
                 <Smartphone className="w-4 h-4 inline group-hover:scale-110 transition-transform" />
-                📱 體驗小明專屬聯絡簿 (Magic Link)
+                📱 體驗學生手機聯絡簿 (Magic Link)
               </a>
 
               <p className="text-[11px] text-stone-400 text-center font-bold">
@@ -381,7 +381,7 @@ export default function HomePage() {
 
       </section>
 
-      {/* 3. 底部推廣介紹卡片 */}
+      {/* 3. 【底部】：展示 3 項核心功能介紹 */}
       <section className="space-y-4 pt-2">
         <div className="text-center space-y-1">
           <h3 className="text-lg font-black text-stone-900">
@@ -394,7 +394,7 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           
-          {/* 功能卡片 1: 師生排課工作台 */}
+          {/* 功能 1: 師生排課工作台 */}
           <Link
             href="/teacher/schedule"
             className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
@@ -404,7 +404,7 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-base font-black text-stone-900 group-hover:text-[#D97736] transition-colors">
-                師生排課工作台
+                1. 師生排課工作台
               </h4>
               <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
                 2D 週課表矩陣、開放空檔設定與 24h 防放鳥智慧調課審核機制。
@@ -416,7 +416,7 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* 功能卡片 2: 30秒 AI 錄音聯絡簿 */}
+          {/* 功能 2: 30秒 AI 錄音聯絡簿 */}
           <Link
             href="/teacher/recorder"
             className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
@@ -426,7 +426,7 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-base font-black text-stone-900 group-hover:text-pink-600 transition-colors">
-                30秒 AI 課堂錄音聯絡簿
+                2. 30秒 AI 錄音聯絡簿
               </h4>
               <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
                 下課口述 30 秒，Google Gemini 1.5 Flash 自動結構化解析為聯絡簿並推播至 LINE。
@@ -438,7 +438,7 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* 功能卡片 3: 課後作業雙影片比對 */}
+          {/* 功能 3: 課後作業雙影片比對 */}
           <Link
             href="/teacher/demos"
             className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
@@ -448,7 +448,7 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-base font-black text-stone-900 group-hover:text-sky-600 transition-colors">
-                課後作業雙影片比對
+                3. 課後作業雙影片比對
               </h4>
               <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
                 學員 15 秒打卡音檔與 AI 音高/節奏評測、師生雙影片姿態影格比對。
@@ -492,7 +492,7 @@ export default function HomePage() {
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-stone-700 mb-1">中文姓名 *</label>
+                    <label className="block text-stone-700 mb-1">姓名 *</label>
                     <input
                       type="text"
                       required
@@ -553,7 +553,7 @@ export default function HomePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-stone-700 mb-1">密碼設定 *</label>
+                    <label className="block text-stone-700 mb-1">密碼 *</label>
                     <input
                       type="password"
                       required
