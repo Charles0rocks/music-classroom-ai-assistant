@@ -1416,7 +1416,6 @@ export default function TeacherSchedulePage() {
                           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col gap-1.5 p-0.5 pr-1 scrollbar-thin scrollbar-thumb-stone-300">
                             {/* Student Appointment Cards */}
                             {sortedDayApps.map((app) => {
-                              const cardStyle = getStudentCardStyle(app.student_name || '');
                               const titleText =
                                 app.status === 'rescheduled'
                                   ? `${app.student_name || '學生'} (異動)`
@@ -1431,27 +1430,15 @@ export default function TeacherSchedulePage() {
                                   key={app.id}
                                   draggable
                                   onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
-                                  className={`p-2 rounded-xl border flex flex-col gap-0.5 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform shrink-0 ${cardStyle}`}
+                                  className="flex flex-col justify-center px-2 py-1.5 w-full bg-blue-50/80 border-l-4 border-blue-500 rounded text-left shadow-xs cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform shrink-0"
                                 >
-                                  {/* Student Name: Forced Single Line with Ellipsis (Exact Requested Style) */}
-                                  <div className="flex items-center gap-1 min-w-0">
-                                    <GripVertical className="w-3.5 h-3.5 opacity-60 shrink-0" />
-                                    <div
-                                      style={{
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        fontSize: '13px',
-                                        fontWeight: '600',
-                                        color: '#1e293b',
-                                      }}
-                                    >
-                                      {titleText}
-                                    </div>
+                                  {/* 學生姓名：字級適中、強制單行不換行 */}
+                                  <div className="font-semibold text-xs text-blue-900 truncate whitespace-nowrap leading-tight flex items-center gap-1">
+                                    <GripVertical className="w-3 h-3 text-blue-700/60 shrink-0" />
+                                    <span className="truncate whitespace-nowrap">{titleText}</span>
                                   </div>
-
-                                  {/* Time Range Only (No Fee / No Duration) */}
-                                  <div className="font-mono text-[11px] opacity-90 tracking-tight font-bold pl-4.5 whitespace-nowrap truncate">
+                                  {/* 時間區間：字級清晰、完整呈現 */}
+                                  <div className="text-[11px] text-blue-600/90 whitespace-nowrap leading-tight mt-0.5 font-mono pl-4">
                                     {displaySlot}
                                   </div>
                                 </div>
