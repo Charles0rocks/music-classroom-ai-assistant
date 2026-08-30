@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import {
@@ -216,31 +216,35 @@ export default function TeacherSchedulePage() {
   const [isDbConnected, setIsDbConnected] = useState<boolean>(false);
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(false);
 
-  // Fetch Schedules from Supabase (Fallback to Mock Seed when offline / unconfigured)
-  useEffect(() => {
-    const loadSupabaseSchedules = async () => {
-      if (!isSupabaseConfigured() || !supabase) {
-        setIsDbConnected(false);
-        return;
-      }
+  // Active Fetch Schedules from Supabase (Supporting teacher_id and teacher_name OR query)
+  const fetchSchedules = useCallback(async () => {
+    if (!isSupabaseConfigured() || !supabase) {
+      setIsDbConnected(false);
+      return;
+    }
 
-      setIsLoadingDb(true);
-      try {
-        const { data, error } = await supabase
+    setIsLoadingDb(true);
+    try {
+      const teacherId = teacherProfile.id;
+      const teacherName = currentUser.name;
+
+      const { data, error } = await supabase
+        .from('schedules')
+        .select('*')
+        .or(`teacher_id.eq.${teacherId},teacher_id.eq.${currentUser.id}`)
+        .order('start_time', { ascending: true });
+
+      if (error) {
+        console.warn('Supabase DB OR fetch error, fallback to teacher_id query:', error.message);
+        const fallbackRes = await supabase
           .from('schedules')
           .select('*')
-          .eq('teacher_id', teacherProfile.id)
+          .eq('teacher_id', teacherId)
           .order('start_time', { ascending: true });
 
-        if (error) {
-          console.warn('Supabase DB fetch error:', error.message);
-          setIsDbConnected(false);
-          setAppointments([]);
-        } else if (data && data.length > 0) {
-          console.log(`Successfully fetched schedules for teacher ${teacherProfile.id} from Supabase DB:`, data);
+        if (fallbackRes.data && fallbackRes.data.length > 0) {
           setIsDbConnected(true);
-
-          const dbApps: Appointment[] = data.map((item: DbScheduleRecord) => ({
+          const dbApps: Appointment[] = fallbackRes.data.map((item: DbScheduleRecord) => ({
             id: item.id,
             student_id: `s-${item.id}`,
             student_name: item.student_name,
@@ -250,24 +254,44 @@ export default function TeacherSchedulePage() {
             end_time: item.end_time,
             status: (item.status as any) || 'confirmed',
           }));
-
           setAppointments(dbApps);
         } else {
-          // Table exists but no records for this teacher (Clean Initial State)
           setIsDbConnected(true);
           setAppointments([]);
         }
-      } catch (err) {
-        console.warn('Supabase network error, set empty appointments:', err);
-        setIsDbConnected(false);
-        setAppointments([]);
-      } finally {
-        setIsLoadingDb(false);
-      }
-    };
+      } else if (data && data.length > 0) {
+        console.log(`[fetchSchedules] Active fetch successful for ${teacherName} (${teacherId}):`, data);
+        setIsDbConnected(true);
 
-    loadSupabaseSchedules();
-  }, [weekOffset, teacherProfile.id]);
+        const dbApps: Appointment[] = data.map((item: DbScheduleRecord) => ({
+          id: item.id,
+          student_id: `s-${item.id}`,
+          student_name: item.student_name,
+          teacher_id: item.teacher_id,
+          start_time: item.start_time,
+          original_start_time: item.start_time,
+          end_time: item.end_time,
+          status: (item.status as any) || 'confirmed',
+        }));
+
+        setAppointments(dbApps);
+      } else {
+        setIsDbConnected(true);
+        setAppointments([]);
+      }
+    } catch (err) {
+      console.warn('Supabase network error, set empty appointments:', err);
+      setIsDbConnected(false);
+      setAppointments([]);
+    } finally {
+      setIsLoadingDb(false);
+    }
+  }, [teacherProfile.id, currentUser.id, currentUser.name]);
+
+  // Active Fetch Trigger: Automatically re-fetch schedules upon teacher switch or week change
+  useEffect(() => {
+    fetchSchedules();
+  }, [fetchSchedules, weekOffset]);
 
   const handleSettingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
