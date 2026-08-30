@@ -15,7 +15,7 @@
 </head>
 <body class="text-stone-800 antialiased min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-7xl mx-auto space-y-8">
 
-  <!-- 1. 頁首資訊 (Header) -->
+  <!-- 1. 頁首 Header -->
   <header class="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
     <div class="flex items-center gap-4">
       <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-500 to-[#D97736] flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0">
@@ -43,15 +43,15 @@
     </div>
   </header>
 
-  <!-- 2. 核心互動區塊（左右雙欄） -->
+  <!-- 2. 雙欄核心互動區 -->
   <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
     
-    <!-- 左側：【老師專區（登入與申請）】 -->
+    <!-- 左側欄位 ——【老師專用通道】 -->
     <div class="lg:col-span-7 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
       <div class="space-y-4">
         <div class="flex items-center justify-between border-b border-stone-100 pb-3">
           <span class="px-3 py-1 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black">
-            👩‍🏫 【老師專區】
+            👩‍🏫 【老師專用通道】
           </span>
           <a href="./schedule.html" class="text-xs font-black text-[#D97736] hover:underline">
             週課表工作台 ➔
@@ -68,7 +68,7 @@
           </a>
 
           <a href="./schedule.html" class="w-full py-2.5 rounded-2xl bg-[#FAF2EC] text-[#D97736] border border-[#F6D0B8] font-black text-xs text-center block shadow-xs hover:bg-[#F6E6DA]">
-            ✨ Demo 老師一鍵填入帳密 (chang.teacher@harmony.edu)
+            ✨ 一鍵帶入張老師 Demo 帳密 (chang.teacher@harmony.edu)
           </a>
 
           <div class="grid grid-cols-2 gap-3 pt-1">
@@ -82,7 +82,7 @@
 
           <div class="pt-2 text-center border-t border-stone-100">
             <a href="./schedule.html" class="text-xs font-black text-[#D97736] hover:underline">
-              尚未擁有老師帳號？點此提交「老師帳號申請」➔
+              尚未擁有老師帳號？點此提交「申請老師帳號」➔
             </a>
           </div>
         </div>
@@ -94,7 +94,7 @@
       </div>
     </div>
 
-    <!-- 右側：【學生與家長專區（免註冊登入，LINE 官方帳號互動）】 -->
+    <!-- 右側欄位 ——【學生與家長專區】 -->
     <div class="lg:col-span-5 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
       <div class="space-y-4">
         <div class="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -105,11 +105,11 @@
         </div>
 
         <h2 class="text-xl font-black text-stone-900">
-          學生與家長專區
+          學生與家長加入 (無需登入)
         </h2>
 
         <p class="text-xs text-stone-600 font-medium leading-relaxed bg-[#FAF7F2] p-3.5 rounded-2xl border border-stone-200">
-          免額外下載 App 或註冊帳號！掃描下方 QR Code 加入 MusiMate LINE 官方帳號，即可隨時接收課堂 AI 聯絡簿、練習進度與示範影片。
+          學生與家長無須註冊帳號與密碼！掃描下方 QR Code 加入 MusiMate LINE 官方帳號，課後自動接收專屬 AI 聯絡簿與示範影片。
         </p>
 
         <div class="bg-[#FAF7F2] p-5 rounded-2xl border border-stone-200 text-center space-y-3">
@@ -125,8 +125,8 @@
           </div>
         </div>
 
-        <a href="./student-view.html?token=tok-ming-888" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black text-xs text-center block shadow-md">
-          📱 體驗學生端手機畫面 (Magic Link)
+        <a href="./student-view.html?token=tok-ming-888" target="_blank" rel="noopener noreferrer" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black text-xs text-center block shadow-md">
+          📱 體驗小明專屬聯絡簿 (Magic Link)
         </a>
       </div>
 
@@ -137,7 +137,7 @@
 
   </section>
 
-  <!-- 3. 底部推廣廣告區 (產品真實功能展示) -->
+  <!-- 3. 底部區域 —— 3 個功能推廣介紹卡片 -->
   <section class="space-y-4 pt-2">
     <div class="text-center space-y-1">
       <h3 class="text-lg font-black text-stone-900">
@@ -151,19 +151,19 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
       <a href="./schedule.html" class="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-3 block hover:border-[#D97736]">
         <div class="text-2xl">🗓️</div>
-        <h4 class="text-base font-black text-stone-900">1. 師生排課與工作台</h4>
+        <h4 class="text-base font-black text-stone-900">師生排課工作台</h4>
         <p class="text-xs text-stone-500 font-medium">2D 週課表矩陣、開放空檔設定與 24h 防放鳥智慧調課審核機制。</p>
       </a>
 
       <a href="./lesson-record.html" class="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-3 block hover:border-pink-500">
         <div class="text-2xl">🎙️</div>
-        <h4 class="text-base font-black text-stone-900">2. 30秒 AI 課堂錄音聯絡簿</h4>
+        <h4 class="text-base font-black text-stone-900">30秒 AI 錄音聯絡簿</h4>
         <p class="text-xs text-stone-500 font-medium">下課口述 30 秒，Google Gemini 1.5 Flash 自動結構化解析為聯絡簿並推播至 LINE。</p>
       </a>
 
       <a href="./homework.html" class="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-3 block hover:border-sky-500">
         <div class="text-2xl">🎥</div>
-        <h4 class="text-base font-black text-stone-900">3. 課後作業雙影片比對與分析</h4>
+        <h4 class="text-base font-black text-stone-900">課後作業雙影片比對</h4>
         <p class="text-xs text-stone-500 font-medium">學員 15 秒打卡音檔與 AI 音高/節奏評測、師生雙影片姿態影格比對。</p>
       </a>
     </div>
