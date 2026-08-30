@@ -66,7 +66,7 @@ export default function HomePage() {
 
     const res = login(email, password, 'teacher');
     if (res.success) {
-      setSuccessMsg('登入成功！即將前往教師週課表...');
+      setSuccessMsg(res.message);
       setTimeout(() => {
         router.push('/teacher/schedule');
       }, 500);
@@ -75,12 +75,13 @@ export default function HomePage() {
     }
   };
 
-  const handleQuickFillAndLogin = () => {
-    setEmail('chang.teacher@harmony.edu');
-    setPassword('teacher123');
-    const res = login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
+  const handleQuickFillAndLogin = (teacherEmail?: string) => {
+    const targetEmail = teacherEmail || 'chang.teacher@harmony.edu';
+    setEmail(targetEmail);
+    setPassword('Teacher#2026');
+    const res = login(targetEmail, 'Teacher#2026', 'teacher');
     if (res.success) {
-      setSuccessMsg('一鍵帶入成功！即將進入教師週課表...');
+      setSuccessMsg(res.message);
       setTimeout(() => {
         router.push('/teacher/schedule');
       }, 500);
@@ -90,7 +91,7 @@ export default function HomePage() {
   const handleSocialLogin = (provider: 'LINE' | 'Google') => {
     setErrorMsg('');
     setSuccessMsg(`已透過 ${provider} 快速驗證身份！進入教師工作台...`);
-    login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
+    login('chang.teacher@harmony.edu', 'Teacher#2026', 'teacher');
     setTimeout(() => {
       router.push('/teacher/schedule');
     }, 600);
@@ -102,7 +103,7 @@ export default function HomePage() {
     setTimeout(() => {
       setShowRegisterModal(false);
       setRegisterSuccessMsg('');
-      login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
+      login('chang.teacher@harmony.edu', 'Teacher#2026', 'teacher');
       router.push('/teacher/schedule');
     }, 1500);
   };
@@ -265,7 +266,7 @@ export default function HomePage() {
                 {/* 一鍵帶入張老師 Demo 帳密 */}
                 <button
                   type="button"
-                  onClick={handleQuickFillAndLogin}
+                  onClick={() => handleQuickFillAndLogin()}
                   className="w-full py-2.5 rounded-2xl bg-[#FAF2EC] hover:bg-[#F6E6DA] text-[#D97736] border border-[#F6D0B8] font-black text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5" />

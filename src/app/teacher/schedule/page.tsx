@@ -79,6 +79,7 @@ export default function TeacherSchedulePage() {
   const router = useRouter();
   const {
     currentRole,
+    currentUser,
     scheduleSlots,
     setScheduleSlots,
     toggleSlotAvailability,
@@ -107,29 +108,8 @@ export default function TeacherSchedulePage() {
   const [recurringStartTime, setRecurringStartTime] = useState('10:00');
   const [recurringEndTime, setRecurringEndTime] = useState('11:00');
 
-  // Persistent Log Array for Registered Recurring Schedules in "課表設定" Panel
-  const [recurringLogs, setRecurringLogs] = useState<RecurringScheduleLog[]>([
-    {
-      id: 'rec-log-1',
-      studentName: '小明',
-      dayKey: 3,
-      monthDay: '08/19',
-      dayLabel: '週三',
-      blockKey: 'morning',
-      startTime: '10:00',
-      endTime: '11:00',
-    },
-    {
-      id: 'rec-log-2',
-      studentName: '小華',
-      dayKey: 4,
-      monthDay: '08/20',
-      dayLabel: '週四',
-      blockKey: 'afternoon',
-      startTime: '15:00',
-      endTime: '16:00',
-    },
-  ]);
+  // Persistent Log Array for Registered Recurring Schedules in "課表設定" Panel (Clean Initial State)
+  const [recurringLogs, setRecurringLogs] = useState<RecurringScheduleLog[]>([]);
 
   // Form State for Mode 2: 2. 開放時段
   const [openDayKey, setOpenDayKey] = useState<number>(4);
@@ -249,13 +229,15 @@ export default function TeacherSchedulePage() {
         const { data, error } = await supabase
           .from('schedules')
           .select('*')
+          .eq('teacher_id', teacherProfile.id)
           .order('start_time', { ascending: true });
 
         if (error) {
-          console.warn('Supabase DB fetch error, falling back to mock seed data:', error.message);
+          console.warn('Supabase DB fetch error:', error.message);
           setIsDbConnected(false);
+          setAppointments([]);
         } else if (data && data.length > 0) {
-          console.log('Successfully fetched schedules from Supabase DB:', data);
+          console.log(`Successfully fetched schedules for teacher ${teacherProfile.id} from Supabase DB:`, data);
           setIsDbConnected(true);
 
           const dbApps: Appointment[] = data.map((item: DbScheduleRecord) => ({
@@ -271,19 +253,21 @@ export default function TeacherSchedulePage() {
 
           setAppointments(dbApps);
         } else {
-          // Table exists but currently empty
+          // Table exists but no records for this teacher (Clean Initial State)
           setIsDbConnected(true);
+          setAppointments([]);
         }
       } catch (err) {
-        console.warn('Supabase network error, fallback to mock data:', err);
+        console.warn('Supabase network error, set empty appointments:', err);
         setIsDbConnected(false);
+        setAppointments([]);
       } finally {
         setIsLoadingDb(false);
       }
     };
 
     loadSupabaseSchedules();
-  }, [weekOffset]);
+  }, [weekOffset, teacherProfile.id]);
 
   const handleSettingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1100,100 +1084,48 @@ export default function TeacherSchedulePage() {
       {/* 4. Daily Timeline View */}
       {mainViewMode === 'dailyTimeline' && (
         <div className="space-y-3.5 animate-in fade-in">
-          {/* Course Card 1: Completed / Archived */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 text-stone-800 space-y-2.5 shadow-sm">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-stone-600 font-mono font-bold">
-                <Clock className="w-3.5 h-3.5 text-stone-400" />
-                09:30 - 10:30
+          {appointments.length === 0 ? (
+            <div className="bg-white border border-stone-200 rounded-3xl p-8 sm:p-10 text-center space-y-3 shadow-sm">
+              <div className="w-14 h-14 rounded-2xl bg-[#FAF2EC] text-[#D97736] flex items-center justify-center mx-auto text-2xl font-bold shadow-xs">
+                📅
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px]">
-                ✓ 已完課 · 週報已發
-              </span>
+              <h3 className="font-extrabold text-base sm:text-lg text-stone-800">
+                【{currentUser.name}】目前尚無排課紀錄 (Clean Initial State)
+              </h3>
+              <p className="text-xs text-stone-500 max-w-md mx-auto leading-relaxed font-medium">
+                Supabase 資料庫中無此教師的課表數據。您可以使用上方「課表設定」新增常態課表或開放時段，所有變更將即時同步至 Supabase！
+              </p>
             </div>
+          ) : (
+            appointments.map((app) => (
+              <div key={app.id} className="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 text-stone-800 space-y-2.5 shadow-sm">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-stone-600 font-mono font-bold">
+                    <Clock className="w-3.5 h-3.5 text-[#D97736]" />
+                    {formatTimeRange(app.start_time, app.end_time)}
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px]">
+                    {app.status === 'rescheduled' ? '🔄 異動排課' : '✓ 正常上課中'}
+                  </span>
+                </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-extrabold text-base sm:text-lg text-stone-800">
-                  廖小弟 <span className="text-xs font-normal text-stone-500">(幼兒鋼琴啟蒙)</span>
-                </h3>
-                <div className="text-xs text-stone-500 mt-1 flex items-center gap-1">
-                  <span>📍 大安琴房 A 室</span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-extrabold text-base sm:text-lg text-stone-800">
+                      {app.student_name || '學生'}
+                    </h3>
+                    <div className="text-xs text-stone-500 mt-1 flex items-center gap-1">
+                      <span>📍 大安琴房 A 室</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm sm:text-base font-extrabold text-[#D97736]">NT$1,200</div>
+                    <div className="text-[10px] text-emerald-700 font-bold">對帳 OK</div>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-sm sm:text-base font-extrabold text-stone-800">NT$1,000</div>
-                <div className="text-[10px] text-stone-500 font-medium">包期 (7/10 堂)</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Course Card 2: Action Needed (Caramel Amber Highlighted Card) */}
-          <div className="bg-white border-2 border-[#D97736] ring-2 ring-[#D97736]/20 rounded-2xl p-4 sm:p-5 text-stone-800 space-y-3.5 shadow-md relative overflow-hidden">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-[#D97736] font-mono font-black">
-                <Clock className="w-3.5 h-3.5" />
-                11:00 - 12:00
-              </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-[#FFF2EB] text-[#D97736] border border-[#F6D0B8] font-black text-[11px] flex items-center gap-1">
-                🎙️ 待生成 AI 聯絡簿
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-extrabold text-base sm:text-lg text-stone-800">
-                  張雅晴 <span className="text-xs font-normal text-stone-500">(皇家鋼琴 5 級)</span>
-                </h3>
-                <div className="text-xs text-stone-500 mt-1 flex items-center gap-1.5">
-                  <span>📍 大安琴房 B 室</span>
-                  <span className="text-stone-300">·</span>
-                  <span className="text-[#D97736] font-bold">剛結束 28 分鐘</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm sm:text-base font-extrabold text-[#D97736]">NT$1,400</div>
-                <div className="text-[10px] text-emerald-700 font-bold">單堂對帳 OK</div>
-              </div>
-            </div>
-
-            {/* Primary Action Button: 🎙️ 口述 30 秒生成 AI 週報 */}
-            <button
-              onClick={() => router.push('/teacher/recorder')}
-              className="w-full py-3 rounded-xl bg-[#D97736] hover:bg-[#c4682a] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"
-            >
-              <Mic className="w-4 h-4 text-white" />
-              🎙️ 口述 30 秒生成 AI 週報
-            </button>
-          </div>
-
-          {/* Course Card 3: Upcoming Course */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 text-stone-800 space-y-2.5 shadow-sm">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-sky-700 font-mono font-bold">
-                <Clock className="w-3.5 h-3.5 text-sky-600" />
-                14:00 - 15:00 <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-100 text-sky-800 font-normal">(下一堂)</span>
-              </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-bold text-[11px]">
-                學費履約託管中
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-extrabold text-base sm:text-lg text-stone-800">
-                  陳郁庭 <span className="text-xs font-normal text-stone-500">(奏鳴曲進階)</span>
-                </h3>
-                <div className="text-xs text-stone-500 mt-1 flex items-center gap-1">
-                  <span>📍 大安琴房 C 室</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm sm:text-base font-extrabold text-stone-800">NT$1,500</div>
-                <div className="text-[10px] text-stone-500 font-medium">包期 (3/10 堂)</div>
-              </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       )}
 

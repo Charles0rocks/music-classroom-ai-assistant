@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDemoContext } from '@/context/DemoContext';
+import { useDemoContext, PRESET_TEACHERS } from '@/context/DemoContext';
 import { Role } from '@/types';
 import {
   UserCheck,
-  Sparkles,
   Lock,
   Mail,
   AlertCircle,
@@ -25,7 +24,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const { login } = useDemoContext();
 
   const [email, setEmail] = useState('chang.teacher@harmony.edu');
-  const [password, setPassword] = useState('teacher123');
+  const [password, setPassword] = useState('Teacher#2026');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -64,22 +63,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             <Lock className="w-3.5 h-3.5" /> 帳號密碼登入驗證
           </div>
           <h2 className="text-2xl font-extrabold text-[#332C27]">
-            登入 MusiMate
+            教師端登入 (Teacher Portal)
           </h2>
           <p className="text-xs text-[#7A736E] font-medium">
-            請輸入授權帳號與密碼，體驗專屬音樂教學 Portal
+            請選擇或輸入預設教師帳號與密碼 (Teacher#2026) 進行登入
           </p>
-        </div>
-
-        {/* Teacher Identity Badge Header */}
-        <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#EFECE6] flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#8C6D53] text-white flex items-center justify-center font-bold text-xs shrink-0">
-            <UserCheck className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-[#332C27]">張老師 / 林詠晴 老師 [PRO]</div>
-            <div className="text-[10px] text-[#7A736E]">教師端排課與工作台管理</div>
-          </div>
         </div>
 
         {errorMsg && (
@@ -96,6 +84,33 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           </div>
         )}
 
+        {/* 5 Preset Teachers Selection Pills */}
+        <div className="space-y-2">
+          <span className="text-xs font-bold text-[#332C27]">一鍵點選預設 5 位教師帳號：</span>
+          <div className="grid grid-cols-5 gap-1.5">
+            {PRESET_TEACHERS.map((t) => {
+              const isSelected = email.toLowerCase() === t.user.email.toLowerCase();
+              return (
+                <button
+                  key={t.user.id}
+                  type="button"
+                  onClick={() => {
+                    setEmail(t.user.email);
+                    setPassword('Teacher#2026');
+                  }}
+                  className={`py-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                    isSelected
+                      ? 'bg-[#8C6D53] text-white border-[#8C6D53] shadow-xs'
+                      : 'bg-[#FAF7F2] text-[#7A736E] border-[#EFECE6] hover:bg-[#F2E8D8]'
+                  }`}
+                >
+                  {t.user.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#332C27] mb-1">
@@ -108,7 +123,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="輸入您的 Email"
+                placeholder="輸入您的 Teacher Email"
                 className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-[#332C27] focus:outline-none focus:border-[#8C6D53] font-mono"
               />
             </div>
@@ -128,23 +143,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 placeholder="輸入您的密碼"
                 className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-[#332C27] focus:outline-none focus:border-[#8C6D53] font-mono"
               />
-            </div>
-          </div>
-
-          {/* Demo Credentials Helper Pill */}
-          <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] space-y-1.5 text-[11px]">
-            <span className="text-[#8C6D53] font-bold block">💡 快速測試 (Quick Fill Demo)</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('chang.teacher@harmony.edu');
-                  setPassword('teacher123');
-                }}
-                className="w-full py-1.5 rounded-full bg-[#8C6D53] text-white font-bold hover:bg-[#765942] transition-all"
-              >
-                帶入林詠晴 / 張老師帳密 (teacher123)
-              </button>
             </div>
           </div>
 
