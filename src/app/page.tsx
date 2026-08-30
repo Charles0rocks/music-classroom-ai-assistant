@@ -344,15 +344,22 @@ export default function HomePage() {
 
             {/* 清晰的 LINE 官方帳號 QR Code 圖示區塊 */}
             <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-stone-200 text-center space-y-3">
-              <div className="w-36 h-36 mx-auto bg-white p-2.5 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-center relative">
-                <div className="w-full h-full border-2 border-dashed border-[#00B900] rounded-xl flex flex-col items-center justify-center p-2 text-center bg-[#F0FDF4]">
-                  <QrCode className="w-12 h-12 text-[#00B900]" />
-                  <span className="text-[10px] font-black text-[#00B900] mt-1">@MusiMate_AI</span>
-                </div>
-              </div>
+              <a
+                href="https://line.me/R/ti/p/%40536tuoaq"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-48 h-48 mx-auto bg-white p-2 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-center relative hover:scale-105 transition-transform block"
+                title="點擊加入 LINE 官方帳號好友"
+              >
+                <img
+                  src="/line-qr.png"
+                  alt="LINE 官方帳號 @536tuoaq"
+                  className="w-full h-full object-cover rounded-xl"
+                />
+              </a>
 
-              <div className="text-[11px] text-stone-500 font-bold">
-                LINE 搜尋 ID: <span className="font-mono text-[#00B900]">@MusiMate_AI</span>
+              <div className="text-xs font-bold text-stone-700">
+                LINE 官方帳號：<span className="font-mono text-[#00B900] font-black">@536tuoaq</span>
               </div>
             </div>
 
