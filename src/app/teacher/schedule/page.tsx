@@ -1208,10 +1208,10 @@ export default function TeacherSchedulePage() {
                   return (
                     <div
                       key={d.key}
-                      className={`p-2 text-center rounded-xl transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center relative ${
+                      className={`p-2 text-center transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center relative ${
                         isToday
-                          ? 'bg-[#FFF2EB] border-2 border-[#E88D67] shadow-md ring-2 ring-[#E88D67]/30'
-                          : 'bg-[#FAF2EC] border border-[#E8D4C5] shadow-xs'
+                          ? 'bg-[#FFF2EB] border-2 border-b-0 border-[#E88D67] rounded-t-2xl shadow-sm'
+                          : 'bg-[#FAF2EC] border border-[#E8D4C5] rounded-xl shadow-xs'
                       }`}
                     >
                       {/* Today Badge Pill - 100% Visible & Unclipped */}
@@ -1264,6 +1264,8 @@ export default function TeacherSchedulePage() {
                   <div key={block.key} className="grid grid-cols-7 gap-3 h-[140px] items-stretch">
                     {weekDates.map((d) => {
                       const isToday = d.fullDateStr === todayDateStr;
+                      const isFirstBlock = block.key === 'morning';
+                      const isLastBlock = block.key === 'evening';
                       const dayApps = appointments.filter((app) => {
                         const appDay = getSlotDayOfWeek(app.start_time);
                         const appHour = getSlotHour(app.start_time);
@@ -1289,10 +1291,14 @@ export default function TeacherSchedulePage() {
                           key={d.key}
                           onDragOver={(e) => e.preventDefault()}
                           onDrop={() => handleDropOnCell(d.key, block.key)}
-                          className={`min-h-[140px] p-2 rounded-xl flex flex-col justify-between space-y-1.5 transition-all group z-10 overflow-hidden ${
+                          className={`min-h-[140px] p-2 flex flex-col justify-between space-y-1.5 transition-all group z-10 overflow-hidden ${
                             isToday
-                              ? 'bg-[#FFF8F3] border-2 border-[#E88D67] ring-2 ring-[#E88D67]/20 shadow-sm'
-                              : 'bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs'
+                              ? `bg-[#FFF8F3] border-l-2 border-r-2 border-[#E88D67] ${
+                                  isLastBlock
+                                    ? 'border-b-2 border-t-0 rounded-b-2xl shadow-sm'
+                                    : 'border-t-0 border-b-0 rounded-none'
+                                }`
+                              : 'bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs rounded-xl'
                           }`}
                         >
                           <div className="space-y-2">
