@@ -72,3 +72,35 @@ body {
   scrollbar-color: #E88D67 #F5EFE6;
   scrollbar-width: auto;
 }
+
+/* Custom Cell Scroll Container: Hover-triggered hidden-by-default scrollbar */
+.cell-scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+}
+
+.cell-scroll-container:hover {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Webkit browsers (Chrome / Edge / Safari) */
+.cell-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cell-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cell-scroll-container::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.cell-scroll-container:hover::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}

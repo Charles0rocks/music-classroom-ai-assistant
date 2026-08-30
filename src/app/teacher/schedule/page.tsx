@@ -1412,8 +1412,8 @@ export default function TeacherSchedulePage() {
                               : 'bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs'
                           }`}
                         >
-                          {/* Cell-Level Internal Vertical Scrollable Container */}
-                          <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden flex flex-col gap-1.5 p-0.5 scrollbar-thin scrollbar-thumb-stone-300">
+                          {/* Cell-Level Internal Vertical Scrollable Container (Hover-triggered Scrollbar) */}
+                          <div className="flex-1 min-h-0 w-full flex flex-col gap-1.5 p-0.5 cell-scroll-container">
                             {/* Student Appointment Cards */}
                             {sortedDayApps.map((app) => {
                               const titleText =
