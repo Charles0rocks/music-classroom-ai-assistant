@@ -352,7 +352,7 @@ export default function HomePage() {
                 title="點擊加入 LINE 官方帳號好友"
               >
                 <img
-                  src="/line-qr.png"
+                  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsAQMAAABDsxw2AAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB40lEQVRoge2aO5LCQAxE5SIg5Ag+io9mjsZRfASHBBTaUUsam12CDVasg1ZADTPPUZc+PbbI72LWiLYe9Hax5X1oPw+RMc8WYsXYAjFOKmM7vbUF4mqb492VIlaPndvuelLfaWL1UzxoqhH7HGYJcru0TaTMGvIROyQm52dIqU+UPWIfxHAEsZ4yWXORvvO2DBIrwDTCu4ylzNJUmzOJEMSKsV0gd8QxtJv3QezfMNd0xTzWMmvFZpa1FJdYMYayZoEWHyal/c2mfxXUN2LV2L6+SagWfSfcihA7BmbzmCVUSBleZsaORdocYoXYbKfTq0lBxIQ2+4JYKeYpY82l23mJXo+wlOn1jVgR5lZRd8bQrWI+mJoSOwKm3TbmeKyob93pb/WNWBmWYsE2Tq7RsPWg75oSq8HsVB9br+9W0evbZbvjIlaIDVm4BAmife41C2+Yi0XsANh2qaJwlH0kEI9dfSNWh/VWkheSIV9klqoPZsTqsC1ex+N8EEHsGNic4gGb9l9BbAOzECvGXK+Uxi9VdmJdre8sxKoxdJlTvFXEeKya1/Ve30SIfQzLy/nsOyhrSKmF2BExjMf5AiXjp6bE/hrL+jZqjMf+UcrjxeATq8W6Ini9mJfzcIi5Q+wg2O/iC92mKiYC3BU5AAAAAElFTkSuQmCC"
                   alt="LINE 官方帳號 @536tuoaq"
                   className="w-full h-full object-cover rounded-xl"
                 />
