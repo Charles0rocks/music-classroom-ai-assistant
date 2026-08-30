@@ -25,8 +25,32 @@ export const Navbar: React.FC = () => {
   const router = useRouter();
   const { currentRole, currentUser, isAuthenticated, logout } = useDemoContext();
 
+  const [savedTeacher, setSavedTeacher] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('auth_teacher');
+      if (saved) {
+        try {
+          setSavedTeacher(JSON.parse(saved));
+        } catch (e) {}
+      } else {
+        setSavedTeacher(null);
+      }
+    }
+  }, [isAuthenticated]);
+
+  const activeAuth = isAuthenticated || !!savedTeacher;
+  const teacherName = savedTeacher?.name || currentUser?.name || 'Charles Lin';
+  const teacherAvatar = savedTeacher?.avatar_url || currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  const teacherEmail = savedTeacher?.email || currentUser?.email || 'chl@gmail.com';
+
   const handleLogout = () => {
     logout();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_teacher');
+    }
+    setSavedTeacher(null);
     router.push('/');
   };
   const pathname = usePathname();
@@ -78,11 +102,11 @@ export const Navbar: React.FC = () => {
             </Link>
 
             {/* Authenticated Role Badge & Logout Control */}
-            {isAuthenticated ? (
+            {activeAuth ? (
               <div className="flex items-center gap-1 sm:gap-2 bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6] shrink-0">
                 <span className="px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1 bg-[#8C6D53] text-white shadow-xs">
                   <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  林詠晴 老師 <span className="hidden sm:inline">(PRO)</span>
+                  {teacherName} 老師 <span className="hidden sm:inline">(PRO)</span>
                 </span>
 
                 <button
@@ -91,7 +115,7 @@ export const Navbar: React.FC = () => {
                   title="登出並重定向至首頁"
                 >
                   <LogOut className="w-3 h-3 text-[#8C6D53]" />
-                  <span className="hidden xs:inline">登出 / </span>切換
+                  登出
                 </button>
               </div>
             ) : (
@@ -138,17 +162,18 @@ export const Navbar: React.FC = () => {
               );
             })}
           </nav>
+
           {/* User Identity Info */}
-          {isAuthenticated && (
+          {activeAuth && (
             <div className="hidden lg:flex items-center gap-3">
               <img
-                src={currentUser.avatar_url}
-                alt={currentUser.name}
+                src={teacherAvatar}
+                alt={teacherName}
                 className="w-8 h-8 rounded-full border-2 border-[#EFECE6] object-cover"
               />
               <div className="text-right">
-                <div className="text-xs font-bold text-[#332C27]">{currentUser.name}</div>
-                <div className="text-[10px] text-[#7A736E] font-medium">{currentUser.email}</div>
+                <div className="text-xs font-bold text-[#332C27]">{teacherName}</div>
+                <div className="text-[10px] text-[#7A736E] font-medium">{teacherEmail}</div>
               </div>
             </div>
           )}

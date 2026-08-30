@@ -173,28 +173,67 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const currentUser = currentRole === 'teacher' ? activeTeacherPair.user : MOCK_STUDENT_USER;
   const teacherProfile = activeTeacherPair.teacher;
 
+  // Restore authenticated teacher from localStorage on client mount
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('auth_teacher');
+      if (saved) {
+        try {
+          const teacherObj = JSON.parse(saved);
+          const idx = PRESET_TEACHERS.findIndex(
+            (t) =>
+              t.user.email.toLowerCase() === teacherObj.email?.toLowerCase() ||
+              t.user.name === teacherObj.name
+          );
+          if (idx !== -1) {
+            setActiveTeacherIdx(idx);
+          }
+          setCurrentRole('teacher');
+          setIsAuthenticated(true);
+        } catch (e) {
+          console.error('Failed to parse auth_teacher:', e);
+        }
+      }
+    }
+  }, []);
+
   const login = (email: string, pass: string, role: Role) => {
     if (role === 'teacher') {
       const targetEmail = email.trim().toLowerCase();
       const matchedIdx = PRESET_TEACHERS.findIndex((t) => t.user.email.toLowerCase() === targetEmail);
 
+      let matchedPair = PRESET_TEACHERS[0];
       if (matchedIdx !== -1) {
-        // Accept 12345678, Teacher#2026, or legacy teacher123
         if (pass === '12345678' || pass === 'Teacher#2026' || pass === 'teacher123') {
           setActiveTeacherIdx(matchedIdx);
-          setCurrentRole('teacher');
-          setIsAuthenticated(true);
-          return { success: true, message: `登入成功！歡迎 ${PRESET_TEACHERS[matchedIdx].user.name}。` };
+          matchedPair = PRESET_TEACHERS[matchedIdx];
         } else {
-          return { success: false, message: '密碼錯誤！(密碼為 12345678)' };
+          return { success: false, message: '密碼錯誤！(密碼為 12345678 或 Teacher#2026)' };
         }
       } else {
-        // Fallback for custom email (Charles Lin)
+        // Fallback for custom email (chl@gmail.com / Charles Lin)
         setActiveTeacherIdx(0);
-        setCurrentRole('teacher');
-        setIsAuthenticated(true);
-        return { success: true, message: `登入成功！歡迎 Charles Lin。` };
+        matchedPair = PRESET_TEACHERS[0];
       }
+
+      setCurrentRole('teacher');
+      setIsAuthenticated(true);
+
+      const teacherObj = {
+        id: matchedPair.teacher.id,
+        user_id: matchedPair.user.id,
+        name: matchedPair.user.name,
+        email: matchedPair.user.email,
+        avatar_url: matchedPair.user.avatar_url,
+        instrument: matchedPair.teacher.instrument,
+        bio: matchedPair.teacher.bio,
+      };
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_teacher', JSON.stringify(teacherObj));
+      }
+
+      return { success: true, message: `登入成功！歡迎 ${matchedPair.user.name}。` };
     } else {
       setCurrentRole('student');
       setIsAuthenticated(true);
@@ -204,6 +243,9 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_teacher');
+    }
   };
 
   const switchRole = (role: Role) => {

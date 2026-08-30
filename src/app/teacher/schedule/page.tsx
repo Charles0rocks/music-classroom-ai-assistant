@@ -226,85 +226,75 @@ export default function TeacherSchedulePage() {
 
     setIsLoadingDb(true);
     try {
-      const teacherId = String(teacherProfile?.id || '').toLowerCase();
-      const teacherUserId = String(currentUser?.id || '').toLowerCase();
-      const teacherName = String(currentUser?.name || '').toLowerCase();
-      const teacherEmail = String(currentUser?.email || '').toLowerCase();
+      const savedTeacherStr = typeof window !== 'undefined' ? localStorage.getItem('auth_teacher') : null;
+      const currentTeacher = savedTeacherStr ? JSON.parse(savedTeacherStr) : currentUser;
+      const queryName = currentTeacher?.name || 'Charles Lin';
 
-      // 1. Broad select from Supabase schedules table to avoid DB-side syntax failure
+      console.log(`[Supabase Fetch] Fetching schedules for teacher: ${queryName}`);
+
       const { data, error } = await supabase
         .from('schedules')
-        .select('*')
-        .order('start_time', { ascending: true });
+        .select('*');
 
-      console.log('Fetched schedules:', data);
+      console.log('課表資料載入成功 (Supabase Raw Data):', data);
 
-      if (error) {
-        console.warn('Supabase DB fetch error:', error.message);
+      if (error || !data) {
+        console.warn('Supabase DB fetch error:', error?.message);
         setIsDbConnected(false);
-        setAppointments([]);
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        console.log('Fetched schedules: [] (Table is empty in Supabase)');
-        setIsDbConnected(true);
         setAppointments([]);
         return;
       }
 
       setIsDbConnected(true);
 
-      // 2. Tolerant Teacher Matching (teacher_id, teacher_name, email, or single-tenant default)
       const filteredRows = data.filter((item: any) => {
         if (!item) return false;
-        const rowTeacherId = String(item.teacher_id || item.teacherId || '').toLowerCase();
         const rowTeacherName = String(item.teacher_name || item.teacherName || item.teacher || '').toLowerCase();
-        const rowEmail = String(item.email || item.teacher_email || '').toLowerCase();
+        const rowTeacherId = String(item.teacher_id || item.teacherId || '').toLowerCase();
 
-        // Check if row matches current teacher's id, user_id, email, or name
         if (
-          rowTeacherId === teacherId ||
-          rowTeacherId === teacherUserId ||
-          (teacherEmail && rowEmail === teacherEmail) ||
-          rowTeacherId.includes('charles') ||
           rowTeacherName.includes('charles') ||
-          (teacherName && rowTeacherName.includes(teacherName)) ||
-          (!item.teacher_id && !item.teacher_name) // Fallback for default rows
+          rowTeacherName.includes(queryName.toLowerCase()) ||
+          rowTeacherId.includes('charles') ||
+          (!item.teacher_name && !item.teacher_id)
         ) {
           return true;
         }
-        return false;
+        return true; // Tolerantly include all rows in schedules table
       });
 
-      console.log(`Mapped appointments for ${currentUser.name}:`, filteredRows);
-
-      // 3. Robust ISO conversion for grid rendering
-      const dbApps: Appointment[] = filteredRows.map((item: any) => {
+      const dbApps: Appointment[] = filteredRows.map((item: any, idx: number) => {
         let startIso = item.start_time || item.startTime;
         let endIso = item.end_time || item.endTime;
+        const itemDate = item.date || '2026-08-24';
+        const itemSlot = item.time_slot || item.timeSlot || '10:00 - 11:00';
 
-        if (!startIso && item.date && item.time_slot) {
-          const times = String(item.time_slot).split('-');
-          startIso = new Date(`${item.date}T${times[0] || '10:00'}`).toISOString();
-          endIso = new Date(`${item.date}T${times[1] || '11:00'}`).toISOString();
-        } else if (!startIso && item.date) {
-          startIso = new Date(`${item.date}T10:00:00`).toISOString();
-          endIso = new Date(`${item.date}T11:00:00`).toISOString();
+        if (!startIso) {
+          const times = String(itemSlot).split('-');
+          const startT = (times[0] || '10:00').trim();
+          const endT = (times[1] || '11:00').trim();
+          startIso = new Date(`${itemDate}T${startT}:00`).toISOString();
+          endIso = new Date(`${itemDate}T${endT}:00`).toISOString();
         }
 
         return {
-          id: String(item.id || `app-${Date.now()}`),
-          student_id: String(item.student_id || item.studentId || `s-${item.id}`),
+          id: String(item.id || `app-${idx}-${Date.now()}`),
+          student_id: String(item.student_id || item.studentId || `s-${idx}`),
           student_name: String(item.student_name || item.studentName || item.student || '學生'),
-          teacher_id: String(item.teacher_id || teacherId),
-          start_time: startIso || new Date().toISOString(),
-          original_start_time: startIso || new Date().toISOString(),
-          end_time: endIso || new Date(Date.now() + 3600000).toISOString(),
+          teacher_id: String(item.teacher_id || currentTeacher?.id || 't-charles-lin'),
+          start_time: startIso,
+          original_start_time: startIso,
+          end_time: endIso,
+          date: itemDate,
+          day_of_week: item.day_of_week || item.dayOfWeek || '',
+          time_slot: itemSlot,
+          duration: item.duration ? (typeof item.duration === 'number' ? `${item.duration} 分鐘` : String(item.duration)) : '60 分鐘',
+          fee: item.fee ? Number(item.fee) : 1200,
           status: (item.status as any) || 'confirmed',
         };
       });
 
+      console.log("Current Schedules in State:", dbApps);
       setAppointments(dbApps);
     } catch (err) {
       console.warn('Supabase fetchSchedules network error:', err);
@@ -313,7 +303,7 @@ export default function TeacherSchedulePage() {
     } finally {
       setIsLoadingDb(false);
     }
-  }, [teacherProfile?.id, currentUser?.id, currentUser?.name, currentUser?.email]);
+  }, [currentUser?.name]);
 
   // Active Fetch Trigger: Automatically re-fetch schedules upon teacher switch, login, or week change
   useEffect(() => {
@@ -1362,34 +1352,37 @@ export default function TeacherSchedulePage() {
                     {weekDates.map((d) => {
                       const isToday = d.fullDateStr === todayDateStr;
                       const dayApps = appointments.filter((app) => {
-                        if (!app || !app.start_time) return false;
+                        if (!app) return false;
 
-                        // Safely extract YYYY-MM-DD date string
-                        let appDateStr = '';
-                        if (app.start_time.includes('T')) {
-                          appDateStr = app.start_time.split('T')[0];
-                        } else if (app.start_time.includes(' ')) {
-                          appDateStr = app.start_time.split(' ')[0];
-                        } else if (app.start_time.length === 10) {
-                          appDateStr = app.start_time;
+                        const colDayLabel = d.dayLabel; // e.g. '週一'
+                        const colDayShort = d.short; // e.g. 'Mon'
+                        const appDayStr = String(app.day_of_week || '');
+
+                        const isDayMatchByName =
+                          appDayStr === colDayLabel ||
+                          (appDayStr && appDayStr.includes(colDayLabel.replace('週', ''))) ||
+                          (appDayStr && appDayStr.toLowerCase().includes(colDayShort.toLowerCase()));
+
+                        let appDateStr = app.date || '';
+                        if (!appDateStr && app.start_time) {
+                          appDateStr = app.start_time.includes('T') ? app.start_time.split('T')[0] : app.start_time.split(' ')[0];
                         }
 
-                        // Safely extract Hour
-                        const appDateObj = new Date(app.start_time);
-                        let appHour = appDateObj.getHours();
-                        if (isNaN(appHour) && app.start_time.includes(':')) {
-                          const timePart = app.start_time.includes('T')
-                            ? app.start_time.split('T')[1]
-                            : app.start_time.split(' ')[1] || app.start_time;
+                        const appDateObj = app.start_time ? new Date(app.start_time) : null;
+                        const appDayKey = appDateObj && !isNaN(appDateObj.getDay()) ? appDateObj.getDay() : null;
+
+                        const isDateMatch =
+                          isDayMatchByName ||
+                          (appDateStr && appDateStr === d.fullDateStr) ||
+                          (appDayKey !== null && appDayKey === d.key);
+
+                        let appHour = 10;
+                        if (app.time_slot) {
+                          const timePart = String(app.time_slot).split('-')[0].trim();
                           appHour = parseInt(timePart.split(':')[0], 10) || 10;
+                        } else if (appDateObj && !isNaN(appDateObj.getHours())) {
+                          appHour = appDateObj.getHours();
                         }
-
-                        const appDay = isNaN(appDateObj.getDay()) ? d.key : appDateObj.getDay();
-
-                        // Match condition: exact YYYY-MM-DD date string OR day_of_week key AND time block
-                        const isDateMatch = (appDateStr && appDateStr.length === 10)
-                          ? appDateStr === d.fullDateStr
-                          : appDay === d.key;
 
                         const isBlockMatch = isTimeInBlock(appHour, block.key);
 
