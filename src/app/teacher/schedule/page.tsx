@@ -1425,27 +1425,34 @@ export default function TeacherSchedulePage() {
                                   : (app.student_name || '學生');
 
                               const displaySlot = app.time_slot || formatTimeRange(app.start_time, app.end_time);
-                              const displayDuration = app.duration || '60 分鐘';
-                              const displayFee = app.fee ? `NT$${app.fee.toLocaleString()}` : 'NT$1,200';
 
                               return (
                                 <div
                                   key={app.id}
                                   draggable
                                   onDragStart={() => setDraggedCard({ type: 'appointment', id: app.id })}
-                                  className={`p-2 rounded-xl border flex flex-col gap-1 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform shrink-0 ${cardStyle}`}
+                                  className={`p-2 rounded-xl border flex flex-col gap-0.5 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform shrink-0 ${cardStyle}`}
                                 >
-                                  {/* Title & Fee Row: Forced single-line flex with nowrap and truncate */}
-                                  <div className="flex items-center justify-between gap-1 w-full min-w-0">
-                                    <span className="flex items-center gap-1 min-w-0 font-extrabold text-xs whitespace-nowrap truncate">
-                                      <GripVertical className="w-3 h-3 opacity-60 shrink-0" />
-                                      <span className="whitespace-nowrap truncate">{titleText}</span>
-                                    </span>
-                                    <span className="text-[11px] whitespace-nowrap font-extrabold font-mono opacity-90 shrink-0">{displayFee}</span>
+                                  {/* Student Name: Forced Single Line with Ellipsis (Exact Requested Style) */}
+                                  <div className="flex items-center gap-1 min-w-0">
+                                    <GripVertical className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                                    <div
+                                      style={{
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        color: '#1e293b',
+                                      }}
+                                    >
+                                      {titleText}
+                                    </div>
                                   </div>
-                                  <div className="font-mono text-[11px] opacity-95 tracking-tight font-bold pl-4 flex items-center justify-between gap-1 whitespace-nowrap">
-                                    <span className="truncate">{displaySlot}</span>
-                                    <span className="text-[9px] opacity-75 font-sans font-normal shrink-0">{displayDuration}</span>
+
+                                  {/* Time Range Only (No Fee / No Duration) */}
+                                  <div className="font-mono text-[11px] opacity-90 tracking-tight font-bold pl-4.5 whitespace-nowrap truncate">
+                                    {displaySlot}
                                   </div>
                                 </div>
                               );
