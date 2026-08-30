@@ -1210,7 +1210,7 @@ export default function TeacherSchedulePage() {
                       key={d.key}
                       className={`p-2 text-center transition-all space-y-0.5 h-[52px] flex flex-col justify-center items-center relative ${
                         isToday
-                          ? 'bg-[#FFF2EB] border-2 border-b-0 border-[#E88D67] rounded-t-2xl shadow-sm'
+                          ? 'bg-[#FFF2EB] border-2 border-[#E88D67] rounded-2xl shadow-md ring-2 ring-[#E88D67]/30'
                           : 'bg-[#FAF2EC] border border-[#E8D4C5] rounded-xl shadow-xs'
                       }`}
                     >
@@ -1259,13 +1259,26 @@ export default function TeacherSchedulePage() {
               onScroll={handleBodyScroll}
               className="flex-1 overflow-x-auto overflow-y-auto max-h-[520px] touch-pan-x touch-pan-y rounded-xl border border-[#EFECE6] bg-[#FAF7F2] p-1 shadow-inner relative"
             >
-              <div className="space-y-3 min-w-[980px]">
+              <div className="space-y-3 min-w-[980px] relative">
+                {/* Single Unbroken Continuous Today Column Border Overlay Box */}
+                {weekDates.map((d, idx) => {
+                  if (d.fullDateStr !== todayDateStr) return null;
+                  return (
+                    <div
+                      key={`today-unbroken-frame-${d.key}`}
+                      className="absolute top-0 bottom-0 border-2 border-[#E88D67] bg-[#FFF8F3]/60 rounded-2xl shadow-md pointer-events-none z-0"
+                      style={{
+                        left: `calc(${idx} * (100% + 0.75rem) / 7)`,
+                        width: `calc((100% - 4.5rem) / 7)`,
+                      }}
+                    />
+                  );
+                })}
+
                 {TIME_BLOCKS.map((block) => (
                   <div key={block.key} className="grid grid-cols-7 gap-3 h-[140px] items-stretch">
                     {weekDates.map((d) => {
                       const isToday = d.fullDateStr === todayDateStr;
-                      const isFirstBlock = block.key === 'morning';
-                      const isLastBlock = block.key === 'evening';
                       const dayApps = appointments.filter((app) => {
                         const appDay = getSlotDayOfWeek(app.start_time);
                         const appHour = getSlotHour(app.start_time);
@@ -1291,14 +1304,10 @@ export default function TeacherSchedulePage() {
                           key={d.key}
                           onDragOver={(e) => e.preventDefault()}
                           onDrop={() => handleDropOnCell(d.key, block.key)}
-                          className={`min-h-[140px] p-2 flex flex-col justify-between space-y-1.5 transition-all group z-10 overflow-hidden ${
+                          className={`min-h-[140px] p-2 flex flex-col justify-between space-y-1.5 transition-all group z-10 overflow-hidden rounded-xl ${
                             isToday
-                              ? `bg-[#FFF8F3] border-l-2 border-r-2 border-[#E88D67] ${
-                                  isLastBlock
-                                    ? 'border-b-2 border-t-0 rounded-b-2xl shadow-sm'
-                                    : 'border-t-0 border-b-0 rounded-none'
-                                }`
-                              : 'bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs rounded-xl'
+                              ? 'bg-transparent border-0'
+                              : 'bg-white/70 border border-[#EFECE6] hover:border-[#8C6D53]/60 shadow-2xs'
                           }`}
                         >
                           <div className="space-y-2">
