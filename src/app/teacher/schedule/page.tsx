@@ -546,47 +546,7 @@ export default function TeacherSchedulePage() {
         </div>
       </div>
 
-      {/* 3. View Switcher Tabs (3 View Modes: 日視圖 / 週視圖 / 月總覽) */}
-      <div className="bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#EFECE6] grid grid-cols-3 gap-1.5 shadow-xs">
-        <button
-          type="button"
-          onClick={() => setMainViewMode('dailyTimeline')}
-          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-            mainViewMode === 'dailyTimeline'
-              ? 'bg-[#D97736] text-white shadow-sm font-extrabold scale-100'
-              : 'text-stone-500 hover:text-stone-800'
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          日視圖 (時間軸)
-        </button>
 
-        <button
-          type="button"
-          onClick={() => setMainViewMode('weeklyMatrix')}
-          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-            mainViewMode === 'weeklyMatrix'
-              ? 'bg-[#D97736] text-white shadow-sm font-extrabold scale-100'
-              : 'text-stone-500 hover:text-stone-800'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          週視圖 (矩陣)
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMainViewMode('monthlyOverview')}
-          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-            mainViewMode === 'monthlyOverview'
-              ? 'bg-[#D97736] text-white shadow-sm font-extrabold scale-100'
-              : 'text-stone-500 hover:text-stone-800'
-          }`}
-        >
-          <CalendarIcon className="w-4 h-4" />
-          月總覽
-        </button>
-      </div>
 
 
 
@@ -1123,6 +1083,48 @@ export default function TeacherSchedulePage() {
             })}
           </div>
         </div>
+      </div>
+
+      {/* 3. View Switcher Tabs (3 View Modes: 日視圖 / 週視圖 / 月總覽) - MOVED HERE PER USER ARROW REQUEST */}
+      <div className="bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#EFECE6] grid grid-cols-3 gap-1.5 shadow-xs">
+        <button
+          type="button"
+          onClick={() => setMainViewMode('dailyTimeline')}
+          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mainViewMode === 'dailyTimeline'
+              ? 'bg-[#D97736] text-white shadow-sm font-extrabold scale-100'
+              : 'text-stone-500 hover:text-stone-800'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          日視圖 (時間軸)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMainViewMode('weeklyMatrix')}
+          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mainViewMode === 'weeklyMatrix'
+              ? 'bg-[#D97736] text-white shadow-sm font-extrabold scale-100'
+              : 'text-stone-500 hover:text-stone-800'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          週視圖 (矩陣)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMainViewMode('monthlyOverview')}
+          className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mainViewMode === 'monthlyOverview'
+              ? 'bg-[#D97736] text-white shadow-sm font-extrabold scale-100'
+              : 'text-stone-500 hover:text-stone-800'
+          }`}
+        >
+          <CalendarIcon className="w-4 h-4" />
+          月總覽
+        </button>
       </div>
 
       {/* Top Banner: Global Year & Week Segment Banner */}
