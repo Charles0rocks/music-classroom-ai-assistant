@@ -588,36 +588,7 @@ export default function TeacherSchedulePage() {
         </button>
       </div>
 
-      {/* 4. Week Day Selector Strip (Date Picker Strip) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {weekDates.map((d, idx) => {
-          const isToday = d.fullDateStr === todayDateStr;
-          const isSelected = selectedDayIdx === idx;
 
-          return (
-            <button
-              key={d.key}
-              type="button"
-              onClick={() => setSelectedDayIdx(idx)}
-              className={`flex-1 min-w-[64px] py-2.5 rounded-2xl text-center transition-all ${
-                isSelected
-                  ? 'bg-[#D97736] text-white font-black shadow-md scale-105 ring-2 ring-[#D97736]/30'
-                  : isToday
-                  ? 'bg-[#FFF2EB] text-[#D97736] font-extrabold border-2 border-[#D97736] shadow-sm'
-                  : 'bg-white text-stone-700 hover:bg-[#FAF7F2] font-bold border border-stone-200'
-              }`}
-            >
-              <div className="text-[10px] opacity-90 font-medium">
-                {d.dayLabel.replace('週', '')}
-                {isToday && ' · 今'}
-              </div>
-              <div className="text-sm font-black mt-0.5 font-mono">
-                {d.monthDay.split('/')[1] || d.monthDay}
-              </div>
-            </button>
-          );
-        })}
-      </div>
 
       {/* 5. Daily Timeline Cards (Rendered when mainViewMode === 'dailyTimeline') */}
       {mainViewMode === 'dailyTimeline' && (
