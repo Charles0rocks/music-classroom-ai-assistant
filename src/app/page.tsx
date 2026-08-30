@@ -46,12 +46,12 @@ export default function HomePage() {
     phone: '',
     email: '',
     password: '',
-    socialAccount: '',
+    socialAccount: 'line',
     subjects: '古典鋼琴, 小提琴',
     bio: '',
   });
 
-  // 動態當日時間：2026/08/30 (UTC+8)
+  // 動態當日時間：例如 2026/08/30 (UTC+8)
   const [todayStr, setTodayStr] = useState('2026/08/30 (UTC+8)');
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function HomePage() {
 
     const res = login(email, password, 'teacher');
     if (res.success) {
-      setSuccessMsg('登入成功！即將前往教師課表工作台...');
+      setSuccessMsg('登入成功！即將前往教師歡迎頁面與工作台...');
       setTimeout(() => {
         router.push('/teacher/schedule');
       }, 500);
@@ -83,7 +83,7 @@ export default function HomePage() {
     setPassword('teacher123');
     const res = login('chang.teacher@harmony.edu', 'teacher123', 'teacher');
     if (res.success) {
-      setSuccessMsg('一鍵帶入成功！即將進入教師課表...');
+      setSuccessMsg('Demo 帳密填入成功！進入教師工作台...');
       setTimeout(() => {
         router.push('/teacher/schedule');
       }, 500);
@@ -131,12 +131,12 @@ export default function HomePage() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-stone-500 font-bold mt-0.5">
-              音樂教室AI 小幫手 · 智慧排課與課堂週報系統
+              音樂教室AI 小幫手
             </p>
           </div>
         </div>
 
-        {/* 動態時間 Badge */}
+        {/* 動態當日時間 Badge */}
         <div className="flex items-center gap-2 bg-[#FAF7F2] px-4 py-2 rounded-2xl border border-stone-200 text-xs font-mono font-bold text-stone-700 shadow-xs relative z-10">
           <Clock className="w-4 h-4 text-[#D97736]" />
           <span>今日時間：</span>
@@ -144,10 +144,10 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* 2. 核心互動區（雙卡片佈局） */}
+      {/* 2. 核心互動區塊（左右雙欄） */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
-        {/* 左卡片：【老師專區】 */}
+        {/* 左側：【老師專區（登入與申請）】 */}
         <div className="lg:col-span-7 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -165,12 +165,12 @@ export default function HomePage() {
                 className="text-xs font-black text-[#D97736] hover:text-[#b85a1e] underline flex items-center gap-1 transition-colors"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                申請老師帳號 ➔
+                老師帳號申請 ➔
               </button>
             </div>
 
             <h2 className="text-xl font-black text-stone-900">
-              教師管理與登入
+              老師登入 (Teacher Portal)
             </h2>
 
             {/* 已登入狀態提示 */}
@@ -221,7 +221,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Email & 密碼 登入表單 */}
+                {/* 登入方式 1: Email + 密碼 */}
                 <form onSubmit={handleLoginSubmit} className="space-y-3">
                   <div>
                     <label className="block text-xs font-extrabold text-stone-700 mb-1">
@@ -242,7 +242,7 @@ export default function HomePage() {
 
                   <div>
                     <label className="block text-xs font-extrabold text-stone-700 mb-1">
-                      密碼設定：
+                      密碼：
                     </label>
                     <div className="relative">
                       <Key className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
@@ -265,24 +265,24 @@ export default function HomePage() {
                   </button>
                 </form>
 
-                {/* 一鍵帶入 Demo 帳密 */}
+                {/* Demo 老師一鍵填入帳密 */}
                 <button
                   type="button"
                   onClick={handleQuickFillAndLogin}
                   className="w-full py-2.5 rounded-2xl bg-[#FAF2EC] hover:bg-[#F6E6DA] text-[#D97736] border border-[#F6D0B8] font-black text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  帶入林詠晴老師 Demo 帳密 (一鍵體驗)
+                  Demo 老師一鍵填入帳密 (chang.teacher@harmony.edu)
                 </button>
 
                 {/* 第三方快速登入分隔線 */}
                 <div className="relative flex py-1 items-center">
                   <div className="flex-grow border-t border-stone-200"></div>
-                  <span className="flex-shrink mx-3 text-[11px] font-bold text-stone-400">或使用第三方快速登入</span>
+                  <span className="flex-shrink mx-3 text-[11px] font-bold text-stone-400">快速登入</span>
                   <div className="flex-grow border-t border-stone-200"></div>
                 </div>
 
-                {/* 第三方按鈕群 */}
+                {/* 登入方式 2 & 3: LINE 快速登入 / Google 快速登入 */}
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -303,6 +303,18 @@ export default function HomePage() {
                   </button>
                 </div>
 
+                {/* 登入框下方：老師帳號申請入口 */}
+                <div className="pt-2 text-center border-t border-stone-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterModal(true)}
+                    className="text-xs font-black text-[#D97736] hover:underline inline-flex items-center gap-1"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    尚未擁有老師帳號？點此提交「老師帳號申請」➔
+                  </button>
+                </div>
+
               </div>
             )}
           </div>
@@ -313,7 +325,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 右卡片：【學生與家長專區】 */}
+        {/* 右側：【學生 / 家長專區（免註冊登入，LINE 官方帳號互動）】 */}
         <div className="lg:col-span-5 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -321,65 +333,69 @@ export default function HomePage() {
                 <Smartphone className="w-3.5 h-3.5" />
                 【學生與家長專區】
               </span>
-              <span className="text-xs text-stone-400 font-medium">Student & Parent Portal</span>
+              <span className="text-xs text-stone-400 font-medium">LINE Portal</span>
             </div>
 
             <h2 className="text-xl font-black text-stone-900">
-              LINE 官方帳號與手機門戶
+              學生與家長專區
             </h2>
 
-            {/* LINE QR Code 展示區 */}
+            {/* 免額外下載 App 或註冊帳號說明 */}
+            <p className="text-xs text-stone-600 font-medium leading-relaxed bg-[#FAF7F2] p-3.5 rounded-2xl border border-stone-200">
+              免額外下載 App 或註冊帳號！掃描下方 QR Code 加入 MusiMate LINE 官方帳號，即可隨時接收課堂 AI 聯絡簿、練習進度與示範影片。
+            </p>
+
+            {/* 清晰的 LINE 官方帳號 QR Code 區塊 */}
             <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-stone-200 text-center space-y-3">
               <div className="w-36 h-36 mx-auto bg-white p-2.5 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-center relative">
-                {/* 親切乾淨的 LINE QR Code 示意 */}
                 <div className="w-full h-full border-2 border-dashed border-[#00B900] rounded-xl flex flex-col items-center justify-center p-2 text-center bg-[#F0FDF4]">
                   <QrCode className="w-12 h-12 text-[#00B900]" />
                   <span className="text-[10px] font-black text-[#00B900] mt-1">@MusiMate_AI</span>
                 </div>
               </div>
 
-              <div className="text-xs text-stone-600 font-medium leading-relaxed max-w-xs mx-auto">
-                掃描 QR Code 或點擊下方連結加入 MusiMate 官方帳號，即時接收課堂週報、調課提醒與作業批改通知。
+              <div className="text-[11px] text-stone-500 font-bold">
+                LINE 搜尋 ID: <span className="font-mono text-[#00B900]">@MusiMate_AI</span>
               </div>
             </div>
 
-            {/* 「體驗學生端手機畫面」快捷按鈕 */}
-            <div className="space-y-2">
+            {/* 體驗學生端手機畫面 (Magic Link) 快捷按鈕 */}
+            <div className="space-y-2 pt-1">
               <a
                 href="/student-view.html?token=tok-ming-888"
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 group text-center block"
               >
                 <Smartphone className="w-4 h-4 inline group-hover:scale-110 transition-transform" />
-                📱 體驗學生端手機畫面 (student-view.html)
+                📱 體驗學生端手機畫面 (Magic Link)
               </a>
 
               <p className="text-[11px] text-stone-400 text-center font-bold">
-                Magic Link 驗證機制 · 日曆膠囊與 15s 音訊打卡
+                點擊直達 /student-view.html?token=tok-ming-888
               </p>
             </div>
           </div>
 
           <div className="pt-2 text-[11px] text-stone-400 font-bold border-t border-stone-100 text-center">
-            無須下載 App · LINE 自動發送聯絡簿
+            無需帳密登入 · LINE Magic Link 專屬連線
           </div>
         </div>
 
       </section>
 
-      {/* 3. 底部功能介紹區 (Bottom 3 Feature Cards) */}
+      {/* 3. 底部推廣廣告區 (產品真實功能展示) */}
       <section className="space-y-4 pt-2">
         <div className="text-center space-y-1">
           <h3 className="text-lg font-black text-stone-900">
             三大核心 AI 營運功能
           </h3>
           <p className="text-xs text-stone-500 font-medium">
-            點擊卡片可直接體驗相關功能頁面
+            專為音樂教室量身打造的全方位智慧助手
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           
-          {/* 功能卡片 1: 師生排課工作台 */}
+          {/* 功能 1: 師生排課與工作台 */}
           <Link
             href="/teacher/schedule"
             className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
@@ -389,19 +405,19 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-base font-black text-stone-900 group-hover:text-[#D97736] transition-colors">
-                師生排課工作台
+                1. 師生排課與工作台
               </h4>
               <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
                 2D 週課表矩陣、開放空檔設定與 24h 防放鳥智慧調課審核機制。
               </p>
             </div>
             <div className="text-xs font-black text-[#D97736] flex items-center gap-1 pt-2 border-t border-stone-100">
-              <span>查看週課表 (P1)</span>
+              <span>體驗週課表 (P1)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>
 
-          {/* 功能卡片 2: 30秒 AI 錄音聯絡簿 */}
+          {/* 功能 2: 30秒 AI 課堂錄音聯絡簿 */}
           <Link
             href="/teacher/recorder"
             className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
@@ -411,19 +427,19 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-base font-black text-stone-900 group-hover:text-pink-600 transition-colors">
-                30秒 AI 錄音聯絡簿
+                2. 30秒 AI 課堂錄音聯絡簿
               </h4>
               <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
                 下課口述 30 秒，Google Gemini 1.5 Flash 自動結構化解析為聯絡簿並推播至 LINE。
               </p>
             </div>
             <div className="text-xs font-black text-pink-600 flex items-center gap-1 pt-2 border-t border-stone-100">
-              <span>開啟 AI 錄音 (P2)</span>
+              <span>體驗 AI 錄音 (P2)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>
 
-          {/* 功能卡片 3: 學生作業雙影片比對 */}
+          {/* 功能 3: 課後作業雙影片比對與分析 */}
           <Link
             href="/teacher/demos"
             className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group space-y-3 block"
@@ -433,14 +449,14 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-base font-black text-stone-900 group-hover:text-sky-600 transition-colors">
-                學生作業雙影片比對
+                3. 課後作業雙影片比對與分析
               </h4>
               <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
                 學員 15 秒打卡音檔與 AI 音高/節奏評測、師生雙影片姿態影格比對。
               </p>
             </div>
             <div className="text-xs font-black text-sky-600 flex items-center gap-1 pt-2 border-t border-stone-100">
-              <span>檢視範例影片 (P7)</span>
+              <span>體驗雙圖比對 (P7)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>
@@ -448,7 +464,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Modal: 申請老師帳號 Modal */}
+      {/* 4. Modal: 老師帳號申請 Modal */}
       {showRegisterModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -456,7 +472,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-lg font-black text-stone-900 flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-[#D97736]" />
-                申請老師帳號 (Teacher Registration)
+                老師帳號申請 (Teacher Registration)
               </h3>
               <button
                 type="button"
@@ -551,22 +567,23 @@ export default function HomePage() {
                 </div>
 
                 <div>
-                  <label className="block text-stone-700 mb-1">LINE / Google 綁定帳號</label>
-                  <input
-                    type="text"
-                    placeholder="LINE ID 或 Google Email (選填)"
+                  <label className="block text-stone-700 mb-1">綁定帳號 (LINE / Google 二擇一) *</label>
+                  <select
                     value={regForm.socialAccount}
                     onChange={(e) => setRegForm({ ...regForm, socialAccount: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
-                  />
+                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-bold"
+                  >
+                    <option value="line">💬 優先使用 LINE 綁定驗證</option>
+                    <option value="google">🌐 優先使用 Google 帳號綁定</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label className="block text-stone-700 mb-1">教學項目 / 樂器科目 *</label>
+                  <label className="block text-stone-700 mb-1">教學項目複選 *</label>
                   <input
                     type="text"
                     required
-                    placeholder="例：古典鋼琴, 小提琴, 視唱樂理"
+                    placeholder="例：古典鋼琴, 小提琴, 視唱樂理, 流行鋼琴"
                     value={regForm.subjects}
                     onChange={(e) => setRegForm({ ...regForm, subjects: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
