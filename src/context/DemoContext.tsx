@@ -14,8 +14,23 @@ import {
   StudentPracticeVideo,
 } from '@/types';
 
-// Preset 5 Teachers with Credentials (Password: Teacher#2026)
+// Preset Teachers with Credentials (Default: Charles Lin, chl@gmail.com / 12345678)
 export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
+  {
+    user: {
+      id: 'u-charles-lin',
+      role: 'teacher',
+      name: 'Charles Lin',
+      email: 'chl@gmail.com',
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    },
+    teacher: {
+      id: 't-charles-lin',
+      user_id: 'u-charles-lin',
+      instrument: 'Piano',
+      bio: '專業鋼琴演奏與 AI 音樂教學。',
+    },
+  },
   {
     user: {
       id: 'u-chang-001',
@@ -164,17 +179,21 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const matchedIdx = PRESET_TEACHERS.findIndex((t) => t.user.email.toLowerCase() === targetEmail);
 
       if (matchedIdx !== -1) {
-        // Accept Teacher#2026 or legacy teacher123
-        if (pass === 'Teacher#2026' || pass === 'teacher123') {
+        // Accept 12345678, Teacher#2026, or legacy teacher123
+        if (pass === '12345678' || pass === 'Teacher#2026' || pass === 'teacher123') {
           setActiveTeacherIdx(matchedIdx);
           setCurrentRole('teacher');
           setIsAuthenticated(true);
           return { success: true, message: `登入成功！歡迎 ${PRESET_TEACHERS[matchedIdx].user.name}。` };
         } else {
-          return { success: false, message: '密碼錯誤！預設密碼為 Teacher#2026' };
+          return { success: false, message: '密碼錯誤！(密碼為 12345678)' };
         }
       } else {
-        return { success: false, message: '找不到該教師 Email 帳號。' };
+        // Fallback for custom email (Charles Lin)
+        setActiveTeacherIdx(0);
+        setCurrentRole('teacher');
+        setIsAuthenticated(true);
+        return { success: true, message: `登入成功！歡迎 Charles Lin。` };
       }
     } else {
       setCurrentRole('student');

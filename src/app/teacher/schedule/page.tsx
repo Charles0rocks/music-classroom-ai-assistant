@@ -540,19 +540,23 @@ export default function TeacherSchedulePage() {
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border-2 border-[#D97736] overflow-hidden shrink-0 shadow-md">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-                alt="林詠晴 老師"
+                src={currentUser?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                alt={currentUser?.name || 'Charles Lin'}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-stone-800">林詠晴 老師</span>
+                <span className="font-extrabold text-base sm:text-lg tracking-tight text-stone-800">
+                  {currentUser?.name || 'Charles Lin'}
+                </span>
                 <span className="px-2 py-0.5 rounded-md bg-[#D97736] text-white font-black text-[10px] uppercase tracking-wide shadow-xs">
                   PRO
                 </span>
               </div>
-              <div className="text-xs text-stone-500 font-medium">大安古典鋼琴工作室</div>
+              <div className="text-xs text-stone-500 font-medium font-mono">
+                {teacherProfile?.instrument || 'Piano'} 指導工作室
+              </div>
             </div>
           </div>
 
@@ -1609,7 +1613,7 @@ export default function TeacherSchedulePage() {
       <div className="warm-card p-3.5 sm:p-6 lg:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-3 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1 gap-3">
           <h2 className="text-base sm:text-lg font-bold text-[#332C27] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-            <span>張老師 課表總覽</span>
+            <span>{currentUser?.name || 'Charles Lin'} 課表總覽</span>
             <span className="text-xs text-[#7A736E] font-normal">（可以直接用滑鼠拖曳卡片至任一天的格子內）</span>
           </h2>
           <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold">

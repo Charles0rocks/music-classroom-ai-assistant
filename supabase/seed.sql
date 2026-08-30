@@ -1,10 +1,11 @@
 -- ========================================================
--- 音樂教室 AI 小幫手 - 5位預設教師帳號與 Seed 資料
--- 密碼統一預設為：Teacher#2026
+-- 音樂教室 AI 小幫手 - 教師帳號與 Seed 資料
+-- 預設登入：Email: chl@gmail.com / 密碼: 12345678 (Charles Lin, Piano)
 -- ========================================================
 
--- 1. 預設 5 位教師 User 帳號
+-- 1. 預設 教師 User 帳號
 INSERT INTO public.users (id, role, name, email, avatar_url) VALUES
+('u-charles-lin', 'teacher', 'Charles Lin', 'chl@gmail.com', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'),
 ('u-chang-001', 'teacher', '張老師', 'chang.teacher@harmony.edu', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'),
 ('u-lee-002', 'teacher', '李老師', 'lee.teacher@harmony.edu', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'),
 ('u-wang-003', 'teacher', '王老師', 'wang.teacher@harmony.edu', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'),
@@ -14,8 +15,9 @@ ON CONFLICT (email) DO UPDATE SET
   name = EXCLUDED.name,
   avatar_url = EXCLUDED.avatar_url;
 
--- 2. 預設 5 位教師詳細資料
+-- 2. 預設 教師詳細資料
 INSERT INTO public.teachers (id, user_id, instrument, bio) VALUES
+('t-charles-lin', 'u-charles-lin', 'Piano', '專業鋼琴演奏與 AI 音樂教學。'),
 ('t-chang', 'u-chang-001', '鋼琴 (Piano)', '國立音樂學院鋼琴演奏碩士，10年古典與流行鋼琴教學經驗。'),
 ('t-lee', 'u-lee-002', '小提琴 (Violin)', '知名交響樂團小提琴副首席，專精於古典小提琴與檢定輔導。'),
 ('t-wang', 'u-wang-003', '長笛 (Flute)', '巴黎法蘭西音樂院長笛高階文憑，長笛演奏與長笛合奏專家。'),
@@ -28,7 +30,7 @@ ON CONFLICT (user_id) DO UPDATE SET
 -- 3. 確保 schedules 資料表存在且欄位齊全
 CREATE TABLE IF NOT EXISTS public.schedules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    teacher_id VARCHAR(100) NOT NULL DEFAULT 't-chang',
+    teacher_id VARCHAR(100) NOT NULL DEFAULT 't-charles-lin',
     student_name VARCHAR(100) NOT NULL,
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NOT NULL,

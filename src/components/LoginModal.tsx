@@ -23,8 +23,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { login } = useDemoContext();
 
-  const [email, setEmail] = useState('chang.teacher@harmony.edu');
-  const [password, setPassword] = useState('Teacher#2026');
+  const [email, setEmail] = useState('chl@gmail.com');
+  const [password, setPassword] = useState('12345678');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 

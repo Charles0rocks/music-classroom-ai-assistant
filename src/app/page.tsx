@@ -28,8 +28,8 @@ export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, login, logout, currentUser } = useDemoContext();
 
-  const [email, setEmail] = useState('chang.teacher@harmony.edu');
-  const [password, setPassword] = useState('teacher123');
+  const [email, setEmail] = useState('chl@gmail.com');
+  const [password, setPassword] = useState('12345678');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -76,10 +76,11 @@ export default function HomePage() {
   };
 
   const handleQuickFillAndLogin = (teacherEmail?: string) => {
-    const targetEmail = teacherEmail || 'chang.teacher@harmony.edu';
+    const targetEmail = teacherEmail || 'chl@gmail.com';
+    const targetPass = '12345678';
     setEmail(targetEmail);
-    setPassword('Teacher#2026');
-    const res = login(targetEmail, 'Teacher#2026', 'teacher');
+    setPassword(targetPass);
+    const res = login(targetEmail, targetPass, 'teacher');
     if (res.success) {
       setSuccessMsg(res.message);
       setTimeout(() => {
