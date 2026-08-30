@@ -418,7 +418,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-xs font-black text-[#D97736] flex items-center gap-1 pt-2 border-t border-stone-100">
-              <span>體驗週課表 (P1)</span>
+              <span>體驗課表安排</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>
@@ -440,7 +440,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-xs font-black text-pink-600 flex items-center gap-1 pt-2 border-t border-stone-100">
-              <span>體驗 AI 錄音 (P2)</span>
+              <span>體驗課堂紀錄</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>
@@ -462,7 +462,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-xs font-black text-sky-600 flex items-center gap-1 pt-2 border-t border-stone-100">
-              <span>體驗雙圖比對 (P7)</span>
+              <span>體驗作業檢視</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>

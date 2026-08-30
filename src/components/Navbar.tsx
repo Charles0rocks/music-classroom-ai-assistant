@@ -34,9 +34,9 @@ export const Navbar: React.FC = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const teacherNavs = [
-    { href: '/teacher/schedule', label: '週課表與工作台 (P1)', icon: Calendar },
-    { href: '/teacher/recorder', label: '課堂錄音 AI (P2)', icon: Mic },
-    { href: '/teacher/demos', label: '範例影片庫 (P7)', icon: Video },
+    { href: '/teacher/schedule', label: '課表安排頁面', icon: Calendar },
+    { href: '/teacher/recorder', label: '課堂紀錄頁面', icon: Mic },
+    { href: '/teacher/demos', label: '作業檢視頁面', icon: Video },
   ];
 
   const currentNavs = teacherNavs;
@@ -116,7 +116,7 @@ export const Navbar: React.FC = () => {
               }`}
             >
               <ArrowLeftRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              角色首頁 (P0)
+              首頁
             </Link>
             <div className="w-px h-4 bg-[#EFECE6] mx-0.5 hidden sm:block" />
             {currentNavs.map((nav) => {
