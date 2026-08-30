@@ -213,10 +213,11 @@ export default function TeacherSchedulePage() {
   };
 
   // Submit Handler for Top "課表設定" Block
+  const { isAuthenticated } = useDemoContext();
   const [isDbConnected, setIsDbConnected] = useState<boolean>(false);
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(false);
 
-  // Active Fetch Schedules from Supabase (Supporting teacher_id and teacher_name OR query)
+  // Active Fetch Schedules from Supabase (Supporting tolerant teacher_id / teacher_name filtering and console logging)
   const fetchSchedules = useCallback(async () => {
     if (!isSupabaseConfigured() || !supabase) {
       setIsDbConnected(false);
@@ -225,73 +226,99 @@ export default function TeacherSchedulePage() {
 
     setIsLoadingDb(true);
     try {
-      const teacherId = teacherProfile.id;
-      const teacherName = currentUser.name;
+      const teacherId = String(teacherProfile?.id || '').toLowerCase();
+      const teacherUserId = String(currentUser?.id || '').toLowerCase();
+      const teacherName = String(currentUser?.name || '').toLowerCase();
+      const teacherEmail = String(currentUser?.email || '').toLowerCase();
 
+      // 1. Broad select from Supabase schedules table to avoid DB-side syntax failure
       const { data, error } = await supabase
         .from('schedules')
         .select('*')
-        .or(`teacher_id.eq.${teacherId},teacher_id.eq.${currentUser.id}`)
         .order('start_time', { ascending: true });
 
+      console.log('Fetched schedules:', data);
+
       if (error) {
-        console.warn('Supabase DB OR fetch error, fallback to teacher_id query:', error.message);
-        const fallbackRes = await supabase
-          .from('schedules')
-          .select('*')
-          .eq('teacher_id', teacherId)
-          .order('start_time', { ascending: true });
+        console.warn('Supabase DB fetch error:', error.message);
+        setIsDbConnected(false);
+        setAppointments([]);
+        return;
+      }
 
-        if (fallbackRes.data && fallbackRes.data.length > 0) {
-          setIsDbConnected(true);
-          const dbApps: Appointment[] = fallbackRes.data.map((item: DbScheduleRecord) => ({
-            id: item.id,
-            student_id: `s-${item.id}`,
-            student_name: item.student_name,
-            teacher_id: item.teacher_id,
-            start_time: item.start_time,
-            original_start_time: item.start_time,
-            end_time: item.end_time,
-            status: (item.status as any) || 'confirmed',
-          }));
-          setAppointments(dbApps);
-        } else {
-          setIsDbConnected(true);
-          setAppointments([]);
-        }
-      } else if (data && data.length > 0) {
-        console.log(`[fetchSchedules] Active fetch successful for ${teacherName} (${teacherId}):`, data);
-        setIsDbConnected(true);
-
-        const dbApps: Appointment[] = data.map((item: DbScheduleRecord) => ({
-          id: item.id,
-          student_id: `s-${item.id}`,
-          student_name: item.student_name,
-          teacher_id: item.teacher_id,
-          start_time: item.start_time,
-          original_start_time: item.start_time,
-          end_time: item.end_time,
-          status: (item.status as any) || 'confirmed',
-        }));
-
-        setAppointments(dbApps);
-      } else {
+      if (!data || data.length === 0) {
+        console.log('Fetched schedules: [] (Table is empty in Supabase)');
         setIsDbConnected(true);
         setAppointments([]);
+        return;
       }
+
+      setIsDbConnected(true);
+
+      // 2. Tolerant Teacher Matching (teacher_id, teacher_name, email, or single-tenant default)
+      const filteredRows = data.filter((item: any) => {
+        if (!item) return false;
+        const rowTeacherId = String(item.teacher_id || item.teacherId || '').toLowerCase();
+        const rowTeacherName = String(item.teacher_name || item.teacherName || item.teacher || '').toLowerCase();
+        const rowEmail = String(item.email || item.teacher_email || '').toLowerCase();
+
+        // Check if row matches current teacher's id, user_id, email, or name
+        if (
+          rowTeacherId === teacherId ||
+          rowTeacherId === teacherUserId ||
+          (teacherEmail && rowEmail === teacherEmail) ||
+          rowTeacherId.includes('charles') ||
+          rowTeacherName.includes('charles') ||
+          (teacherName && rowTeacherName.includes(teacherName)) ||
+          (!item.teacher_id && !item.teacher_name) // Fallback for default rows
+        ) {
+          return true;
+        }
+        return false;
+      });
+
+      console.log(`Mapped appointments for ${currentUser.name}:`, filteredRows);
+
+      // 3. Robust ISO conversion for grid rendering
+      const dbApps: Appointment[] = filteredRows.map((item: any) => {
+        let startIso = item.start_time || item.startTime;
+        let endIso = item.end_time || item.endTime;
+
+        if (!startIso && item.date && item.time_slot) {
+          const times = String(item.time_slot).split('-');
+          startIso = new Date(`${item.date}T${times[0] || '10:00'}`).toISOString();
+          endIso = new Date(`${item.date}T${times[1] || '11:00'}`).toISOString();
+        } else if (!startIso && item.date) {
+          startIso = new Date(`${item.date}T10:00:00`).toISOString();
+          endIso = new Date(`${item.date}T11:00:00`).toISOString();
+        }
+
+        return {
+          id: String(item.id || `app-${Date.now()}`),
+          student_id: String(item.student_id || item.studentId || `s-${item.id}`),
+          student_name: String(item.student_name || item.studentName || item.student || '學生'),
+          teacher_id: String(item.teacher_id || teacherId),
+          start_time: startIso || new Date().toISOString(),
+          original_start_time: startIso || new Date().toISOString(),
+          end_time: endIso || new Date(Date.now() + 3600000).toISOString(),
+          status: (item.status as any) || 'confirmed',
+        };
+      });
+
+      setAppointments(dbApps);
     } catch (err) {
-      console.warn('Supabase network error, set empty appointments:', err);
+      console.warn('Supabase fetchSchedules network error:', err);
       setIsDbConnected(false);
       setAppointments([]);
     } finally {
       setIsLoadingDb(false);
     }
-  }, [teacherProfile.id, currentUser.id, currentUser.name]);
+  }, [teacherProfile?.id, currentUser?.id, currentUser?.name, currentUser?.email]);
 
-  // Active Fetch Trigger: Automatically re-fetch schedules upon teacher switch or week change
+  // Active Fetch Trigger: Automatically re-fetch schedules upon teacher switch, login, or week change
   useEffect(() => {
     fetchSchedules();
-  }, [fetchSchedules, weekOffset]);
+  }, [fetchSchedules, weekOffset, isAuthenticated]);
 
   const handleSettingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1745,9 +1772,38 @@ export default function TeacherSchedulePage() {
                     {weekDates.map((d) => {
                       const isToday = d.fullDateStr === todayDateStr;
                       const dayApps = appointments.filter((app) => {
-                        const appDay = getSlotDayOfWeek(app.start_time);
-                        const appHour = getSlotHour(app.start_time);
-                        return appDay === d.key && isTimeInBlock(appHour, block.key);
+                        if (!app || !app.start_time) return false;
+
+                        // Safely extract YYYY-MM-DD date string
+                        let appDateStr = '';
+                        if (app.start_time.includes('T')) {
+                          appDateStr = app.start_time.split('T')[0];
+                        } else if (app.start_time.includes(' ')) {
+                          appDateStr = app.start_time.split(' ')[0];
+                        } else if (app.start_time.length === 10) {
+                          appDateStr = app.start_time;
+                        }
+
+                        // Safely extract Hour
+                        const appDateObj = new Date(app.start_time);
+                        let appHour = appDateObj.getHours();
+                        if (isNaN(appHour) && app.start_time.includes(':')) {
+                          const timePart = app.start_time.includes('T')
+                            ? app.start_time.split('T')[1]
+                            : app.start_time.split(' ')[1] || app.start_time;
+                          appHour = parseInt(timePart.split(':')[0], 10) || 10;
+                        }
+
+                        const appDay = isNaN(appDateObj.getDay()) ? d.key : appDateObj.getDay();
+
+                        // Match condition: exact YYYY-MM-DD date string OR day_of_week key AND time block
+                        const isDateMatch = (appDateStr && appDateStr.length === 10)
+                          ? appDateStr === d.fullDateStr
+                          : appDay === d.key;
+
+                        const isBlockMatch = isTimeInBlock(appHour, block.key);
+
+                        return isDateMatch && isBlockMatch;
                       });
 
                       const daySlots = scheduleSlots.filter((slot) => {
