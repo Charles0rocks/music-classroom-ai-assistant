@@ -23,6 +23,7 @@ import {
   Globe,
   MessageCircle,
 } from 'lucide-react';
+import { TeacherRegisterModal } from '@/components/TeacherRegisterModal';
 
 export default function HomePage() {
   const router = useRouter();
@@ -33,20 +34,6 @@ export default function HomePage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [registerSuccessMsg, setRegisterSuccessMsg] = useState('');
-
-  // 申請老師帳號表單 State
-  const [regForm, setRegForm] = useState({
-    name: '',
-    nickname: '',
-    gender: 'female',
-    phone: '',
-    email: '',
-    password: '',
-    socialAccount: 'line',
-    subjects: '古典鋼琴, 小提琴',
-    bio: '',
-  });
 
   // 動態時間：2026/08/30 (UTC+8)
   const [todayStr, setTodayStr] = useState('2026/08/30 (UTC+8)');
@@ -96,17 +83,6 @@ export default function HomePage() {
     setTimeout(() => {
       router.push('/teacher/schedule');
     }, 600);
-  };
-
-  const handleRegisterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegisterSuccessMsg('🎉 申請資料已成功送出！系統將發送開通確認信至您的 Email。');
-    setTimeout(() => {
-      setShowRegisterModal(false);
-      setRegisterSuccessMsg('');
-      login('chang.teacher@harmony.edu', 'Teacher#2026', 'teacher');
-      router.push('/teacher/schedule');
-    }, 1500);
   };
 
   return (
@@ -443,163 +419,10 @@ export default function HomePage() {
       </section>
 
       {/* 4. Modal: 申請老師帳號 Modal */}
-      {showRegisterModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="text-lg font-black text-stone-900 flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-[#D97736]" />
-                申請老師帳號 (Teacher Registration)
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowRegisterModal(false)}
-                className="text-stone-400 hover:text-stone-600 font-bold text-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            {registerSuccessMsg ? (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold text-center space-y-2">
-                <div className="text-2xl">🎉</div>
-                <div>{registerSuccessMsg}</div>
-              </div>
-            ) : (
-              <form onSubmit={handleRegisterSubmit} className="space-y-3.5 text-xs font-bold">
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-stone-700 mb-1">姓名 *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="例：陳雅婷"
-                      value={regForm.name}
-                      onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stone-700 mb-1">稱呼 / 暱稱</label>
-                    <input
-                      type="text"
-                      placeholder="例：雅晴 老師"
-                      value={regForm.nickname}
-                      onChange={(e) => setRegForm({ ...regForm, nickname: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-stone-700 mb-1">性別</label>
-                    <select
-                      value={regForm.gender}
-                      onChange={(e) => setRegForm({ ...regForm, gender: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-bold"
-                    >
-                      <option value="female">女 (Female)</option>
-                      <option value="male">男 (Male)</option>
-                      <option value="other">其他 / 不透漏</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-stone-700 mb-1">聯絡電話 *</label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="0912-345-678"
-                      value={regForm.phone}
-                      onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-stone-700 mb-1">Email 帳號 *</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="teacher@harmony.edu"
-                      value={regForm.email}
-                      onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stone-700 mb-1">密碼 *</label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="6位數以上密碼"
-                      value={regForm.password}
-                      onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-stone-700 mb-1">綁定帳號 (LINE / Google 二擇一) *</label>
-                  <select
-                    value={regForm.socialAccount}
-                    onChange={(e) => setRegForm({ ...regForm, socialAccount: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-bold"
-                  >
-                    <option value="line">💬 優先使用 LINE 綁定驗證</option>
-                    <option value="google">🌐 優先使用 Google 帳號綁定</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-stone-700 mb-1">教學項目複選 *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="例：古典鋼琴, 小提琴, 視唱樂理, 流行鋼琴"
-                    value={regForm.subjects}
-                    onChange={(e) => setRegForm({ ...regForm, subjects: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl px-3 py-2 text-stone-800"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-stone-700 mb-1">專業介紹與工作室經歷</label>
-                  <textarea
-                    rows={2}
-                    placeholder="簡述您的教學年資、畢業學府與音樂工作室理念..."
-                    value={regForm.bio}
-                    onChange={(e) => setRegForm({ ...regForm, bio: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-stone-200 rounded-xl p-3 text-stone-800"
-                  />
-                </div>
-
-                <div className="pt-2 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowRegisterModal(false)}
-                    className="px-4 py-2.5 rounded-xl bg-stone-100 text-stone-600 font-bold"
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-[#D97736] hover:bg-[#c4682a] text-white font-black shadow-md"
-                  >
-                    送出申請並登入
-                  </button>
-                </div>
-              </form>
-            )}
-
-          </div>
-        </div>
-      )}
+      <TeacherRegisterModal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+      />
 
       {/* 5. 頁尾 */}
       <footer className="text-center text-xs font-bold text-stone-400 py-4 border-t border-stone-200/60">
