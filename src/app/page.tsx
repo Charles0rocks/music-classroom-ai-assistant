@@ -28,7 +28,7 @@ import { getAvatarByGender } from '@/lib/avatarHelper';
 
 export default function HomePage() {
   const router = useRouter();
-  const { isAuthenticated, login, logout, currentUser } = useDemoContext();
+  const { isAuthenticated, login, logout, currentUser, teacherProfile } = useDemoContext();
 
   const [email, setEmail] = useState('chl@gmail.com');
   const [password, setPassword] = useState('12345678');
