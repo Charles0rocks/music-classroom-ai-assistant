@@ -25,10 +25,28 @@ import {
 } from 'lucide-react';
 import { TeacherRegisterModal } from '@/components/TeacherRegisterModal';
 import { getAvatarByGender } from '@/lib/avatarHelper';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, login, logout, currentUser, teacherProfile } = useDemoContext();
+
+  const handleSignOut = async () => {
+    try {
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      logout();
+      window.location.href = '/';
+    } catch (error: any) {
+      console.error('登出失敗:', error?.message);
+      window.location.href = '/';
+    }
+  };
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -135,7 +153,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <button
-                    onClick={logout}
+                    onClick={handleSignOut}
                     className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-xs font-bold text-stone-600 hover:bg-stone-50"
                   >
                     <LogOut className="w-3.5 h-3.5 inline mr-1" /> 登出

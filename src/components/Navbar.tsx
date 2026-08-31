@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import { LoginModal } from '@/components/LoginModal';
 import { getAvatarByGender } from '@/lib/avatarHelper';
+import { supabase } from '@/lib/supabaseClient';
 import {
   Music,
   Calendar,
@@ -46,13 +47,22 @@ export const Navbar: React.FC = () => {
   const teacherAvatar = currentUser?.avatar_url || savedTeacher?.avatar_url || getAvatarByGender(savedTeacher?.gender || 'female', currentUser?.id || savedTeacher?.id);
   const teacherEmail = currentUser?.email || savedTeacher?.email || 'teacher@harmony.edu';
 
-  const handleLogout = () => {
-    logout();
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_teacher');
+  const handleLogout = async () => {
+    try {
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      logout();
+      setSavedTeacher(null);
+      window.location.href = '/';
+    } catch (error: any) {
+      console.error('登出失敗:', error?.message);
+      window.location.href = '/';
     }
-    setSavedTeacher(null);
-    router.push('/');
   };
   const pathname = usePathname();
 

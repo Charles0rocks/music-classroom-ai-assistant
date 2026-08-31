@@ -467,8 +467,14 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsAuthenticated(false);
+    setCustomTeacherUser(null);
+    setCustomTeacherProfile(null);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_teacher');
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+    if (supabase) {
+      supabase.auth.signOut().catch(() => {});
     }
   };
 
