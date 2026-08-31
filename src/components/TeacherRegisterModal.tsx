@@ -68,7 +68,8 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
           options: {
             data: {
               name: formData.name.trim(),
-              nickname: formData.nickname?.trim() || '',
+              full_name: formData.name.trim(),
+              nickname: formData.nickname?.trim() || formData.name.trim(),
               gender: formData.gender,
               instrument: formData.subjects.trim(),
               phone: formData.phone?.trim() || '',

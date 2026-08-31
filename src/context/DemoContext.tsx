@@ -278,7 +278,25 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               teacherDb = data;
             } catch (e) {}
 
-            const teacherName = teacherDb?.name || user.user_metadata?.name || user.email?.split('@')[0] || '認證老師';
+            const isDefaultOrEmptyName = (str?: string) => {
+              if (!str) return true;
+              const trimmed = str.trim();
+              return (
+                trimmed === '' ||
+                trimmed === '認證老師' ||
+                trimmed === '新註冊老師' ||
+                trimmed === '新申請認證教師' ||
+                trimmed === '老師'
+              );
+            };
+
+            const teacherName =
+              (!isDefaultOrEmptyName(teacherDb?.name) && teacherDb?.name?.trim()) ||
+              user.user_metadata?.name?.trim() ||
+              user.user_metadata?.full_name?.trim() ||
+              user.user_metadata?.nickname?.trim() ||
+              (user.email ? user.email.split('@')[0] : '認證老師');
+
             const teacherGender = teacherDb?.gender || user.user_metadata?.gender || 'female';
             const avatarUrl = teacherDb?.avatar_url || getAvatarByGender(teacherGender, user.id);
 
