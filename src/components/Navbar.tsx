@@ -95,7 +95,7 @@ export const Navbar: React.FC = () => {
                     Musi <span className="text-[#D97736]">Mate</span>
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-[10px] sm:text-xs font-black">
-                    v3.2 PRO
+                    v3.2
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-[10px] sm:text-xs text-[#7A736E] -mt-0.5 font-bold whitespace-nowrap">
@@ -111,7 +111,7 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-1 sm:gap-2 bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6] shrink-0">
                 <span className="px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1 bg-[#8C6D53] text-white shadow-xs">
                   <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  {teacherName} 老師 <span className="hidden sm:inline">(PRO)</span>
+                  {teacherName} 老師
                 </span>
 
                 <button
@@ -169,7 +169,7 @@ export const Navbar: React.FC = () => {
                 className="w-8 h-8 rounded-full border-2 border-[#EFECE6] object-cover shrink-0"
               />
               <div className="text-right">
-                <div className="text-xs font-bold text-[#332C27]">{teacherName} (PRO)</div>
+                <div className="text-xs font-bold text-[#332C27]">{teacherName} 老師</div>
                 <div className="text-[10px] text-[#7A736E] font-medium font-mono">{teacherEmail}</div>
               </div>
               <button

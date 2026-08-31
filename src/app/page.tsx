@@ -129,35 +129,125 @@ export default function HomePage() {
               老師登入 (Teacher Portal)
             </h2>
 
-            {/* 已登入狀態提示 */}
+            {/* 已登入狀態提示：歡迎儀表板 (Welcome Dashboard) */}
             {isAuthenticated ? (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#FAF7F2] via-white to-[#FAF2EC] border border-[#EFECE6] text-stone-800 space-y-5 shadow-sm animate-in fade-in">
+                {/* 1. 歡迎狀態標題區 */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EFECE6]">
+                  <div className="flex items-center gap-3.5">
                     <img
                       src={getAvatarByGender(currentUser?.gender || teacherProfile?.gender || 'male', currentUser?.id)}
                       alt={currentUser?.name || '認證老師'}
-                      className="w-10 h-10 rounded-full border-2 border-emerald-300 object-cover"
+                      className="w-12 h-12 rounded-full border-2 border-[#D97736] object-cover shadow-md shrink-0"
                     />
                     <div>
-                      <div className="font-extrabold text-sm text-stone-900">{currentUser?.name || '認證老師'} (PRO)</div>
-                      <div className="text-xs text-emerald-700 font-bold">已成功驗證登入中</div>
+                      <h3 className="font-extrabold text-base sm:text-lg text-stone-900 flex items-center gap-1.5">
+                        歡迎回來，{currentUser?.name || '認證老師'} 老師！🎵
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-stone-500 font-medium mt-0.5">
+                        <span className="px-2 py-0.5 rounded-md bg-[#FAF2EC] text-[#8C6D53] font-bold border border-[#E8D4C5] text-[11px]">
+                          {teacherProfile?.instrument || (currentUser as any)?.instrument || '音樂'} 指導
+                        </span>
+                        <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          已連線至 Supabase 資料庫
+                        </span>
+                      </div>
                     </div>
                   </div>
+
                   <button
+                    type="button"
                     onClick={handleSignOut}
-                    className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-xs font-bold text-stone-600 hover:bg-stone-50"
+                    className="px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200 text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0"
                   >
-                    <LogOut className="w-3.5 h-3.5 inline mr-1" /> 登出
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>登出系統</span>
                   </button>
                 </div>
-                
-                <Link
-                  href="/teacher/schedule"
-                  className="w-full py-3 rounded-2xl bg-[#D97736] hover:bg-[#c4682a] text-white font-black text-xs text-center block shadow-md transition-all"
-                >
-                  🚀 直達教師週課表與工作台 (/teacher/schedule)
-                </Link>
+
+                {/* 2. 三大核心功能直達入口 */}
+                <div className="space-y-2">
+                  <div className="text-xs font-black text-stone-400 uppercase tracking-wider px-1">
+                    核心功能工作台入口
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* 卡片 1: 課表安排工作台 */}
+                    <Link
+                      href="/teacher/schedule"
+                      className="group p-4 rounded-2xl bg-white border border-stone-200 hover:border-[#D97736] hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl">📅</span>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FAF2EC] text-[#D97736]">
+                            工作台
+                          </span>
+                        </div>
+                        <div className="font-black text-sm text-stone-800 group-hover:text-[#D97736] transition-colors">
+                          課表安排工作台
+                        </div>
+                        <p className="text-xs text-stone-500 font-medium leading-relaxed">
+                          每週常態排課、開放時段預約與學生課程異動管理
+                        </p>
+                      </div>
+                      <div className="text-xs font-bold text-[#D97736] flex items-center gap-1 pt-2 border-t border-stone-100 group-hover:translate-x-1 transition-transform">
+                        <span>進入排課系統</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
+                    </Link>
+
+                    {/* 卡片 2: 課堂紀錄頁面 */}
+                    <Link
+                      href="/teacher/recorder"
+                      className="group p-4 rounded-2xl bg-white border border-stone-200 hover:border-emerald-500 hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl">🎙️</span>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                            AI 錄音
+                          </span>
+                        </div>
+                        <div className="font-black text-sm text-stone-800 group-hover:text-emerald-700 transition-colors">
+                          課堂紀錄頁面
+                        </div>
+                        <p className="text-xs text-stone-500 font-medium leading-relaxed">
+                          AI 課堂錄音重點整理、教學進度與學生課堂表現紀錄
+                        </p>
+                      </div>
+                      <div className="text-xs font-bold text-emerald-700 flex items-center gap-1 pt-2 border-t border-stone-100 group-hover:translate-x-1 transition-transform">
+                        <span>查看課堂紀錄</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
+                    </Link>
+
+                    {/* 卡片 3: 作業檢視頁面 */}
+                    <Link
+                      href="/teacher/demos"
+                      className="group p-4 rounded-2xl bg-white border border-stone-200 hover:border-purple-500 hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl">📹</span>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
+                            作業批改
+                          </span>
+                        </div>
+                        <div className="font-black text-sm text-stone-800 group-hover:text-purple-700 transition-colors">
+                          作業檢視頁面
+                        </div>
+                        <p className="text-xs text-stone-500 font-medium leading-relaxed">
+                          學生錄影作業批改、AI 練習評語與每週聯絡簿生成
+                        </p>
+                      </div>
+                      <div className="text-xs font-bold text-purple-700 flex items-center gap-1 pt-2 border-t border-stone-100 group-hover:translate-x-1 transition-transform">
+                        <span>進入作業檢視</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
+                    </Link>
+                  </div>
+                </div>
               </div>
             ) : (
               /* 未登入表單與多元登入 */
@@ -277,7 +367,7 @@ export default function HomePage() {
 
           <div className="pt-2 text-[11px] text-stone-400 font-bold border-t border-stone-100 flex items-center justify-between">
             <span>支援 iOS / Android / Web 響應式工作台</span>
-            <span>Studio OS PRO Engine</span>
+            <span>Studio OS Engine</span>
           </div>
         </div>
 

@@ -785,8 +785,8 @@ export default function TeacherSchedulePage() {
                 <span className="font-extrabold text-base sm:text-lg tracking-tight text-stone-800">
                   {activeProfile?.name || currentUser?.name || '認證老師'}
                 </span>
-                <span className="px-2 py-0.5 rounded-md bg-[#D97736] text-white font-black text-[10px] uppercase tracking-wide shadow-xs">
-                  PRO
+                <span className="px-2 py-0.5 rounded-md bg-[#FAF2EC] text-[#D97736] border border-[#E8D4C5] font-black text-[10px]">
+                  認證教師
                 </span>
               </div>
               <div className="text-xs text-stone-500 font-medium font-mono">
