@@ -94,6 +94,67 @@ export default function TeacherSchedulePage() {
   } = useDemoContext();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeProfile, setActiveProfile] = useState<{
+    id: string;
+    user_id: string;
+    name: string;
+    gender: string;
+    instrument: string;
+    avatar_url: string;
+    email: string;
+  } | null>(null);
+
+  useEffect(() => {
+    async function loadTeacherData() {
+      if (!supabase) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: teacher } = await supabase
+          .from('teachers')
+          .select('*')
+          .or(`user_id.eq.${user.id},id.eq.${user.id}`)
+          .maybeSingle();
+
+        if (teacher) {
+          const tName = teacher.name || user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || '認證老師';
+          const tGender = (teacher.gender === 'female' || teacher.gender === '女') ? '女' : '男';
+          const tInstrument = teacher.instrument || user.user_metadata?.instrument || user.user_metadata?.teachingSubjects || '音樂指導';
+          const tAvatar = teacher.avatar_url || getAvatarByGender(tGender, user.id);
+
+          setActiveProfile({
+            id: teacher.id,
+            user_id: teacher.user_id || user.id,
+            name: tName,
+            gender: tGender,
+            instrument: tInstrument,
+            avatar_url: tAvatar,
+            email: user.email || '',
+          });
+        } else if (user.user_metadata) {
+          const meta = user.user_metadata;
+          const tName = meta.name || meta.full_name || meta.nickname || user.email?.split('@')[0] || '認證老師';
+          const tGender = (meta.gender === 'female' || meta.gender === '女') ? '女' : (meta.raw_gender === 'female' ? '女' : '男');
+          const tInstrument = meta.instrument || meta.teachingSubjects || '音樂指導';
+          const tAvatar = getAvatarByGender(tGender, user.id);
+
+          setActiveProfile({
+            id: `t-${user.id}`,
+            user_id: user.id,
+            name: tName,
+            gender: tGender,
+            instrument: tInstrument,
+            avatar_url: tAvatar,
+            email: user.email || '',
+          });
+        }
+      } catch (e) {
+        console.error('loadTeacherData error:', e);
+      }
+    }
+    loadTeacherData();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -714,22 +775,22 @@ export default function TeacherSchedulePage() {
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border-2 border-[#D97736] overflow-hidden shrink-0 shadow-md">
               <img
-                src={getAvatarByGender(currentUser?.gender || teacherProfile?.gender || 'male', currentUser?.id)}
-                alt={currentUser?.name || '認證老師'}
+                src={activeProfile?.avatar_url || getAvatarByGender(activeProfile?.gender || currentUser?.gender || teacherProfile?.gender || 'male', currentUser?.id)}
+                alt={activeProfile?.name || currentUser?.name || '認證老師'}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-base sm:text-lg tracking-tight text-stone-800">
-                  {currentUser?.name || '認證老師'}
+                  {activeProfile?.name || currentUser?.name || '認證老師'}
                 </span>
                 <span className="px-2 py-0.5 rounded-md bg-[#D97736] text-white font-black text-[10px] uppercase tracking-wide shadow-xs">
                   PRO
                 </span>
               </div>
               <div className="text-xs text-stone-500 font-medium font-mono">
-                {teacherProfile?.instrument || (currentUser as any)?.instrument || '吉他'} 指導工作室
+                {activeProfile?.instrument || teacherProfile?.instrument || (currentUser as any)?.instrument || '音樂指導'} 指導工作室
               </div>
             </div>
           </div>
@@ -1382,7 +1443,7 @@ export default function TeacherSchedulePage() {
       <div className="warm-card p-3.5 sm:p-6 lg:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-3 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1 gap-3">
           <h2 className="text-base sm:text-lg font-bold text-[#332C27] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-            <span>{currentUser?.name || '認證老師'} 課表總覽</span>
+            <span>{activeProfile?.name || currentUser?.name || '認證老師'} 課表總覽</span>
             <span className="text-xs text-[#7A736E] font-normal">（可以直接用滑鼠拖曳卡片至任一天的格子內）</span>
           </h2>
           <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold">
