@@ -61,6 +61,11 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
 
       // 2. Supabase 串接：建立驗證帳號與寫入 teachers 資料表
       if (supabase) {
+        const genderText = formData.gender === 'female' ? '女' : formData.gender === 'male' ? '男' : (formData.gender || '女');
+        const subjectsText = Array.isArray((formData as any).teachingSubjects)
+          ? (formData as any).teachingSubjects.join(', ')
+          : (formData.subjects || (formData as any).teachingSubjects || '音樂指導').trim();
+
         // 第一步：呼叫 supabase.auth.signUp 並帶入 options.data User Metadata
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email.trim().toLowerCase(),
@@ -70,8 +75,10 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
               name: formData.name.trim(),
               full_name: formData.name.trim(),
               nickname: formData.nickname?.trim() || formData.name.trim(),
-              gender: formData.gender,
-              instrument: formData.subjects.trim(),
+              gender: genderText,
+              raw_gender: formData.gender,
+              instrument: subjectsText,
+              teachingSubjects: subjectsText,
               phone: formData.phone?.trim() || '',
               bio: formData.bio?.trim() || '',
             },
@@ -87,21 +94,22 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
         if (authData?.user) {
           createdUserId = authData.user.id;
 
-          // 第三步：向 teachers 資料表執行 insert
-          const genderText = formData.gender === 'female' ? '女' : formData.gender === 'male' ? '男' : '其他';
-          
-          const { error: dbError } = await supabase.from('teachers').insert([
-            {
-              user_id: createdUserId,
-              name: formData.name.trim(),
-              nickname: formData.nickname.trim() || formData.name.trim(),
-              gender: genderText,
-              instrument: formData.subjects.trim(), // 對應教學項目
-              phone: formData.phone.trim(),
-              email: formData.email.trim(),
-              bio: formData.bio.trim() || '',
-            },
-          ]);
+          // 第三步：向 teachers 資料表執行 upsert (防止 DB trigger 帶入 NULL 或預設名稱)
+          const { error: dbError } = await supabase.from('teachers').upsert(
+            [
+              {
+                user_id: createdUserId,
+                name: formData.name.trim(),
+                nickname: formData.nickname?.trim() || formData.name.trim(),
+                gender: genderText,
+                instrument: subjectsText,
+                phone: formData.phone?.trim() || '',
+                email: formData.email.trim().toLowerCase(),
+                bio: formData.bio?.trim() || '認證音樂教師',
+              },
+            ],
+            { onConflict: 'user_id' }
+          );
 
           if (dbError) {
             console.warn('teachers 資料表寫入提示：', dbError.message);
@@ -109,14 +117,20 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
         }
       }
 
+      const genderTextFinal = formData.gender === 'female' ? '女' : formData.gender === 'male' ? '男' : '女';
+      const subjectsTextFinal = formData.subjects?.trim() || '音樂指導';
+
       // 3. 儲存教師資料至 LocalStorage 並登入系統
       const teacherObj = {
-        id: `t-${Date.now()}`,
+        id: `t-${createdUserId}`,
         user_id: createdUserId,
         name: formData.name.trim(),
-        email: formData.email.trim(),
-        instrument: formData.subjects.trim(),
-        bio: formData.bio.trim() || '新申請認證教師',
+        nickname: formData.nickname?.trim() || formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        gender: genderTextFinal,
+        instrument: subjectsTextFinal,
+        phone: formData.phone?.trim() || '',
+        bio: formData.bio?.trim() || '認證音樂教師',
         avatar_url: getAvatarByGender(formData.gender, createdUserId),
       };
 
