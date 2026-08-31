@@ -26,26 +26,18 @@ import {
 import { TeacherRegisterModal } from '@/components/TeacherRegisterModal';
 import { getAvatarByGender } from '@/lib/avatarHelper';
 import { supabase } from '@/lib/supabaseClient';
+import { handleLogout } from '@/lib/authHelper';
 
 export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, login, logout, currentUser, teacherProfile } = useDemoContext();
 
-  const handleSignOut = async () => {
-    try {
-      if (supabase) {
-        await supabase.auth.signOut();
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-      logout();
-      window.location.href = '/';
-    } catch (error: any) {
-      console.error('登出失敗:', error?.message);
-      window.location.href = '/';
+  const handleSignOut = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
+    await handleLogout();
   };
 
   const [email, setEmail] = useState('');

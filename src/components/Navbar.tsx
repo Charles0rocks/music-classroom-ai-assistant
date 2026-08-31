@@ -7,6 +7,7 @@ import { useDemoContext } from '@/context/DemoContext';
 import { LoginModal } from '@/components/LoginModal';
 import { getAvatarByGender } from '@/lib/avatarHelper';
 import { supabase } from '@/lib/supabaseClient';
+import { handleLogout } from '@/lib/authHelper';
 import {
   Music,
   Calendar,
@@ -47,22 +48,10 @@ export const Navbar: React.FC = () => {
   const teacherAvatar = currentUser?.avatar_url || savedTeacher?.avatar_url || getAvatarByGender(savedTeacher?.gender || 'female', currentUser?.id || savedTeacher?.id);
   const teacherEmail = currentUser?.email || savedTeacher?.email || 'teacher@harmony.edu';
 
-  const handleLogout = async () => {
-    try {
-      if (supabase) {
-        await supabase.auth.signOut();
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-      logout();
-      setSavedTeacher(null);
-      window.location.href = '/';
-    } catch (error: any) {
-      console.error('登出失敗:', error?.message);
-      window.location.href = '/';
-    }
+  const onSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleLogout();
   };
   const pathname = usePathname();
 
@@ -172,18 +161,35 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {/* User Identity Info */}
-          {activeAuth && (
+          {activeAuth ? (
             <div className="hidden lg:flex items-center gap-3">
               <img
                 src={teacherAvatar}
                 alt={teacherName}
-                className="w-8 h-8 rounded-full border-2 border-[#EFECE6] object-cover"
+                className="w-8 h-8 rounded-full border-2 border-[#EFECE6] object-cover shrink-0"
               />
               <div className="text-right">
-                <div className="text-xs font-bold text-[#332C27]">{teacherName}</div>
-                <div className="text-[10px] text-[#7A736E] font-medium">{teacherEmail}</div>
+                <div className="text-xs font-bold text-[#332C27]">{teacherName} (PRO)</div>
+                <div className="text-[10px] text-[#7A736E] font-medium font-mono">{teacherEmail}</div>
               </div>
+              <button
+                type="button"
+                onClick={onSignOut}
+                className="ml-1 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-red-50 text-stone-700 hover:text-red-700 border border-stone-200 hover:border-red-200 text-xs font-black transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                title="登出系統"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>登出</span>
+              </button>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowLoginModal(true)}
+              className="hidden lg:flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D97736] hover:bg-[#c4682a] text-white text-xs font-bold shadow-sm transition-all"
+            >
+              🔑 登入老師帳號
+            </button>
           )}
         </div>
       </header>
