@@ -126,8 +126,8 @@ const MOCK_STUDENT: Student = {
 };
 
 const INITIAL_SLOTS: ScheduleSlot[] = [
-  { id: 's1', start_time: '2026-08-31T09:00:00.000Z', end_time: '2026-08-31T10:00:00.000Z', is_available: true },
-  { id: 's2', start_time: '2026-08-31T14:00:00.000Z', end_time: '2026-08-31T15:00:00.000Z', is_available: false },
+  { id: 's1', teacher_id: 't-charles-lin', start_time: '2026-08-31T09:00:00.000Z', end_time: '2026-08-31T10:00:00.000Z', is_available: true },
+  { id: 's2', teacher_id: 't-charles-lin', start_time: '2026-08-31T14:00:00.000Z', end_time: '2026-08-31T15:00:00.000Z', is_available: false },
 ];
 
 const INITIAL_APPOINTMENTS: Appointment[] = [
@@ -149,19 +149,27 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
 const INITIAL_LESSONS: LessonRecord[] = [
   {
     id: 'l1',
+    appointment_id: 'a1',
     student_name: '許雅婷',
     course_name: '鋼琴進階檢定曲',
     created_at: '2026-08-31T10:00:00Z',
     audio_url: 'https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg',
     raw_transcript: '許雅婷今天練習巴哈二部創意曲，整體音符很精準，但在轉調段落手腕稍顯僵硬，音量層次可以更大。',
+    clean_summary_json: {
+      highlights: ['音符與拍子精準'],
+      technical_tips: ['轉調段落放鬆手腕'],
+      homework: ['每日慢速練習第 16-24 小節，維持觸鍵彈性。'],
+      encouragement: '表現優秀！加油！',
+    },
     llm_summary: '音符與拍子精準，轉調段落放鬆手腕。作業：每日慢速練習第 16-24 小節，維持觸鍵彈性。',
     tags: ['巴哈創意曲', '觸鍵技巧', '手腕放鬆'],
-  },
+  } as any,
 ];
 
 const INITIAL_DEMO_VIDEOS: TeacherDemoVideo[] = [
   {
     id: 'dv1',
+    teacher_id: 't-charles-lin',
     title: '蕭邦 Nocturne Op.9 No.2 示範演練',
     video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     pitch_tolerance: 5,
@@ -173,14 +181,24 @@ const INITIAL_DEMO_VIDEOS: TeacherDemoVideo[] = [
 const INITIAL_PRACTICE_VIDEOS: StudentPracticeVideo[] = [
   {
     id: 'pv1',
+    student_id: 's1',
     demo_video_id: 'dv1',
     student_name: '許雅婷',
     practice_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    ai_feedback_json: {
+      overall_score: 92,
+      pitch_accuracy: 92,
+      rhythm_accuracy: 88,
+      bpm_detected: 120,
+      timeline_markers: [],
+      summary: '整體表現良好。',
+    },
     pitch_similarity: 92,
     tempo_similarity: 88,
     posture_match_score: 95,
     created_at: '2026-08-31T11:30:00Z',
-  },
+  } as any,
 ];
 
 export interface DemoContextType {
