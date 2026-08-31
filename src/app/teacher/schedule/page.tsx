@@ -112,7 +112,12 @@ export default function TeacherSchedulePage() {
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>('recurring');
   const [mainViewMode, setMainViewMode] = useState<'dailyTimeline' | 'weeklyMatrix' | 'monthlyOverview'>('dailyTimeline');
-  const [selectedDayIdx, setSelectedDayIdx] = useState<number>(3); // Default to Thursday (27th) in Gemini demo layout
+  const getInitialTodayIdx = () => {
+    const day = new Date().getDay();
+    return day === 0 ? 6 : day - 1; // 0 for Mon, 1 for Tue, ... 6 for Sun
+  };
+
+  const [selectedDayIdx, setSelectedDayIdx] = useState<number>(getInitialTodayIdx());
 
   // Form State for Mode 1: 1. 常態課表 (Supports Custom Typing!)
   const [recurringStudent, setRecurringStudent] = useState('小明');
@@ -581,6 +586,24 @@ export default function TeacherSchedulePage() {
   const todayDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const todayColIdx = weekDates.findIndex((d) => d.fullDateStr === todayDateStr);
 
+  const selectedDateObj = weekDates[selectedDayIdx] || weekDates[0];
+  const selectedDateStr = selectedDateObj?.fullDateStr || todayDateStr;
+
+  // Dynamically filter active appointments for selected date
+  const selectedDayApps = appointments.filter((a) => {
+    if (a.status === 'cancelled') return false;
+    const dateStr = a.start_time ? a.start_time.split('T')[0] : '';
+    return dateStr === selectedDateStr;
+  });
+
+  const todayClassesCount = selectedDayApps.length;
+
+  // Dynamic estimated revenue: Sum of class fees for selected date
+  const totalEstimatedRevenue = selectedDayApps.reduce((sum, app) => {
+    return sum + (typeof app.fee === 'number' ? app.fee : 1200);
+  }, 0);
+  const formattedRevenue = `$${totalEstimatedRevenue.toLocaleString()}`;
+
   // Synchronized scroll refs for 2D Split Pane (Requirements 1 & 2)
   const headerRef = useRef<HTMLDivElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
@@ -719,11 +742,11 @@ export default function TeacherSchedulePage() {
           <div className="flex items-center gap-2">
             <CalendarIcon className="w-4.5 h-4.5 text-[#D97736]" />
             <span className="text-sm font-extrabold font-mono text-stone-800">
-              📅 2026 年 {weekDates[selectedDayIdx]?.monthDay || '08/27'} ({weekDates[selectedDayIdx]?.dayLabel || '週四'})
+              📅 {selectedDateObj?.year || now.getFullYear()} 年 {selectedDateObj?.monthDay || '08/31'} ({selectedDateObj?.dayLabel || '週一'})
             </span>
           </div>
           <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0">
-            {weekDates[selectedDayIdx]?.fullDateStr === todayDateStr ? '★ 今天 (TODAY)' : '履約正常 🟢'}
+            {selectedDateStr === todayDateStr ? '★ 今天 (TODAY)' : '履約正常 🟢'}
           </span>
         </div>
 
@@ -732,19 +755,21 @@ export default function TeacherSchedulePage() {
           <div className="bg-white text-stone-800 p-3 sm:p-4 rounded-2xl border border-stone-200 text-center space-y-0.5 shadow-sm">
             <div className="text-[11px] text-stone-500 font-medium">當日課程</div>
             <div className="text-lg sm:text-xl font-black text-stone-800">
-              {appointments.filter(a => a.start_time.split('T')[0] === weekDates[selectedDayIdx]?.fullDateStr).length || 3} 堂
+              {todayClassesCount} 堂
             </div>
           </div>
 
           <div className="bg-white text-stone-800 p-3 sm:p-4 rounded-2xl border border-stone-200 text-center space-y-0.5 shadow-sm">
             <div className="text-[11px] text-stone-500 font-medium">預估收益</div>
-            <div className="text-lg sm:text-xl font-black text-[#D97736]">$6,200</div>
+            <div className="text-lg sm:text-xl font-black text-[#D97736]">{formattedRevenue}</div>
           </div>
 
           <div className="bg-white text-stone-800 p-3 sm:p-4 rounded-2xl border border-stone-200 text-center space-y-0.5 relative shadow-sm">
             <span className="w-2.5 h-2.5 rounded-full bg-[#D97736] absolute top-2 right-2 ring-2 ring-white" />
             <div className="text-[11px] text-stone-500 font-medium">待辦 AI 週報</div>
-            <div className="text-lg sm:text-xl font-black text-[#D97736]">1 件</div>
+            <div className="text-lg sm:text-xl font-black text-[#D97736]">
+              {todayClassesCount > 0 ? `${todayClassesCount} 件` : '0 件'}
+            </div>
           </div>
         </div>
       </div>
