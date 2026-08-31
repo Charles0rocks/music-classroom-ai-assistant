@@ -714,7 +714,7 @@ export default function TeacherSchedulePage() {
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border-2 border-[#D97736] overflow-hidden shrink-0 shadow-md">
               <img
-                src={currentUser?.avatar_url || getAvatarByGender(teacherProfile?.gender || 'female', currentUser?.id)}
+                src={getAvatarByGender(currentUser?.gender || teacherProfile?.gender || 'male', currentUser?.id)}
                 alt={currentUser?.name || '認證老師'}
                 className="w-full h-full object-cover"
               />
@@ -729,7 +729,7 @@ export default function TeacherSchedulePage() {
                 </span>
               </div>
               <div className="text-xs text-stone-500 font-medium font-mono">
-                {teacherProfile?.instrument || '音樂'} 指導工作室
+                {teacherProfile?.instrument || (currentUser as any)?.instrument || '吉他'} 指導工作室
               </div>
             </div>
           </div>

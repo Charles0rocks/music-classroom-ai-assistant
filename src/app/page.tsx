@@ -135,7 +135,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
-                      src={currentUser?.avatar_url || getAvatarByGender(teacherProfile?.gender || 'female', currentUser?.id)}
+                      src={getAvatarByGender(currentUser?.gender || teacherProfile?.gender || 'male', currentUser?.id)}
                       alt={currentUser?.name || '認證老師'}
                       className="w-10 h-10 rounded-full border-2 border-emerald-300 object-cover"
                     />

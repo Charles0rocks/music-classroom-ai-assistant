@@ -45,7 +45,7 @@ export const Navbar: React.FC = () => {
 
   const activeAuth = isAuthenticated || !!savedTeacher;
   const teacherName = currentUser?.name || savedTeacher?.name || '認證老師';
-  const teacherAvatar = currentUser?.avatar_url || savedTeacher?.avatar_url || getAvatarByGender(savedTeacher?.gender || 'female', currentUser?.id || savedTeacher?.id);
+  const teacherAvatar = getAvatarByGender(currentUser?.gender || savedTeacher?.gender || 'male', currentUser?.id || savedTeacher?.id);
   const teacherEmail = currentUser?.email || savedTeacher?.email || 'teacher@harmony.edu';
 
   const onSignOut = async (e: React.MouseEvent) => {
