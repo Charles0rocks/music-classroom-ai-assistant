@@ -24,6 +24,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { TeacherRegisterModal } from '@/components/TeacherRegisterModal';
+import { getAvatarByGender } from '@/lib/avatarHelper';
 
 export default function HomePage() {
   const router = useRouter();
@@ -124,7 +125,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
-                      src={currentUser?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                      src={currentUser?.avatar_url || getAvatarByGender('male', currentUser?.id)}
                       alt="林詠晴 老師"
                       className="w-10 h-10 rounded-full border-2 border-emerald-300 object-cover"
                     />

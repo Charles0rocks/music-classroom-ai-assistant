@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import { LoginModal } from '@/components/LoginModal';
+import { getAvatarByGender } from '@/lib/avatarHelper';
 import {
   Music,
   Calendar,
@@ -42,7 +43,7 @@ export const Navbar: React.FC = () => {
 
   const activeAuth = isAuthenticated || !!savedTeacher;
   const teacherName = savedTeacher?.name || currentUser?.name || 'Charles Lin';
-  const teacherAvatar = savedTeacher?.avatar_url || currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  const teacherAvatar = savedTeacher?.avatar_url || currentUser?.avatar_url || getAvatarByGender(savedTeacher?.gender || 'male', savedTeacher?.id || currentUser?.id);
   const teacherEmail = savedTeacher?.email || currentUser?.email || 'chl@gmail.com';
 
   const handleLogout = () => {

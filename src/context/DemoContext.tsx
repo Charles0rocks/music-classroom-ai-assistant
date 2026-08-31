@@ -14,6 +14,7 @@ import {
   StudentPracticeVideo,
 } from '@/types';
 import { LoginModal } from '@/components/LoginModal';
+import { getAvatarByGender } from '@/lib/avatarHelper';
 
 // Preset Teachers with Credentials (Default: Charles Lin, chl@gmail.com / 12345678)
 export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
@@ -23,7 +24,7 @@ export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
       role: 'teacher',
       name: 'Charles Lin',
       email: 'chl@gmail.com',
-      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar_url: getAvatarByGender('male', 'u-charles-lin'),
     },
     teacher: {
       id: 't-charles-lin',
@@ -38,7 +39,7 @@ export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
       role: 'teacher',
       name: '張老師',
       email: 'chang.teacher@harmony.edu',
-      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar_url: getAvatarByGender('female', 'u-chang-001'),
     },
     teacher: {
       id: 't-chang',
@@ -53,7 +54,7 @@ export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
       role: 'teacher',
       name: '李老師',
       email: 'lee.teacher@harmony.edu',
-      avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatar_url: getAvatarByGender('male', 'u-lee-002'),
     },
     teacher: {
       id: 't-lee',
@@ -68,7 +69,7 @@ export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
       role: 'teacher',
       name: '王老師',
       email: 'wang.teacher@harmony.edu',
-      avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+      avatar_url: getAvatarByGender('female', 'u-wang-003'),
     },
     teacher: {
       id: 't-wang',
@@ -83,7 +84,7 @@ export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
       role: 'teacher',
       name: '陳老師',
       email: 'chen.teacher@harmony.edu',
-      avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+      avatar_url: getAvatarByGender('male', 'u-chen-004'),
     },
     teacher: {
       id: 't-chen',
@@ -98,7 +99,7 @@ export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
       role: 'teacher',
       name: '林老師',
       email: 'lin.teacher@harmony.edu',
-      avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      avatar_url: getAvatarByGender('female', 'u-lin-005'),
     },
     teacher: {
       id: 't-lin',

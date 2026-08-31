@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDemoContext } from '@/context/DemoContext';
 import { supabase } from '@/lib/supabaseClient';
+import { getAvatarByGender } from '@/lib/avatarHelper';
 import { UserPlus, AlertCircle, CheckCircle2, X } from 'lucide-react';
 
 interface TeacherRegisterModalProps {
@@ -105,7 +106,7 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
         email: formData.email.trim(),
         instrument: formData.subjects.trim(),
         bio: formData.bio.trim() || '新申請認證教師',
-        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        avatar_url: getAvatarByGender(formData.gender, createdUserId),
       };
 
       if (typeof window !== 'undefined') {

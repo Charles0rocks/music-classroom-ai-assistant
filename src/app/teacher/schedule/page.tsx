@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 import { supabase, isSupabaseConfigured, DbScheduleRecord } from '@/lib/supabaseClient';
+import { getAvatarByGender } from '@/lib/avatarHelper';
 
 const DAYS = [
   { key: 1, label: '週一', short: 'Mon' },
@@ -635,7 +636,7 @@ export default function TeacherSchedulePage() {
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border-2 border-[#D97736] overflow-hidden shrink-0 shadow-md">
               <img
-                src={currentUser?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                src={currentUser?.avatar_url || getAvatarByGender('male', currentUser?.id)}
                 alt={currentUser?.name || 'Charles Lin'}
                 className="w-full h-full object-cover"
               />
