@@ -16,6 +16,7 @@ import {
   Volume2,
   ArrowRight,
   Music,
+  LogIn,
 } from 'lucide-react';
 import { CleanSummaryJSON } from '@/types';
 
@@ -23,7 +24,16 @@ const SAMPLE_TRANSCRIPT = `小明今天來練習巴哈 E 大調小提琴協奏�
 
 export default function TeacherRecorderPage() {
   const router = useRouter();
-  const { currentRole, addLessonRecord } = useDemoContext();
+  const { currentRole, addLessonRecord, isAuthenticated, setShowLoginModal } = useDemoContext();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTeacher = localStorage.getItem('auth_teacher');
+      setIsLoggedIn(Boolean(savedTeacher || isAuthenticated));
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (currentRole === 'student') {
@@ -84,6 +94,35 @@ export default function TeacherRecorderPage() {
 
   return (
     <div className="space-y-8">
+      {/* Guest Mode Warning Banner */}
+      {!isLoggedIn && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-[#D97736] flex items-center justify-center font-black text-xl shrink-0 mt-0.5">
+              💡
+            </div>
+            <div>
+              <h3 className="font-black text-sm text-stone-900 flex items-center gap-2">
+                <span>課堂紀錄 - 未登入訪客展示預覽模式 (Guest Demo Mode)</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">展示模式</span>
+              </h3>
+              <p className="text-xs text-stone-600 font-medium mt-1 leading-relaxed">
+                您目前以「未登入訪客」身份預覽口述錄音與 Gemini AI 課堂淨化摘要示範數據。
+                請登入老師帳號解鎖真實 30 秒口述錄音生成、資料庫紀錄寫入與 LINE 自動推播！
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowLoginModal(true)}
+            className="px-5 py-2.5 rounded-2xl bg-[#D97736] hover:bg-[#c4682a] text-white text-xs font-black shrink-0 shadow-md transition-all flex items-center gap-1.5"
+          >
+            <LogIn className="w-4 h-4" />
+            🔑 登入老師帳號解鎖完整功能
+          </button>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm bg-gradient-to-r from-white to-[#FAF2EC]">
         <div className="flex items-center gap-2 text-[#8C6D53] text-xs font-bold uppercase tracking-wider mb-1">

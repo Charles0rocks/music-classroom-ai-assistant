@@ -27,6 +27,7 @@ import {
   GripVertical,
   Bell,
   Mic,
+  LogIn,
 } from 'lucide-react';
 import { ScheduleSlot, Appointment } from '@/types';
 import { supabase, isSupabaseConfigured, DbScheduleRecord } from '@/lib/supabaseClient';
@@ -87,7 +88,18 @@ export default function TeacherSchedulePage() {
     appointments,
     setAppointments,
     teacherProfile,
+    isAuthenticated,
+    setShowLoginModal,
   } = useDemoContext();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTeacher = localStorage.getItem('auth_teacher');
+      setIsLoggedIn(Boolean(savedTeacher || isAuthenticated));
+    }
+  }, [isAuthenticated]);
 
   // Strict Role Guard: Students trying to access Teacher Schedule MUST be redirected to Student Schedule immediately
   useEffect(() => {
@@ -213,15 +225,22 @@ export default function TeacherSchedulePage() {
   };
 
   // Submit Handler for Top "課表設定" Block
-  const { isAuthenticated } = useDemoContext();
   const [isDbConnected, setIsDbConnected] = useState<boolean>(false);
   const [dbErrorMsg, setDbErrorMsg] = useState<string>('');
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(false);
 
-  // Active Fetch Schedules from Supabase (Forcing Supabase Connection & Console Debugging)
+  // Active Fetch Schedules from Supabase (Guarded by Login State)
   const fetchSchedules = useCallback(async () => {
-    console.log('--- MusiMate DB Debug ---');
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Loaded' : 'Missing');
+    const savedTeacherStr = typeof window !== 'undefined' ? localStorage.getItem('auth_teacher') : null;
+    const activeUserLoggedIn = Boolean(savedTeacherStr || isAuthenticated);
+
+    if (!activeUserLoggedIn) {
+      console.log('[Guest Mode] 未登入訪客模式：已暫停 Supabase DB 數據查詢，僅展示 Demo 靜態數據');
+      setIsDbConnected(false);
+      setDbErrorMsg('');
+      setIsLoadingDb(false);
+      return;
+    }
 
     if (!supabase) {
       const errMsg = !process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -310,6 +329,12 @@ export default function TeacherSchedulePage() {
 
   const handleSettingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isLoggedIn) {
+      setSettingNotice('💡 此為展示預覽模式！請先登入老師帳號以新增與寫入真實課表數據。');
+      setShowLoginModal(true);
+      return;
+    }
 
     if (scheduleMode === 'recurring') {
       const studentNameInput = recurringStudent.trim() || '學生';
@@ -575,6 +600,35 @@ export default function TeacherSchedulePage() {
 
   return (
     <div className="space-y-6">
+      {/* Guest Mode Warning Banner */}
+      {!isLoggedIn && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-[#D97736] flex items-center justify-center font-black text-xl shrink-0 mt-0.5">
+              💡
+            </div>
+            <div>
+              <h3 className="font-black text-sm text-stone-900 flex items-center gap-2">
+                <span>課表安排 - 未登入訪客展示預覽模式 (Guest Demo Mode)</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">展示模式</span>
+              </h3>
+              <p className="text-xs text-stone-600 font-medium mt-1 leading-relaxed">
+                目前為「未登入訪客」狀態，系統已暫停查詢真實 Supabase 資料庫，下方為靜態 Demo 課表數據範例。
+                請登入老師帳號解鎖真實 2D 週課表矩陣、開放時段設定與防放鳥審核機制！
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowLoginModal(true)}
+            className="px-5 py-2.5 rounded-2xl bg-[#D97736] hover:bg-[#c4682a] text-white text-xs font-black shrink-0 shadow-md transition-all flex items-center gap-1.5"
+          >
+            <LogIn className="w-4 h-4" />
+            🔑 登入老師帳號解鎖完整功能
+          </button>
+        </div>
+      )}
+
       {/* 1. Teacher Profile Header Card (Studio OS 教師課表 - 莫蘭迪奶油風格) */}
       <div className="bg-white text-stone-800 rounded-3xl p-5 sm:p-6 shadow-sm border border-stone-200 relative overflow-hidden space-y-4">
         <div className="flex items-center justify-between">
@@ -604,7 +658,12 @@ export default function TeacherSchedulePage() {
           <div className="flex items-center gap-2">
             {/* Supabase Real DB Connection Status Indicator */}
             <div className="hidden sm:flex items-center gap-1.5">
-              {isDbConnected ? (
+              {!isLoggedIn ? (
+                <span className="flex items-center gap-1.5 text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-xs font-bold shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  🟡 訪客預覽模式 (Supabase 查詢已暫停)
+                </span>
+              ) : isDbConnected ? (
                 <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 text-xs font-bold shadow-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   🟢 已連線至 Supabase 資料庫

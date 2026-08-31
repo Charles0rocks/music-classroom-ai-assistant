@@ -13,6 +13,7 @@ import {
   TeacherDemoVideo,
   StudentPracticeVideo,
 } from '@/types';
+import { LoginModal } from '@/components/LoginModal';
 
 // Preset Teachers with Credentials (Default: Charles Lin, chl@gmail.com / 12345678)
 export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
@@ -131,6 +132,8 @@ const INITIAL_PRACTICE_VIDEOS: StudentPracticeVideo[] = [];
 
 interface DemoContextType {
   isAuthenticated: boolean;
+  showLoginModal: boolean;
+  setShowLoginModal: (show: boolean) => void;
   currentRole: Role;
   currentUser: User;
   teacherProfile: Teacher;
@@ -159,6 +162,7 @@ const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [currentRole, setCurrentRole] = useState<Role>('teacher');
   const [activeTeacherIdx, setActiveTeacherIdx] = useState<number>(0);
 
@@ -358,6 +362,8 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <DemoContext.Provider
       value={{
         isAuthenticated,
+        showLoginModal,
+        setShowLoginModal,
         currentRole,
         currentUser,
         teacherProfile,
@@ -383,6 +389,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
       {children}
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </DemoContext.Provider>
   );
 };

@@ -13,11 +13,21 @@ import {
   Trash2,
   Sparkles,
   ShieldAlert,
+  LogIn,
 } from 'lucide-react';
 
 export default function TeacherDemosPage() {
   const router = useRouter();
-  const { currentRole, demoVideos, updateDemoVideo } = useDemoContext();
+  const { currentRole, demoVideos, updateDemoVideo, isAuthenticated, setShowLoginModal } = useDemoContext();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTeacher = localStorage.getItem('auth_teacher');
+      setIsLoggedIn(Boolean(savedTeacher || isAuthenticated));
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (currentRole === 'student') {
@@ -40,6 +50,10 @@ export default function TeacherDemosPage() {
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
     if (!activeVideo) return;
     updateDemoVideo(activeVideo.id, {
       pitch_tolerance: pitchTol,
@@ -50,6 +64,10 @@ export default function TeacherDemosPage() {
   };
 
   const handleAddTag = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
     if (!tagInput || !activeVideo) return;
     if (!activeVideo.tags.includes(tagInput)) {
       updateDemoVideo(activeVideo.id, {
@@ -60,6 +78,10 @@ export default function TeacherDemosPage() {
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
     if (!activeVideo) return;
     updateDemoVideo(activeVideo.id, {
       tags: activeVideo.tags.filter((t) => t !== tagToRemove),
@@ -68,6 +90,35 @@ export default function TeacherDemosPage() {
 
   return (
     <div className="space-y-8">
+      {/* Guest Mode Warning Banner */}
+      {!isLoggedIn && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-[#D97736] flex items-center justify-center font-black text-xl shrink-0 mt-0.5">
+              💡
+            </div>
+            <div>
+              <h3 className="font-black text-sm text-stone-900 flex items-center gap-2">
+                <span>作業檢視 - 未登入訪客展示預覽模式 (Guest Demo Mode)</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">展示模式</span>
+              </h3>
+              <p className="text-xs text-stone-600 font-medium mt-1 leading-relaxed">
+                您目前以「未登入訪客」身份預覽雙影片姿態比對與 AI 門檻調校靜態範例數據。
+                請登入老師帳號解鎖上傳您的教學示範影片、調整專屬 AI 容錯門檻與寫入 Supabase 資料庫！
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowLoginModal(true)}
+            className="px-5 py-2.5 rounded-2xl bg-[#D97736] hover:bg-[#c4682a] text-white text-xs font-black shrink-0 shadow-md transition-all flex items-center gap-1.5"
+          >
+            <LogIn className="w-4 h-4" />
+            🔑 登入老師帳號解鎖完整功能
+          </button>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="warm-card p-6 sm:p-8 rounded-3xl border border-[#EFECE6] shadow-warm bg-gradient-to-r from-white to-[#FAF2EC]">
         <div className="flex items-center gap-2 text-[#8C6D53] text-xs font-bold uppercase tracking-wider mb-1">
