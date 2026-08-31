@@ -586,15 +586,61 @@ export default function TeacherSchedulePage() {
   const todayDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const todayColIdx = weekDates.findIndex((d) => d.fullDateStr === todayDateStr);
 
+  // Unified appointment date & weekday matching helper
+  const isAppointmentOnDate = useCallback(
+    (app: Appointment, d: { key: number; label?: string; dayLabel?: string; short?: string; monthDay?: string; fullDateStr: string }) => {
+      if (!app || app.status === 'cancelled' || (app as any).is_cancelled) return false;
+
+      const targetDateDash = d.fullDateStr; // e.g. "2026-08-31"
+      const targetDayLabel = d.dayLabel || (DAYS.find((item) => item.key === d.key)?.label) || ''; // "週一"
+      const targetShort = d.short || (DAYS.find((item) => item.key === d.key)?.short) || ''; // "Mon"
+
+      // 1. Raw date property check (e.g. "2026-08-31" or "2026/08/31")
+      const rawDate = (app.date || (app as any).lesson_date || '').trim();
+      if (rawDate) {
+        const rawNormalized = rawDate.replace(/\//g, '-').slice(0, 10);
+        if (rawNormalized === targetDateDash) return true;
+      }
+
+      // 2. start_time ISO / Date object check
+      if (app.start_time) {
+        const startNormalized = String(app.start_time).replace(/\//g, '-');
+        if (startNormalized.slice(0, 10) === targetDateDash) return true;
+
+        const parsedDate = new Date(app.start_time);
+        if (!isNaN(parsedDate.getTime())) {
+          const y = parsedDate.getFullYear();
+          const m = String(parsedDate.getMonth() + 1).padStart(2, '0');
+          const day = String(parsedDate.getDate()).padStart(2, '0');
+          if (`${y}-${m}-${day}` === targetDateDash) return true;
+          if (parsedDate.getDay() === d.key) return true;
+        }
+      }
+
+      // 3. day_of_week string check (e.g. "週一" / "Mon" / "1")
+      const appDayStr = String(app.day_of_week || (app as any).dayOfWeek || '').trim();
+      if (appDayStr) {
+        if (
+          appDayStr === targetDayLabel ||
+          appDayStr === targetShort ||
+          appDayStr.includes(targetDayLabel.replace('週', '')) ||
+          appDayStr.toLowerCase().includes(targetShort.toLowerCase()) ||
+          appDayStr === String(d.key)
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+    []
+  );
+
   const selectedDateObj = weekDates[selectedDayIdx] || weekDates[0];
   const selectedDateStr = selectedDateObj?.fullDateStr || todayDateStr;
 
-  // Dynamically filter active appointments for selected date
-  const selectedDayApps = appointments.filter((a) => {
-    if (a.status === 'cancelled') return false;
-    const dateStr = a.start_time ? a.start_time.split('T')[0] : '';
-    return dateStr === selectedDateStr;
-  });
+  // Dynamically filter active appointments for selected date using unified helper
+  const selectedDayApps = appointments.filter((a) => isAppointmentOnDate(a, selectedDateObj));
 
   const todayClassesCount = selectedDayApps.length;
 
@@ -1437,29 +1483,10 @@ export default function TeacherSchedulePage() {
                       const dayApps = appointments.filter((app) => {
                         if (!app) return false;
 
-                        const colDayLabel = d.dayLabel; // e.g. '週一'
-                        const colDayShort = d.short; // e.g. 'Mon'
-                        const appDayStr = String(app.day_of_week || '');
-
-                        const isDayMatchByName =
-                          appDayStr === colDayLabel ||
-                          (appDayStr && appDayStr.includes(colDayLabel.replace('週', ''))) ||
-                          (appDayStr && appDayStr.toLowerCase().includes(colDayShort.toLowerCase()));
-
-                        let appDateStr = app.date || '';
-                        if (!appDateStr && app.start_time) {
-                          appDateStr = app.start_time.includes('T') ? app.start_time.split('T')[0] : app.start_time.split(' ')[0];
-                        }
-
-                        const appDateObj = app.start_time ? new Date(app.start_time) : null;
-                        const appDayKey = appDateObj && !isNaN(appDateObj.getDay()) ? appDateObj.getDay() : null;
-
-                        const isDateMatch =
-                          isDayMatchByName ||
-                          (appDateStr && appDateStr === d.fullDateStr) ||
-                          (appDayKey !== null && appDayKey === d.key);
+                        const isDateMatch = isAppointmentOnDate(app, d);
 
                         let appHour = 10;
+                        const appDateObj = app.start_time ? new Date(app.start_time) : null;
                         if (app.time_slot) {
                           const timePart = String(app.time_slot).split('-')[0].trim();
                           appHour = parseInt(timePart.split(':')[0], 10) || 10;
