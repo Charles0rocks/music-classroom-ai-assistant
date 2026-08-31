@@ -1382,7 +1382,7 @@ export default function TeacherSchedulePage() {
       <div className="warm-card p-3.5 sm:p-6 lg:p-8 rounded-3xl border border-[#EFECE6] shadow-warm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-3 sticky top-0 bg-white/95 backdrop-blur-md z-20 pt-1 gap-3">
           <h2 className="text-base sm:text-lg font-bold text-[#332C27] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-            <span>{currentUser?.name || 'Charles Lin'} 課表總覽</span>
+            <span>{currentUser?.name || '認證老師'} 課表總覽</span>
             <span className="text-xs text-[#7A736E] font-normal">（可以直接用滑鼠拖曳卡片至任一天的格子內）</span>
           </h2>
           <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold">

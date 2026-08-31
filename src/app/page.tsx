@@ -30,8 +30,8 @@ export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, login, logout, currentUser, teacherProfile } = useDemoContext();
 
-  const [email, setEmail] = useState('chl@gmail.com');
-  const [password, setPassword] = useState('12345678');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [showRegisterModal, setShowRegisterModal] = useState(false);
