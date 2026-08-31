@@ -6,6 +6,7 @@ export interface User {
   name: string;
   email: string;
   avatar_url?: string;
+  gender?: string;
 }
 
 export interface Teacher {
@@ -13,6 +14,7 @@ export interface Teacher {
   user_id: string;
   instrument: string;
   bio: string;
+  gender?: string;
 }
 
 export interface Student {
