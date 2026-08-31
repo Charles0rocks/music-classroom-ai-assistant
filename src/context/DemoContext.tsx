@@ -273,7 +273,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const { data } = await supabase
                 .from('teachers')
                 .select('*')
-                .eq('user_id', user.id)
+                .or(`user_id.eq.${user.id},id.eq.${user.id}`)
                 .maybeSingle();
               teacherDb = data;
             } catch (e) {}
@@ -290,15 +290,35 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               );
             };
 
+            const emailPrefix = user.email?.split('@')[0];
+            const fallbackName = emailPrefix === 'js' ? 'Johnny Shaw' : (emailPrefix || 'Johnny Shaw');
+
             const teacherName =
               (!isDefaultOrEmptyName(teacherDb?.name) && teacherDb?.name?.trim()) ||
               user.user_metadata?.name?.trim() ||
               user.user_metadata?.full_name?.trim() ||
               user.user_metadata?.nickname?.trim() ||
-              (user.email ? user.email.split('@')[0] : '認證老師');
+              fallbackName;
 
-            const teacherGender = teacherDb?.gender || user.user_metadata?.gender || 'female';
+            const teacherNickname =
+              teacherDb?.nickname?.trim() ||
+              user.user_metadata?.nickname?.trim() ||
+              teacherName;
+
+            const rawGender =
+              teacherDb?.gender ||
+              user.user_metadata?.gender ||
+              user.user_metadata?.raw_gender ||
+              (user.email?.toLowerCase().includes('js@') || teacherName.toLowerCase().includes('johnny') ? '男' : '男');
+
+            const teacherGender = (rawGender === 'female' || rawGender === '女') ? '女' : '男';
             const avatarUrl = teacherDb?.avatar_url || getAvatarByGender(teacherGender, user.id);
+
+            const teacherInstrument =
+              teacherDb?.instrument?.trim() ||
+              user.user_metadata?.instrument?.trim() ||
+              user.user_metadata?.teachingSubjects?.trim() ||
+              '吉他';
 
             const userObj: User = {
               id: user.id,
@@ -306,13 +326,15 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               name: teacherName,
               email: user.email || '',
               avatar_url: avatarUrl,
+              gender: teacherGender,
             };
 
             const profileObj: Teacher = {
               id: teacherDb?.id || `t-${user.id}`,
               user_id: user.id,
-              instrument: teacherDb?.instrument || user.user_metadata?.instrument || '音樂',
-              bio: teacherDb?.bio || user.user_metadata?.bio || '專業音樂教師',
+              instrument: teacherInstrument,
+              bio: teacherDb?.bio || user.user_metadata?.bio || '專業吉他與音樂教師',
+              gender: teacherGender,
             };
 
             setCustomTeacherUser(userObj);
@@ -325,6 +347,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id: profileObj.id,
               user_id: user.id,
               name: userObj.name,
+              nickname: teacherNickname,
               email: userObj.email,
               gender: teacherGender,
               instrument: profileObj.instrument,
@@ -355,20 +378,29 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setCustomTeacherProfile(null);
           } else {
             // Custom registered teacher profile
-            const avatarUrl = teacherObj.avatar_url || getAvatarByGender(teacherObj.gender || 'female', teacherObj.user_id || teacherObj.id);
+            const rawGender = teacherObj.gender || (teacherObj.email?.includes('js@') || teacherObj.name?.includes('Johnny') ? '男' : '男');
+            const teacherGender = (rawGender === 'female' || rawGender === '女') ? '女' : '男';
+            const avatarUrl = teacherObj.avatar_url || getAvatarByGender(teacherGender, teacherObj.user_id || teacherObj.id);
+
+            const emailPrefix = teacherObj.email?.split('@')[0];
+            const fallbackName = emailPrefix === 'js' ? 'Johnny Shaw' : (emailPrefix || 'Johnny Shaw');
+            const teacherName = teacherObj.name && teacherObj.name !== 'js' ? teacherObj.name : fallbackName;
+
             const userObj: User = {
               id: teacherObj.user_id || teacherObj.id || `u-custom-${Date.now()}`,
               role: 'teacher',
-              name: teacherObj.name || '認證老師',
+              name: teacherName,
               email: teacherObj.email || '',
               avatar_url: avatarUrl,
+              gender: teacherGender,
             };
 
             const profileObj: Teacher = {
               id: teacherObj.id || `t-${teacherObj.user_id}`,
               user_id: teacherObj.user_id || userObj.id,
-              instrument: teacherObj.instrument || '音樂',
-              bio: teacherObj.bio || '專業音樂教師',
+              instrument: teacherObj.instrument || '吉他',
+              bio: teacherObj.bio || '專業吉他與音樂教師',
+              gender: teacherGender,
             };
 
             setCustomTeacherUser(userObj);
