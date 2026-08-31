@@ -417,6 +417,19 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     syncAuth();
   }, [isAuthenticated]);
 
+  React.useEffect(() => {
+    if (!supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+        setIsAuthenticated(true);
+        // Pure state update only - strictly no routing or redirects executed here
+      }
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const login = (email: string, pass: string, role: Role) => {
     if (role === 'teacher') {
       const targetEmail = email.trim().toLowerCase();
