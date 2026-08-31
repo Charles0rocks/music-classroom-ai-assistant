@@ -112,36 +112,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#FBF9F5] text-stone-800 space-y-8 py-4 sm:py-6 px-3 sm:px-6 max-w-7xl mx-auto">
       
-      {/* 1. 【頂部 Header】 */}
-      <header className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-[#D97736]/5 rounded-full blur-2xl pointer-events-none" />
-        
-        <div className="flex items-center gap-4 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-500 to-[#D97736] flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0">
-            🎵
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-                Musi <span className="text-[#D97736]">Mate</span>
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black">
-                v3.2 PRO
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-stone-500 font-bold mt-0.5">
-              音樂教室AI 小幫手
-            </p>
-          </div>
-        </div>
-
-        {/* 動態時間 */}
-        <div className="flex items-center gap-2 bg-[#FAF7F2] px-4 py-2 rounded-2xl border border-stone-200 text-xs font-mono font-bold text-stone-700 shadow-xs relative z-10">
-          <Clock className="w-4 h-4 text-[#D97736]" />
-          <span>今日時間：</span>
-          <span className="text-[#D97736] font-black">{todayStr}</span>
-        </div>
-      </header>
 
       {/* 2. 重構首頁結構（雙欄卡片佈局） */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">

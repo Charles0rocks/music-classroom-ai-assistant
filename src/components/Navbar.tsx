@@ -83,26 +83,31 @@ export const Navbar: React.FC = () => {
     <>
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#EFECE6] px-2.5 sm:px-4 lg:px-8 py-2 sm:py-3.5 shadow-[0_2px_15px_rgba(140,109,83,0.04)]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2 sm:gap-4">
-          {/* Brand Logo, Today Date Badge & Role Identity Controls */}
+          {/* Brand Logo, Title & Role Identity Controls (Moved from Home page header) */}
           <div className="flex items-center justify-between md:justify-start gap-2.5 sm:gap-4">
-            <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#8C6D53] to-[#E88D67] flex items-center justify-center shadow-md shadow-[#8C6D53]/20 group-hover:scale-105 transition-transform shrink-0">
-                <Music className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-500 to-[#D97736] flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-md shadow-[#D97736]/20 group-hover:scale-105 transition-transform shrink-0">
+                🎵
               </div>
               <div>
-                <span className="font-bold text-base sm:text-lg text-[#332C27] tracking-tight whitespace-nowrap block">
-                  Studio OS 教師課表
-                </span>
-                <div className="flex items-center gap-1 text-[10px] sm:text-xs text-[#7A736E] -mt-0.5 font-medium whitespace-nowrap">
-                  <span className="hidden xs:inline">音樂教室 AI 工作台</span>
-                  <span className="hidden xs:inline text-[#E8D4C5]">·</span>
-                  <span className="font-mono text-[10px] sm:text-[11px] font-bold text-[#8C6D53]">{todayStr}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="font-black text-base sm:text-lg text-[#332C27] tracking-tight whitespace-nowrap block">
+                    Musi <span className="text-[#D97736]">Mate</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-[10px] sm:text-xs font-black">
+                    v3.2 PRO
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[10px] sm:text-xs text-[#7A736E] -mt-0.5 font-bold whitespace-nowrap">
+                  <span>音樂教室AI 小幫手</span>
+                  <span className="text-[#E8D4C5]">·</span>
+                  <span className="font-mono text-[10px] sm:text-[11px] text-[#D97736]">{todayStr}</span>
                 </div>
               </div>
             </Link>
 
             {/* Authenticated Role Badge & Logout Control */}
-            {activeAuth ? (
+            {activeAuth && (
               <div className="flex items-center gap-1 sm:gap-2 bg-[#FAF7F2] p-1 rounded-full border border-[#EFECE6] shrink-0">
                 <span className="px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1 bg-[#8C6D53] text-white shadow-xs">
                   <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -118,14 +123,6 @@ export const Navbar: React.FC = () => {
                   登出
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#8C6D53] hover:bg-[#765942] text-white text-[11px] sm:text-xs font-bold flex items-center gap-1 shadow-sm transition-all"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                帳號密碼登入
-              </button>
             )}
           </div>
 

@@ -15,31 +15,25 @@
 </head>
 <body class="text-stone-800 antialiased min-h-screen py-4 sm:py-6 px-3 sm:px-6 max-w-7xl mx-auto space-y-8">
 
-  <!-- 1. 頁首 Header -->
-  <header class="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-500 to-[#D97736] flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0">
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border border-[#EFECE6] rounded-2xl px-4 py-3 shadow-[0_2px_15px_rgba(140,109,83,0.04)] flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-500 to-[#D97736] flex items-center justify-center text-white font-black text-xl shadow-md shrink-0">
         🎵
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+          <h1 class="text-xl font-black text-stone-900 tracking-tight">
             Musi <span class="text-[#D97736]">Mate</span>
           </h1>
-          <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black">
+          <span class="px-2 py-0.5 rounded-full bg-amber-50 text-[#D97736] border border-amber-200 text-xs font-black">
             v3.2 PRO
           </span>
         </div>
-        <p class="text-xs sm:text-sm text-stone-500 font-bold mt-0.5">
-          音樂教室AI 小幫手
+        <p class="text-xs text-stone-500 font-bold -mt-0.5">
+          音樂教室AI 小幫手 · <span class="font-mono text-[#D97736]">2026/08/31 (UTC+8)</span>
         </p>
       </div>
-    </div>
-
-    <!-- 動態時間 Badge -->
-    <div class="flex items-center gap-2 bg-[#FAF7F2] px-4 py-2 rounded-2xl border border-stone-200 text-xs font-mono font-bold text-stone-700 shadow-xs">
-      <span>今日時間：</span>
-      <span class="text-[#D97736] font-black">2026/08/30 (UTC+8)</span>
     </div>
   </header>
 
