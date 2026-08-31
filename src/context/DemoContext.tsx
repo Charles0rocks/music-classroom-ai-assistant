@@ -15,6 +15,7 @@ import {
 } from '@/types';
 import { LoginModal } from '@/components/LoginModal';
 import { getAvatarByGender } from '@/lib/avatarHelper';
+import { supabase } from '@/lib/supabaseClient';
 
 // Preset Teachers with Credentials (Default: Charles Lin, chl@gmail.com / 12345678)
 export const PRESET_TEACHERS: { user: User; teacher: Teacher }[] = [
@@ -114,7 +115,7 @@ const MOCK_STUDENT_USER: User = {
   id: 'u0000000-0000-0000-0000-000000000002',
   role: 'student',
   name: '學生端體驗帳號',
-  email: 'student@harmony.edu',
+  email: 'student@demo.edu',
   avatar_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
 };
 
@@ -124,14 +125,65 @@ const MOCK_STUDENT: Student = {
   teacher_id: PRESET_TEACHERS[0].teacher.id,
 };
 
-// CLEAN INITIAL STATES (100% pure initialization, 0 pre-populated mock appointment cards!)
-const INITIAL_SLOTS: ScheduleSlot[] = [];
-const INITIAL_APPOINTMENTS: Appointment[] = [];
-const INITIAL_LESSONS: LessonRecord[] = [];
-const INITIAL_DEMO_VIDEOS: TeacherDemoVideo[] = [];
-const INITIAL_PRACTICE_VIDEOS: StudentPracticeVideo[] = [];
+const INITIAL_SLOTS: ScheduleSlot[] = [
+  { id: 's1', start_time: '2026-08-31T09:00:00.000Z', end_time: '2026-08-31T10:00:00.000Z', is_available: true },
+  { id: 's2', start_time: '2026-08-31T14:00:00.000Z', end_time: '2026-08-31T15:00:00.000Z', is_available: false },
+];
 
-interface DemoContextType {
+const INITIAL_APPOINTMENTS: Appointment[] = [
+  {
+    id: 'a1',
+    student_id: 's1',
+    student_name: '許雅婷',
+    teacher_id: 't-charles-lin',
+    start_time: '2026-08-31T10:00:00.000Z',
+    end_time: '2026-08-31T11:00:00.000Z',
+    date: '2026-08-31',
+    day_of_week: '週一',
+    time_slot: '10:00 - 11:00',
+    fee: 1200,
+    status: 'confirmed',
+  },
+];
+
+const INITIAL_LESSONS: LessonRecord[] = [
+  {
+    id: 'l1',
+    student_name: '許雅婷',
+    course_name: '鋼琴進階檢定曲',
+    created_at: '2026-08-31T10:00:00Z',
+    audio_url: 'https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg',
+    raw_transcript: '許雅婷今天練習巴哈二部創意曲，整體音符很精準，但在轉調段落手腕稍顯僵硬，音量層次可以更大。',
+    llm_summary: '音符與拍子精準，轉調段落放鬆手腕。作業：每日慢速練習第 16-24 小節，維持觸鍵彈性。',
+    tags: ['巴哈創意曲', '觸鍵技巧', '手腕放鬆'],
+  },
+];
+
+const INITIAL_DEMO_VIDEOS: TeacherDemoVideo[] = [
+  {
+    id: 'dv1',
+    title: '蕭邦 Nocturne Op.9 No.2 示範演練',
+    video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    pitch_tolerance: 5,
+    tempo_tolerance: 8,
+    tags: ['蕭邦夜曲', '踏板技巧', '音色控制'],
+  },
+];
+
+const INITIAL_PRACTICE_VIDEOS: StudentPracticeVideo[] = [
+  {
+    id: 'pv1',
+    demo_video_id: 'dv1',
+    student_name: '許雅婷',
+    practice_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    pitch_similarity: 92,
+    tempo_similarity: 88,
+    posture_match_score: 95,
+    created_at: '2026-08-31T11:30:00Z',
+  },
+];
+
+export interface DemoContextType {
   isAuthenticated: boolean;
   showLoginModal: boolean;
   setShowLoginModal: (show: boolean) => void;
@@ -167,6 +219,9 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentRole, setCurrentRole] = useState<Role>('teacher');
   const [activeTeacherIdx, setActiveTeacherIdx] = useState<number>(0);
 
+  const [customTeacherUser, setCustomTeacherUser] = useState<User | null>(null);
+  const [customTeacherProfile, setCustomTeacherProfile] = useState<Teacher | null>(null);
+
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>(INITIAL_SLOTS);
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
   const [rescheduleRequests, setRescheduleRequests] = useState<RescheduleRequest[]>([]);
@@ -175,12 +230,79 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [practiceVideos, setPracticeVideos] = useState<StudentPracticeVideo[]>(INITIAL_PRACTICE_VIDEOS);
 
   const activeTeacherPair = PRESET_TEACHERS[activeTeacherIdx] || PRESET_TEACHERS[0];
-  const currentUser = currentRole === 'teacher' ? activeTeacherPair.user : MOCK_STUDENT_USER;
-  const teacherProfile = activeTeacherPair.teacher;
+  
+  const currentUser: User = currentRole === 'teacher'
+    ? (customTeacherUser || activeTeacherPair.user)
+    : MOCK_STUDENT_USER;
 
-  // Restore authenticated teacher from localStorage on client mount
+  const teacherProfile: Teacher = (currentRole === 'teacher' && customTeacherProfile)
+    ? customTeacherProfile
+    : activeTeacherPair.teacher;
+
+  // Restore authenticated teacher from localStorage or Supabase on client mount
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const syncAuth = async () => {
+      if (typeof window === 'undefined') return;
+
+      // 1. Check Supabase session first
+      if (supabase) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const user = session.user;
+            let teacherDb: any = null;
+            try {
+              const { data } = await supabase
+                .from('teachers')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
+              teacherDb = data;
+            } catch (e) {}
+
+            const teacherName = teacherDb?.name || user.user_metadata?.name || user.email?.split('@')[0] || '認證老師';
+            const teacherGender = teacherDb?.gender || user.user_metadata?.gender || 'female';
+            const avatarUrl = teacherDb?.avatar_url || getAvatarByGender(teacherGender, user.id);
+
+            const userObj: User = {
+              id: user.id,
+              role: 'teacher',
+              name: teacherName,
+              email: user.email || '',
+              avatar_url: avatarUrl,
+            };
+
+            const profileObj: Teacher = {
+              id: teacherDb?.id || `t-${user.id}`,
+              user_id: user.id,
+              instrument: teacherDb?.instrument || user.user_metadata?.instrument || '音樂',
+              bio: teacherDb?.bio || user.user_metadata?.bio || '專業音樂教師',
+            };
+
+            setCustomTeacherUser(userObj);
+            setCustomTeacherProfile(profileObj);
+            setCurrentRole('teacher');
+            setIsAuthenticated(true);
+
+            // Also store in LocalStorage for offline cache
+            localStorage.setItem('auth_teacher', JSON.stringify({
+              id: profileObj.id,
+              user_id: user.id,
+              name: userObj.name,
+              email: userObj.email,
+              gender: teacherGender,
+              instrument: profileObj.instrument,
+              bio: profileObj.bio,
+              avatar_url: avatarUrl,
+            }));
+            return;
+          }
+        } catch (e) {
+          console.warn('Supabase session fetch notice:', e);
+        }
+      }
+
+      // 2. Fallback to LocalStorage 'auth_teacher'
       const saved = localStorage.getItem('auth_teacher');
       if (saved) {
         try {
@@ -190,8 +312,31 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               t.user.email.toLowerCase() === teacherObj.email?.toLowerCase() ||
               t.user.name === teacherObj.name
           );
+
           if (idx !== -1) {
             setActiveTeacherIdx(idx);
+            setCustomTeacherUser(null);
+            setCustomTeacherProfile(null);
+          } else {
+            // Custom registered teacher profile
+            const avatarUrl = teacherObj.avatar_url || getAvatarByGender(teacherObj.gender || 'female', teacherObj.user_id || teacherObj.id);
+            const userObj: User = {
+              id: teacherObj.user_id || teacherObj.id || `u-custom-${Date.now()}`,
+              role: 'teacher',
+              name: teacherObj.name || '認證老師',
+              email: teacherObj.email || '',
+              avatar_url: avatarUrl,
+            };
+
+            const profileObj: Teacher = {
+              id: teacherObj.id || `t-${teacherObj.user_id}`,
+              user_id: teacherObj.user_id || userObj.id,
+              instrument: teacherObj.instrument || '音樂',
+              bio: teacherObj.bio || '專業音樂教師',
+            };
+
+            setCustomTeacherUser(userObj);
+            setCustomTeacherProfile(profileObj);
           }
           setCurrentRole('teacher');
           setIsAuthenticated(true);
@@ -199,46 +344,84 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Failed to parse auth_teacher:', e);
         }
       }
-    }
-  }, []);
+    };
+
+    syncAuth();
+  }, [isAuthenticated]);
 
   const login = (email: string, pass: string, role: Role) => {
     if (role === 'teacher') {
       const targetEmail = email.trim().toLowerCase();
       const matchedIdx = PRESET_TEACHERS.findIndex((t) => t.user.email.toLowerCase() === targetEmail);
 
-      let matchedPair = PRESET_TEACHERS[0];
       if (matchedIdx !== -1) {
         if (pass === '12345678' || pass === 'Teacher#2026' || pass === 'teacher123') {
           setActiveTeacherIdx(matchedIdx);
-          matchedPair = PRESET_TEACHERS[matchedIdx];
+          setCustomTeacherUser(null);
+          setCustomTeacherProfile(null);
+          const matchedPair = PRESET_TEACHERS[matchedIdx];
+          const teacherObj = {
+            id: matchedPair.teacher.id,
+            user_id: matchedPair.user.id,
+            name: matchedPair.user.name,
+            email: matchedPair.user.email,
+            avatar_url: matchedPair.user.avatar_url,
+            instrument: matchedPair.teacher.instrument,
+            bio: matchedPair.teacher.bio,
+          };
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('auth_teacher', JSON.stringify(teacherObj));
+          }
+          setCurrentRole('teacher');
+          setIsAuthenticated(true);
+          return { success: true, message: `登入成功！歡迎 ${matchedPair.user.name}。` };
         } else {
           return { success: false, message: '密碼錯誤！(密碼為 12345678 或 Teacher#2026)' };
         }
       } else {
-        // Fallback for custom email (chl@gmail.com / Charles Lin)
-        setActiveTeacherIdx(0);
-        matchedPair = PRESET_TEACHERS[0];
+        // Custom registered teacher login
+        const savedStr = typeof window !== 'undefined' ? localStorage.getItem('auth_teacher') : null;
+        let teacherObj = savedStr ? JSON.parse(savedStr) : null;
+
+        if (!teacherObj || teacherObj.email?.toLowerCase() !== targetEmail) {
+          const userName = targetEmail.split('@')[0] || '認證老師';
+          const avatarUrl = getAvatarByGender('female', targetEmail);
+          teacherObj = {
+            id: `t-reg-${Date.now()}`,
+            user_id: `u-reg-${Date.now()}`,
+            name: userName,
+            email: targetEmail,
+            avatar_url: avatarUrl,
+            instrument: '音樂指導',
+            bio: '新申請認證教師',
+          };
+        }
+
+        const userObj: User = {
+          id: teacherObj.user_id || teacherObj.id,
+          role: 'teacher',
+          name: teacherObj.name,
+          email: teacherObj.email,
+          avatar_url: teacherObj.avatar_url,
+        };
+
+        const profileObj: Teacher = {
+          id: teacherObj.id,
+          user_id: teacherObj.user_id || userObj.id,
+          instrument: teacherObj.instrument,
+          bio: teacherObj.bio,
+        };
+
+        setCustomTeacherUser(userObj);
+        setCustomTeacherProfile(profileObj);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_teacher', JSON.stringify(teacherObj));
+        }
+
+        setCurrentRole('teacher');
+        setIsAuthenticated(true);
+        return { success: true, message: `登入成功！歡迎 ${teacherObj.name} 老師。` };
       }
-
-      setCurrentRole('teacher');
-      setIsAuthenticated(true);
-
-      const teacherObj = {
-        id: matchedPair.teacher.id,
-        user_id: matchedPair.user.id,
-        name: matchedPair.user.name,
-        email: matchedPair.user.email,
-        avatar_url: matchedPair.user.avatar_url,
-        instrument: matchedPair.teacher.instrument,
-        bio: matchedPair.teacher.bio,
-      };
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_teacher', JSON.stringify(teacherObj));
-      }
-
-      return { success: true, message: `登入成功！歡迎 ${matchedPair.user.name}。` };
     } else {
       setCurrentRole('student');
       setIsAuthenticated(true);

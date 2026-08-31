@@ -263,13 +263,22 @@ export default function TeacherSchedulePage() {
     try {
       const savedTeacherStr = typeof window !== 'undefined' ? localStorage.getItem('auth_teacher') : null;
       const currentTeacher = savedTeacherStr ? JSON.parse(savedTeacherStr) : currentUser;
-      const queryName = currentTeacher?.name || 'Charles Lin';
+      const queryName = currentTeacher?.name || currentUser?.name;
+      const queryId = currentTeacher?.id || teacherProfile?.id;
+      const queryUserId = currentTeacher?.user_id || currentUser?.id;
 
-      console.log(`[Supabase Fetch] Fetching schedules for teacher: ${queryName}`);
+      console.log(`[Supabase Fetch] Fetching scoped schedules for teacher: ${queryName} (id: ${queryId}, user_id: ${queryUserId})`);
 
-      const { data, error } = await supabase
-        .from('schedules')
-        .select('*');
+      let query = supabase.from('schedules').select('*');
+      if (queryId || queryUserId || queryName) {
+        const conditions = [];
+        if (queryId) conditions.push(`teacher_id.eq.${queryId}`);
+        if (queryUserId) conditions.push(`teacher_id.eq.${queryUserId}`);
+        if (queryName) conditions.push(`teacher_name.eq.${queryName}`);
+        query = query.or(conditions.join(','));
+      }
+
+      const { data, error } = await query;
 
       console.log('Fetched Schedules Result:', { data, error });
 
@@ -705,22 +714,22 @@ export default function TeacherSchedulePage() {
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border-2 border-[#D97736] overflow-hidden shrink-0 shadow-md">
               <img
-                src={currentUser?.avatar_url || getAvatarByGender('male', currentUser?.id)}
-                alt={currentUser?.name || 'Charles Lin'}
+                src={currentUser?.avatar_url || getAvatarByGender(teacherProfile?.gender || 'female', currentUser?.id)}
+                alt={currentUser?.name || '認證老師'}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-base sm:text-lg tracking-tight text-stone-800">
-                  {currentUser?.name || 'Charles Lin'}
+                  {currentUser?.name || '認證老師'}
                 </span>
                 <span className="px-2 py-0.5 rounded-md bg-[#D97736] text-white font-black text-[10px] uppercase tracking-wide shadow-xs">
                   PRO
                 </span>
               </div>
               <div className="text-xs text-stone-500 font-medium font-mono">
-                {teacherProfile?.instrument || 'Piano'} 指導工作室
+                {teacherProfile?.instrument || '音樂'} 指導工作室
               </div>
             </div>
           </div>

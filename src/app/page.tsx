@@ -125,12 +125,12 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
-                      src={currentUser?.avatar_url || getAvatarByGender('male', currentUser?.id)}
-                      alt="林詠晴 老師"
+                      src={currentUser?.avatar_url || getAvatarByGender(teacherProfile?.gender || 'female', currentUser?.id)}
+                      alt={currentUser?.name || '認證老師'}
                       className="w-10 h-10 rounded-full border-2 border-emerald-300 object-cover"
                     />
                     <div>
-                      <div className="font-extrabold text-sm text-stone-900">{currentUser?.name || '林詠晴 老師'} (PRO)</div>
+                      <div className="font-extrabold text-sm text-stone-900">{currentUser?.name || '認證老師'} (PRO)</div>
                       <div className="text-xs text-emerald-700 font-bold">已成功驗證登入中</div>
                     </div>
                   </div>

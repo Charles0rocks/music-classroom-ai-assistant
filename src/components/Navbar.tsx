@@ -42,9 +42,9 @@ export const Navbar: React.FC = () => {
   }, [isAuthenticated]);
 
   const activeAuth = isAuthenticated || !!savedTeacher;
-  const teacherName = savedTeacher?.name || currentUser?.name || 'Charles Lin';
-  const teacherAvatar = savedTeacher?.avatar_url || currentUser?.avatar_url || getAvatarByGender(savedTeacher?.gender || 'male', savedTeacher?.id || currentUser?.id);
-  const teacherEmail = savedTeacher?.email || currentUser?.email || 'chl@gmail.com';
+  const teacherName = currentUser?.name || savedTeacher?.name || '認證老師';
+  const teacherAvatar = currentUser?.avatar_url || savedTeacher?.avatar_url || getAvatarByGender(savedTeacher?.gender || 'female', currentUser?.id || savedTeacher?.id);
+  const teacherEmail = currentUser?.email || savedTeacher?.email || 'teacher@harmony.edu';
 
   const handleLogout = () => {
     logout();
