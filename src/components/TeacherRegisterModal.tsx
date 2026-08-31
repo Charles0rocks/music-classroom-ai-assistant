@@ -140,14 +140,13 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
 
       login(formData.email, formData.password, 'teacher');
 
-      setSuccessMsg('🎉 申請成功！已為您完成帳號建置並自動登入，正在跳轉至工作台...');
+      setSuccessMsg('🎉 申請成功！已為您完成帳號建置與登入。');
 
       setTimeout(() => {
         setIsSubmitting(false);
         setSuccessMsg('');
         onClose();
-        router.push('/teacher/schedule');
-      }, 1000);
+      }, 800);
     } catch (err: any) {
       console.error('Registration failed:', err);
       setErrorMsg(err?.message || '註冊過程發生未知錯誤，請稍後再試。');

@@ -65,9 +65,6 @@ export default function HomePage() {
     const res = login(email, password, 'teacher');
     if (res.success) {
       setSuccessMsg(res.message);
-      setTimeout(() => {
-        router.push('/teacher/schedule');
-      }, 500);
     } else {
       setErrorMsg(res.message);
     }
@@ -81,19 +78,13 @@ export default function HomePage() {
     const res = login(targetEmail, targetPass, 'teacher');
     if (res.success) {
       setSuccessMsg(res.message);
-      setTimeout(() => {
-        router.push('/teacher/schedule');
-      }, 500);
     }
   };
 
   const handleSocialLogin = (provider: 'LINE' | 'Google') => {
     setErrorMsg('');
-    setSuccessMsg(`已透過 ${provider} 快速驗證身份！進入教師工作台...`);
+    setSuccessMsg(`已透過 ${provider} 快速驗證身份！`);
     login('chang.teacher@harmony.edu', 'Teacher#2026', 'teacher');
-    setTimeout(() => {
-      router.push('/teacher/schedule');
-    }, 600);
   };
 
   return (

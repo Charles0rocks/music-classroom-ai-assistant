@@ -41,8 +41,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       setTimeout(() => {
         onClose();
         setSuccessMsg('');
-        router.push('/teacher/schedule');
-      }, 600);
+      }, 500);
     } else {
       setErrorMsg(res.message);
     }
