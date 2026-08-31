@@ -61,10 +61,20 @@ export const TeacherRegisterModal: React.FC<TeacherRegisterModalProps> = ({
 
       // 2. Supabase 串接：建立驗證帳號與寫入 teachers 資料表
       if (supabase) {
-        // 第一步：呼叫 supabase.auth.signUp
+        // 第一步：呼叫 supabase.auth.signUp 並帶入 options.data User Metadata
         const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: formData.email.trim(),
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
+          options: {
+            data: {
+              name: formData.name.trim(),
+              nickname: formData.nickname?.trim() || '',
+              gender: formData.gender,
+              instrument: formData.subjects.trim(),
+              phone: formData.phone?.trim() || '',
+              bio: formData.bio?.trim() || '',
+            },
+          },
         });
 
         if (authError) {
