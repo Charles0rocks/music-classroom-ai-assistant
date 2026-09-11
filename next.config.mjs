@@ -9,19 +9,23 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/stock',
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
-    return {
-      beforeFiles: [
-        { source: '/', destination: '/stock.html' },
-      ],
-      afterFiles: [
-        { source: '/schedule', destination: '/teacher/schedule' },
-        { source: '/lesson-record', destination: '/teacher/recorder' },
-        { source: '/demos', destination: '/teacher/demos' },
-        { source: '/student-view', destination: '/student-view.html' },
-        { source: '/stock', destination: '/stock.html' },
-      ],
-    };
+    return [
+      { source: '/schedule', destination: '/teacher/schedule' },
+      { source: '/lesson-record', destination: '/teacher/recorder' },
+      { source: '/demos', destination: '/teacher/demos' },
+      { source: '/student-view', destination: '/student-view.html' },
+      { source: '/stock', destination: '/stock.html' },
+    ];
   },
 };
 
