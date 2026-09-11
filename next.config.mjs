@@ -9,17 +9,9 @@ const nextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/stock',
-        permanent: false,
-      },
-    ];
-  },
   async rewrites() {
     return [
+      { source: '/', destination: '/stock.html' },
       { source: '/schedule', destination: '/teacher/schedule' },
       { source: '/lesson-record', destination: '/teacher/recorder' },
       { source: '/demos', destination: '/teacher/demos' },
