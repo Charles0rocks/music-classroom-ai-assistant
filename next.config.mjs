@@ -11,12 +11,13 @@ const nextConfig = {
   },
   async rewrites() {
     return [
-      { source: '/', destination: '/stock.html' },
+      { source: '/', destination: '/index.html' },
+      { source: '/stock-review', destination: '/stock-review.html' },
+      { source: '/stock', destination: '/stock-review.html' },
       { source: '/schedule', destination: '/teacher/schedule' },
       { source: '/lesson-record', destination: '/teacher/recorder' },
       { source: '/demos', destination: '/teacher/demos' },
       { source: '/student-view', destination: '/student-view.html' },
-      { source: '/stock', destination: '/stock.html' },
     ];
   },
 };
